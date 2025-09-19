@@ -8,7 +8,7 @@ Mock.mock(/\/api\/images\?page=\d+/, 'get', (options) => {
   return Mock.mock({
     list: Array.from({ length: 35 }, (_, i) => ({
       id: (page - 1) * 35 + i + 1,
-      img: Mock.Random.image('128x128', '#50B347', '#FFF', 'Mock'),
+      img: Mock.Random.image('128x128', '#0077ffff', '#FFF', 'Pixiv'),
       title: Mock.Random.ctitle(5, 8),
       desc: Mock.Random.cparagraph(1, 3),
       likes: Mock.Random.integer(0, 999),

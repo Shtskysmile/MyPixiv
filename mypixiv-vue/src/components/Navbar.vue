@@ -1,9 +1,16 @@
-
 <template>
-  <nav class="navbar sticky-navbar" role="navigation" aria-label="main navigation">
+  <nav
+    class="navbar sticky-navbar"
+    role="navigation"
+    aria-label="main navigation"
+  >
     <div class="navbar-brand">
       <a class="navbar-item" href="/">
-  <img src="@/assets/images/logo.png" alt="logo" style="height: 48px;">
+        <img
+          src="@/assets/images/Pixiv_Icon.svg"
+          alt="logo"
+          style="height: 48px"
+        />
       </a>
 
       <a
@@ -21,23 +28,7 @@
     </div>
 
     <div id="navbarBasicExample" class="navbar-menu">
-      <div class="navbar-start">
-        <a class="navbar-item"> Home </a>
-
-        <a class="navbar-item"> Documentation </a>
-
-        <div class="navbar-item has-dropdown is-hoverable">
-          <a class="navbar-link"> More </a>
-
-          <div class="navbar-dropdown">
-            <a class="navbar-item"> About </a>
-            <a class="navbar-item is-selected"> Jobs </a>
-            <a class="navbar-item"> Contact </a>
-            <hr class="navbar-divider" />
-            <a class="navbar-item"> Report an issue </a>
-          </div>
-        </div>
-      </div>
+      <div class="navbar-start"></div>
 
       <div class="navbar-end">
         <div class="navbar-item">
@@ -55,6 +46,29 @@
 
 <script></script>
 
-<style>
+<style scoped>
 @import "../assets/css/sticky-navbar.css";
+
+.sticky-navbar {
+  background-color: #1e6fff;
+  color: #ffffff;
+}
+
+.sticky-navbar .navbar-item,
+.sticky-navbar .navbar-link,
+.sticky-navbar .navbar-burger span {
+  color: #ffffff;
+}
+
+.sticky-navbar .button.is-primary {
+  background-color: #ffffff;
+  color: #1e6fff;
+  border: none;
+}
+
+.sticky-navbar .button.is-light {
+  background-color: transparent;
+  color: #ffffff;
+  border: 1px solid rgba(255,255,255,0.2);
+}
 </style>
