@@ -1,8 +1,10 @@
 <template>
-  <div class="container">
-    <Navbar></Navbar>
-    
-    <div class="box">
+  <div class="page-root">
+    <div class="page-bg" :style="bgStyle"></div>
+    <div class="page-overlay"></div>
+    <div class="container">
+      <Navbar></Navbar>
+
       <div class="columns">
         <div class="column is-one-fifth">
           <Sidebar />
@@ -38,6 +40,7 @@ import Navbar from "./Navbar.vue";
 import ImageBlock from "./ImageBlock.vue";
 import Pagination from "./Pagination.vue";
 import Sidebar from "./Sidebar.vue";
+import bgImg from "@/assets/images/Myth_Crystalcastle.jpg";
 
 export default {
   components: {
@@ -59,6 +62,21 @@ export default {
       this.images = res.data.list;
       // this.totalPage = res.data.totalPage; // 如果API有返回总页数可用
     });
+  },
+  computed: {
+    bgStyle() {
+      return {
+        backgroundImage: `url(${bgImg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center center",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: -2,
+      };
+    },
   },
   methods: {
     getPageFromUrl() {
@@ -82,4 +100,35 @@ export default {
 };
 </script>
 
-<style></style>
+<style scoped>
+.page-root {
+  position: relative;
+  min-height: 100vh;
+}
+.page-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center center;
+  z-index: -2;
+}
+.page-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: -1;
+}
+
+/* 确保容器内容在前景可读 */
+.container {
+  position: relative;
+  z-index: 1;
+}
+</style>

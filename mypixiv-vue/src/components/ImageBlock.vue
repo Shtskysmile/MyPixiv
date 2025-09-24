@@ -1,22 +1,26 @@
 <template>
   <div>
     <div>
-      <figure class="image is-4by3">
-        <img :src="image.img" :alt="image.title" />
-      </figure>
-    </div>
-    <div>
-      <div>{{ image.title }}</div>
+        <router-link :to="`/image/${image.id}`">
+          <figure class="image is-4by3">
+            <img :src="image.url || image.img" :alt="image.title" />
+          </figure>
+        </router-link>
+      </div>
+      <div>
+        <div>
+          <router-link :to="`/image/${image.id}`">{{ image.title }}</router-link>
+        </div>
 
       <div
         style="margin-top: 4px; display: flex; align-items: center; gap: 6px"
       >
         <img
-          :src="image.author_avatar"
-          :alt="image.author_name"
+          :src="(image.author && image.author.avatar) || image.author_avatar"
+          :alt="(image.author && image.author.name) || image.author_name"
           style="width: 18px; height: 18px; border-radius: 50%"
         />
-        <span>{{ image.author_name }}</span>
+        <span>{{ (image.author && image.author.name) || image.author_name }}</span>
       </div>
     </div>
   </div>

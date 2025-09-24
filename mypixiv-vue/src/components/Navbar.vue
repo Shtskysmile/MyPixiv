@@ -30,13 +30,28 @@
     <div id="navbarBasicExample" class="navbar-menu">
       <div class="navbar-start"></div>
 
+      <div class="navbar-center">
+        <div class="navbar-item nav-search">
+          <form class="field has-addons" @submit.prevent="onSearch">
+            <div class="control is-expanded">
+              <input class="input" type="text" v-model="search" placeholder="搜索插画、作者..." @keyup.enter="onSearch">
+            </div>
+            <div class="control">
+              <button class="button is-info" type="submit">
+                🔍
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
       <div class="navbar-end">
         <div class="navbar-item">
           <div class="buttons">
-            <a class="button is-primary">
-              <strong>Sign up</strong>
-            </a>
-            <a class="button is-light"> Log in </a>
+            <router-link class="button is-primary" to="/register">
+              <strong>注册</strong>
+            </router-link>
+            <router-link class="button is-light" to="/login">登录</router-link>
           </div>
         </div>
       </div>
@@ -44,7 +59,26 @@
   </nav>
 </template>
 
-<script></script>
+<script>
+export default {
+  name: 'AppNavbar',
+  data() {
+    return {
+      search: ''
+    };
+  },
+  methods: {
+    onSearch() {
+      const q = (this.search || '').trim();
+      if (q) {
+        this.$router.push({ path: '/index', query: { search: q, page: 1 } });
+      } else {
+        this.$router.push({ path: '/index', query: { page: 1 } });
+      }
+    }
+  }
+};
+</script>
 
 <style scoped>
 @import "../assets/css/sticky-navbar.css";
@@ -60,6 +94,50 @@
   color: #ffffff;
 }
 
+/* 居中搜索框布局 */
+.sticky-navbar .navbar-menu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sticky-navbar .navbar-center {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
+}
+
+.nav-search {
+  flex: 0 1 720px;
+}
+
+.nav-search .field.has-addons {
+  max-width: 880px;
+  width: 720px;
+}
+
+.nav-search .input {
+  font-size: 16px;
+  padding: 10px 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 移动端样式 */
+@media (max-width: 768px) {
+  .nav-search .field.has-addons {
+    max-width: 100%;
+  }
+  .sticky-navbar .navbar-menu {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .sticky-navbar .navbar-center {
+    order: 2;
+    padding: 8px 12px;
+  }
+}
+
 .sticky-navbar .button.is-primary {
   background-color: #ffffff;
   color: #1e6fff;
@@ -70,5 +148,10 @@
   background-color: transparent;
   color: #ffffff;
   border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* 给右侧按钮组增加一些右侧留白，避免贴边 */
+.sticky-navbar .navbar-end {
+  margin-right: 12px;
 }
 </style>
