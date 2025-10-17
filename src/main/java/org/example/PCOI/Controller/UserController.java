@@ -1,9 +1,6 @@
 package org.example.PCOI.Controller;
 
 import org.example.PCOI.Entity.*;
-import org.example.PCOI.Entity.RequestStruct.LoginRequest;
-import org.example.PCOI.Entity.RequestStruct.RegisterRequest;
-import org.example.PCOI.Entity.RequestStruct.UpdatePwdRequest;
 import org.example.PCOI.Service.Inter.LogService;
 import org.example.PCOI.Service.Inter.UserService;
 import org.example.PCOI.Utils.JwtUtil;
@@ -11,6 +8,7 @@ import org.example.PCOI.Utils.Md5Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,7 +22,12 @@ public class UserController {
     private LogService logService;
 
     @PostMapping("/register")
-    public Result<String> register(@RequestBody RegisterRequest req){
+    public Result<String> register(
+            @RequestParam("username") String username,
+            @RequestParam("password") String password,
+            @RequestParam("gender") String gender,
+            @RequestParam("securityQuestions") Map<String,String> securityQuestions,
+            @RequestParam(value = "avatar", required = false) MultipartFile avatar){
         String username = req.getUsername();
         String password = req.getPassword();
         String identity = req.getIdentity();
@@ -41,7 +44,10 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public Result<User> login(@RequestBody LoginRequest req){
+    public Result<User> login(
+            @RequestParam ("username") String username,
+            @RequestParam("password") String password,
+            @RequestParam("identity")String identity){
         String username = req.getUsername();
         String password = req.getPassword();
         logService.logMethodExecution(username);
