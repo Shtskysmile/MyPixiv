@@ -56,3 +56,47 @@ Mock.mock(/\/api\/image\/\d+\/comments/, 'get', (options) => {
     comments,
   };
 });
+
+// 用户信息
+Mock.mock(/\/api\/user\/\d+/, 'get', (options) => {
+  const parts = options.url.split('/');
+  const id = parts[parts.length - 1];
+  return Mock.mock({
+    id: parseInt(id),
+    name: Mock.Random.cname(),
+    role: '艺术家',
+    bio: Mock.Random.cparagraph(1, 2),
+    avatar: Mock.Random.image('96x96', Mock.Random.hex(), '#FFF', 'U')
+  });
+});
+
+// 用户收藏
+Mock.mock(/\/api\/user\/\d+\/favorites/, 'get', (options) => {
+  const list = Array.from({ length: 12 }, (_, i) => ({
+    id: Mock.Random.integer(1, 1000000),
+    url: Mock.Random.image('400x300', Mock.Random.hex(), '#FFF', 'Illu'),
+    title: Mock.Random.ctitle(4, 8),
+  }));
+  return {
+    id: options.url.split('/')[3],
+    list,
+  };
+});
+
+// 更新用户信息（模拟 POST/PUT）
+Mock.mock(/\/api\/user\/\d+$/, 'post', (options) => {
+  try {
+    const body = JSON.parse(options.body || '{}');
+    const parts = options.url.split('/');
+    const id = parseInt(parts[parts.length - 1]);
+    return Mock.mock({
+      id,
+      name: body.name || Mock.Random.cname(),
+      role: body.role || '艺术家',
+      bio: body.bio || Mock.Random.cparagraph(1,2),
+      avatar: body.avatar || Mock.Random.image('96x96', Mock.Random.hex(), '#FFF', 'U')
+    });
+  } catch (e) {
+    return { error: 'invalid_body' };
+  }
+});
