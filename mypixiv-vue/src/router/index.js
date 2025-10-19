@@ -6,6 +6,7 @@ import Login from '@/components/Login.vue'
 import Register from '@/components/Register.vue'
 import User from '@/components/User.vue'
 import ImageView from '@/components/ImageView.vue'
+import ChangePwd from '@/components/ChangePwd.vue'
 
 Vue.use(Router)
 
@@ -19,6 +20,7 @@ export default new Router({
     { path: '/login', name: 'login', component: Login },
     { path: '/register', name: 'register', component: Register },
     { path: '/guide', name: 'guide-explicit', component: Guide },
+    { path: '/changepwd', name: 'changepwd', component: ChangePwd },
     { path: '/image/:id', name: 'image-detail', component: ImageView, props: true   }
   ]
 })

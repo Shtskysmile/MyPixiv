@@ -57,8 +57,8 @@ Mock.mock(/\/api\/image\/\d+\/comments/, 'get', (options) => {
   };
 });
 
-// 用户信息
-Mock.mock(/\/api\/user\/\d+/, 'get', (options) => {
+// 用户信息（精确匹配）
+Mock.mock(/\/api\/user\/\d+$/, 'get', (options) => {
   const parts = options.url.split('/');
   const id = parts[parts.length - 1];
   return Mock.mock({
@@ -76,9 +76,36 @@ Mock.mock(/\/api\/user\/\d+\/favorites/, 'get', (options) => {
     id: Mock.Random.integer(1, 1000000),
     url: Mock.Random.image('400x300', Mock.Random.hex(), '#FFF', 'Illu'),
     title: Mock.Random.ctitle(4, 8),
+    likes: Mock.Random.integer(0, 9999),
+    favorites: Mock.Random.integer(0, 9999),
+    author: {
+      name: Mock.Random.cname(),
+      avatar: Mock.Random.image('48x48', Mock.Random.hex(), '#FFF', 'A')
+    }
   }));
   return {
     id: options.url.split('/')[3],
+    list,
+  };
+});
+
+// 通用假收藏接口：/api/user/:uid/favorite
+Mock.mock(/\/api\/user\/\d+\/favorite$/, 'get', (options) => {
+  // 从 url 提取 uid
+  const parts = options.url.split('/');
+  // url 例子: /api/user/123456/favorite
+  const uid = parts[parts.length - 2] || '0';
+  const list = Array.from({ length: Mock.Random.integer(6, 14) }, (_, i) => ({
+    id: Mock.Random.integer(1, 1000000),
+    url: Mock.Random.image('400x300', Mock.Random.hex(), '#FFF', 'Illu'),
+    title: Mock.Random.ctitle(4, 10),
+    author: {
+      name: Mock.Random.cname(),
+      avatar: Mock.Random.image('64x64', Mock.Random.hex(), '#FFF', 'A')
+    }
+  }));
+  return {
+    id: uid,
     list,
   };
 });
@@ -99,4 +126,21 @@ Mock.mock(/\/api\/user\/\d+$/, 'post', (options) => {
   } catch (e) {
     return { error: 'invalid_body' };
   }
+});
+
+// 模拟提交画作接口：接收 multipart/form-data 或 JSON，返回 success
+Mock.mock(/\/api\/user\/\d+\/submit$/, 'post', (options) => {
+  // options.body 在 multipart 的情况下可能不是可解析的 JSON；我们只返回成功响应
+  return Mock.mock({
+    success: true,
+    message: '提交已接收 (mock)',
+    artwork: {
+      id: Mock.Random.integer(100000, 999999),
+      url: Mock.Random.image('800x600', Mock.Random.hex(), '#FFF', 'Illu'),
+      title: Mock.Random.ctitle(4, 8),
+      likes: 0,
+      favorites: 0,
+      author: { name: Mock.Random.cname(), avatar: Mock.Random.image('48x48', Mock.Random.hex(), '#FFF', 'A') }
+    }
+  });
 });

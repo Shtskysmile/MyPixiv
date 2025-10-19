@@ -70,11 +70,40 @@ export default {
   methods: {
     onSearch() {
       const q = (this.search || '').trim();
-      if (q) {
-        this.$router.push({ path: '/index', query: { search: q, page: 1 } });
-      } else {
-        this.$router.push({ path: '/index', query: { page: 1 } });
+
+      // 构建目标 route 对象（确保 query 值为字符串以便比较）
+      const target = q
+        ? { path: '/index', query: { search: String(q), page: '1' } }
+        : { path: '/index', query: { page: '1' } };
+
+      // 规范化当前 route 的 query 为字符串值并排序键
+      const currPath = this.$route.path;
+      const currQuery = {};
+      Object.keys(this.$route.query || {})
+        .sort()
+        .forEach((k) => {
+          currQuery[k] = String(this.$route.query[k]);
+        });
+
+      // 规范化目标 query 并比较是否与当前 route 相同
+      const targetQuery = {};
+      Object.keys(target.query || {})
+        .sort()
+        .forEach((k) => {
+          targetQuery[k] = String(target.query[k]);
+        });
+
+      if (currPath === target.path && JSON.stringify(currQuery) === JSON.stringify(targetQuery)) {
+        // 已经在相同位置，避免重复导航
+        return;
       }
+
+      // 执行导航并捕获重复导航错误（兼容 Vue Router v3/v4）
+      this.$router.push(target).catch((err) => {
+        // 某些 Vue Router 版本会抛出 NavigationDuplicated，这里静默处理
+        // 其他错误可以选择记录或上报；目前无需中断用户操作
+        return err;
+      });
     }
   }
 };
