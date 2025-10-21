@@ -12,7 +12,7 @@ public class Contribution {
     private String time;         // 上传时间
     private String uploader;     // 上传者
     private String uploaderAvatarPath; // 上传者头像路径
-    private String auditState;  // 审核状态（待审核、已通过、未通过）
+    private Integer viewNum;      // 浏览数
     private Integer favourNum;        // 收藏数
     private Integer likeNum;      // 点赞数
     private Integer commentNum;   // 评论数
