@@ -7,6 +7,7 @@ import Register from '@/components/Register.vue'
 import User from '@/components/User.vue'
 import ImageView from '@/components/ImageView.vue'
 import ChangePwd from '@/components/ChangePwd.vue'
+import LikesPage from '@/components/LikesPage.vue'
 
 Vue.use(Router)
 
@@ -21,6 +22,7 @@ export default new Router({
     { path: '/register', name: 'register', component: Register },
     { path: '/guide', name: 'guide-explicit', component: Guide },
     { path: '/changepwd', name: 'changepwd', component: ChangePwd },
+    { path: '/likes', name: 'likes', component: LikesPage },
     { path: '/image/:id', name: 'image-detail', component: ImageView, props: true   }
   ]
 })

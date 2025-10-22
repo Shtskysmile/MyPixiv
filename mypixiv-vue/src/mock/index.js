@@ -110,6 +110,74 @@ Mock.mock(/\/api\/user\/\d+\/favorite$/, 'get', (options) => {
   };
 });
 
+// 用户点赞（mock）
+Mock.mock(/\/api\/user\/\d+\/likes$/, 'get', (options) => {
+  const parts = options.url.split('/');
+  const uid = parts[parts.length - 2] || '0';
+  const list = Array.from({ length: Mock.Random.integer(4, 12) }, (_, i) => ({
+    id: Mock.Random.integer(1, 1000000),
+    url: Mock.Random.image('400x300', Mock.Random.hex(), '#FFF', 'Illu'),
+    title: Mock.Random.ctitle(4, 10),
+    likes: Mock.Random.integer(0, 9999),
+    favorites: Mock.Random.integer(0, 9999),
+    author: {
+      name: Mock.Random.cname(),
+      avatar: Mock.Random.image('64x64', Mock.Random.hex(), '#FFF', 'A')
+    }
+  }));
+  return {
+    id: uid,
+    list,
+  };
+});
+
+// 用户作品（mock，支持分页）
+Mock.mock(/\/api\/user\/\d+\/works/, 'get', (options) => {
+  const url = new URL('http://dummy' + options.url);
+  const page = parseInt(url.searchParams.get('page')) || 1;
+  const pageSize = parseInt(url.searchParams.get('pageSize')) || 12;
+  const total = Mock.Random.integer(10, 120);
+  const list = Array.from({ length: pageSize }, (_, i) => ({
+    id: Mock.Random.integer(1, 1000000),
+    url: Mock.Random.image('800x600', Mock.Random.hex(), '#FFF', 'Illu'),
+    title: Mock.Random.ctitle(4, 12),
+    likes: Mock.Random.integer(0, 9999),
+    favorites: Mock.Random.integer(0, 9999),
+    author: {
+      name: Mock.Random.cname(),
+      avatar: Mock.Random.image('64x64', Mock.Random.hex(), '#FFF', 'A')
+    }
+  }));
+  return {
+    id: options.url.split('/')[3],
+    page,
+    pageSize,
+    total,
+    list
+  };
+});
+
+// 用户粉丝（mock），支持分页参数 ?page=&pageSize=
+Mock.mock(/\/api\/user\/\d+\/followers/, 'get', (options) => {
+  const url = new URL('http://dummy' + options.url);
+  const page = parseInt(url.searchParams.get('page')) || 1;
+  const pageSize = parseInt(url.searchParams.get('pageSize')) || 10;
+  const total = Mock.Random.integer(20, 120);
+  const list = Array.from({ length: pageSize }, (_, i) => ({
+    id: Mock.Random.integer(1, 1000000),
+    name: Mock.Random.cname(),
+    avatar: Mock.Random.image('96x96', Mock.Random.hex(), '#FFF', 'U'),
+    bio: Mock.Random.cparagraph(1, 2)
+  }));
+  return {
+    id: options.url.split('/')[3],
+    page,
+    pageSize,
+    total,
+    list
+  };
+});
+
 // 更新用户信息（模拟 POST/PUT）
 Mock.mock(/\/api\/user\/\d+$/, 'post', (options) => {
   try {

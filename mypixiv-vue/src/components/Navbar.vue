@@ -4,64 +4,127 @@
     role="navigation"
     aria-label="main navigation"
   >
-    <div class="navbar-brand">
-      <a class="navbar-item" href="/">
-        <img
-          src="@/assets/images/Pixiv_Icon.svg"
-          alt="logo"
-          style="height: 48px"
-        />
-      </a>
+    <!-- when used inside pages that already have a container (e.g. User), set noContainer to true to avoid nested containers -->
+    <template v-if="noContainer">
+      <div class="navbar-brand">
+        <a class="navbar-item logo-item" href="/">
+          <img
+            class="site-logo"
+            src="@/assets/images/Pixiv_Icon.svg"
+            alt="logo"
+          />
+        </a>
 
-      <a
-        role="button"
-        class="navbar-burger"
-        aria-label="menu"
-        aria-expanded="false"
-        data-target="navbarBasicExample"
-      >
-        <span aria-hidden="true"></span>
-        <span aria-hidden="true"></span>
-        <span aria-hidden="true"></span>
-        <span aria-hidden="true"></span>
-      </a>
-    </div>
-
-    <div id="navbarBasicExample" class="navbar-menu">
-      <div class="navbar-start"></div>
-
-      <div class="navbar-center">
-        <div class="navbar-item nav-search">
-          <form class="field has-addons" @submit.prevent="onSearch">
-            <div class="control is-expanded">
-              <input class="input" type="text" v-model="search" placeholder="搜索插画、作者..." @keyup.enter="onSearch">
-            </div>
-            <div class="control">
-              <button class="button is-info" type="submit">
-                🔍
-              </button>
-            </div>
-          </form>
-        </div>
+        <a
+          role="button"
+          class="navbar-burger"
+          aria-label="menu"
+          aria-expanded="false"
+          data-target="navbarBasicExample"
+        >
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+          <span aria-hidden="true"></span>
+        </a>
       </div>
 
-      <div class="navbar-end">
-        <div class="navbar-item">
-          <div class="buttons">
-            <router-link class="button is-primary" to="/register">
-              <strong>注册</strong>
-            </router-link>
-            <router-link class="button is-light" to="/login">登录</router-link>
+      <div id="navbarBasicExample" class="navbar-menu">
+        <div class="navbar-start"></div>
+
+        <div class="navbar-center">
+          <div class="navbar-item nav-search">
+            <form class="field has-addons" @submit.prevent="onSearch">
+              <div class="control is-expanded">
+                <input class="input" type="text" v-model="search" placeholder="搜索插画、作者..." @keyup.enter="onSearch">
+              </div>
+              <div class="control">
+                <button class="button is-info" type="submit">
+                  🔍
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="navbar-end">
+          <div class="navbar-item">
+            <div class="buttons">
+              <router-link class="button is-primary" to="/register">
+                <strong>注册</strong>
+              </router-link>
+              <router-link class="button is-light" to="/login">登录</router-link>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </template>
+
+    <template v-else>
+      <div class="container">
+        <div class="navbar-brand">
+          <a class="navbar-item logo-item" href="/">
+            <img
+              class="site-logo"
+              src="@/assets/images/Pixiv_Icon.svg"
+              alt="logo"
+            />
+          </a>
+
+          <a
+            role="button"
+            class="navbar-burger"
+            aria-label="menu"
+            aria-expanded="false"
+            data-target="navbarBasicExample"
+          >
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+          </a>
+        </div>
+
+        <div id="navbarBasicExample" class="navbar-menu">
+          <div class="navbar-start"></div>
+
+          <div class="navbar-center">
+            <div class="navbar-item nav-search">
+              <form class="field has-addons" @submit.prevent="onSearch">
+                <div class="control is-expanded">
+                  <input class="input" type="text" v-model="search" placeholder="搜索插画、作者..." @keyup.enter="onSearch">
+                </div>
+                <div class="control">
+                  <button class="button is-info" type="submit">
+                    🔍
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="navbar-end">
+            <div class="navbar-item">
+              <div class="buttons">
+                <router-link class="button is-primary" to="/register">
+                  <strong>注册</strong>
+                </router-link>
+                <router-link class="button is-light" to="/login">登录</router-link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
   </nav>
 </template>
 
 <script>
 export default {
   name: 'AppNavbar',
+  props: {
+    noContainer: { type: Boolean, default: false }
+  },
   data() {
     return {
       search: ''
@@ -128,6 +191,15 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+/* Logo spacing tweaks */
+.logo-item { padding: 8px 14px; display: flex; align-items: center; }
+.logo-item .site-logo { height: 48px; width: auto; display: block; }
+
+@media (max-width: 768px) {
+  .logo-item { padding: 6px 10px; }
+  .logo-item .site-logo { height: 36px; }
 }
 
 .sticky-navbar .navbar-center {

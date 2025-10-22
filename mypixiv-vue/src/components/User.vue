@@ -4,7 +4,7 @@
     <div class="user-overlay"></div>
 
     <div class="user-container">
-      <Navbar />
+  <Navbar :noContainer="true" />
       <div class="columns is-gapless" style="width:100%">
         <div class="column is-one-quarter">
           <aside class="menu user-menu">
@@ -12,6 +12,9 @@
             <ul class="menu-list">
               <li><a :class="{ 'is-active': view === 'info' }" @click.prevent="view = 'info'">个人信息</a></li>
               <li><a :class="{ 'is-active': view === 'favorites' }" @click.prevent="openFavorites">收藏的画作</a></li>
+              <li><a :class="{ 'is-active': view === 'likes' }" @click.prevent="openLikes">点赞的画作</a></li>
+              <li><a :class="{ 'is-active': view === 'works' }" @click.prevent="openWorks">我的画作</a></li>
+              <li><a :class="{ 'is-active': view === 'followers' }" @click.prevent="openFollowers">我的粉丝</a></li>
               <li><a :class="{ 'is-active': view === 'submit' }" @click.prevent="view = 'submit'">提交作品</a></li>
             </ul>
           </aside>
@@ -25,70 +28,20 @@
             <FavoritesList :favorites="favorites" @unfavorite="unfavorite" />
           </div>
 
+          <div v-if="view === 'likes'">
+            <LikesList :likes="likes" @unlike="unlike" />
+          </div>
+
+          <div v-if="view === 'works'">
+            <WorksList :works="userWorks" :page="worksPage" :pageSize="12" :total="worksTotal" @page-change="openWorks"></WorksList>
+          </div>
+
+          <div v-if="view === 'followers'">
+            <FollowersList :followers="followers" :page="followersPage" :pageSize="10" :total="followersTotal" @page-change="openFollowers" @remove="unfollow" />
+          </div>
+
           <div v-if="view === 'submit'">
-            <div class="box submit-grid">
-              <div class="preview-card">
-                <div class="preview-inner">
-                  <div v-if="imagePreviews && imagePreviews.length" class="preview-paged">
-                    <div class="preview-single">
-                      <img :src="imagePreviews[imageIndex]" alt="preview" />
-                    </div>
-                    <div class="preview-controls">
-                      <button class="button is-small" @click="prevImage">上一张</button>
-                      <span style="margin:0 8px">{{ imageIndex + 1 }} / {{ imagePreviews.length }}</span>
-                      <button class="button is-small" @click="nextImage">下一张</button>
-                      <button class="button is-small is-danger" style="margin-left:12px" @click="deleteCurrentImage">删除图片</button>
-                    </div>
-                  </div>
-                  <div class="preview-empty" v-else>
-                    <div class="placeholder">预览区</div>
-                  </div>
-                </div>
-              
-                <div class="preview-actions">
-                  <input type="file" accept="image/*" multiple @change="onImageChange" />
-                </div>
-              </div>
-
-              <div class="form-column">
-                <h3 class="title is-5">提交作品</h3>
-                <div class="field">
-                  <label class="label">画作类型</label>
-                  <div class="control">
-                    <div class="select">
-                      <select v-model="artType">
-                        <option value="illustration">插画</option>
-                        <option value="manga">漫画</option>
-                        <option value="concept">概念</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="field">
-                  <label class="label">画作标题</label>
-                  <div class="control">
-                    <input class="input" v-model="artTitle" placeholder=" 输入画作标题" />
-                  </div>
-                </div>
-
-                <div class="field">
-                  <label class="label">画作描述</label>
-                  <div class="control">
-                    <textarea class="textarea" v-model="artDesc" placeholder="撰写画作描述"></textarea>
-                  </div>
-                </div>
-
-                <div class="field">
-                  <div class="control">
-                    <button class="button is-primary" :class="{ 'is-loading': submitting }" @click="submitArtwork" :disabled="submitting">提交画作</button>
-                  </div>
-                </div>
-
-                <p class="help is-danger" v-if="submitError">{{ submitError }}</p>
-                <p class="help is-success" v-if="submitSuccess">{{ submitSuccess }}</p>
-              </div>
-            </div>
+            <SubmitArtwork :user="user" @submitted="onArtworkSubmitted" />
           </div>
         </div>
       </div>
@@ -130,13 +83,16 @@ import axios from 'axios';
 import Navbar from './Navbar.vue';
 import SubmitArtwork from './SubmitArtwork.vue';
 import FavoritesList from './FavoritesList.vue';
+import LikesList from './LikesList.vue';
+import WorksList from './WorksList.vue';
 import Profile from './Profile.vue';
+import FollowersList from './FollowersList.vue';
 import avatar from '@/assets/images/avatar.png';
 import bgImg from '@/assets/images/Alice_Damage.jpg';
 
 export default {
   name: 'UserPage',
-  components: { Navbar, SubmitArtwork, FavoritesList, Profile },
+  components: { Navbar, SubmitArtwork, FavoritesList, LikesList, FollowersList, Profile, WorksList },
   data() {
     return {
       user: {
@@ -147,20 +103,18 @@ export default {
         avatar: avatar,
       },
       favorites: [],
+    likes: [],
+  followers: [],
+  followersPage: 1,
+  followersTotal: 0,
+  userWorks: [],
+  worksPage: 1,
+  worksTotal: 0,
       view: 'info', // info | favorites | submit
       editModalVisible: false,
       editName: '',
       editBio: '',
-      // submit fields
-  artType: 'illustration',
-  artTitle: '',
-  imageFiles: [],
-  imagePreviews: [],
-  imageIndex: 0,
-      artDesc: '',
-      submitError: '',
-      submitting: false,
-      submitSuccess: '',
+    // submit fields (moved to SubmitArtwork component)
       bgImg,
     };
   },
@@ -235,12 +189,85 @@ export default {
         this.favorites = [];
       });
     },
+    openLikes() {
+      this.view = 'likes';
+      // 请求用户点赞（mock 接口 /api/user/:id/likes）
+      axios.get(`/api/user/${this.user.id}/likes`).then((res) => {
+        let list = [];
+        if (!res) {
+          list = [];
+        } else if (Array.isArray(res.data)) {
+          list = res.data;
+        } else if (Array.isArray(res)) {
+          list = res;
+        } else if (res.data && Array.isArray(res.data.items)) {
+          list = res.data.items;
+        } else if (res.data && res.data.likes) {
+          list = res.data.likes;
+        } else if (res.data && res.data.list) {
+          list = res.data.list;
+        }
+        this.likes = list || [];
+      }).catch(() => {
+        this.likes = [];
+      });
+    },
+    openWorks(page = 1) {
+      this.view = 'works';
+      const p = typeof page === 'number' ? page : (page && page.detail) || 1;
+      axios.get(`/api/user/${this.user.id}/works?page=${p}&pageSize=12`).then((res) => {
+        let list = [];
+        let total = 0;
+        if (res && res.data && res.data.list) {
+          list = res.data.list;
+          total = res.data.total || 0;
+        }
+        this.userWorks = list || [];
+        this.worksPage = p;
+        this.worksTotal = total;
+      }).catch(() => {
+        this.userWorks = [];
+        this.worksPage = 1;
+        this.worksTotal = 0;
+      });
+    },
+    unlike(item) {
+      const ok = window.confirm(`确定取消点赞《${item.title}》吗？`);
+      if (!ok) return;
+      this.likes = this.likes.filter((l) => l.id !== item.id);
+      window.alert('已取消点赞');
+    },
     unfavorite(fav) {
       const ok = window.confirm(`确定取消收藏《${fav.title}》吗？`);
       if (!ok) return;
       // 这里由于是 mock，直接从本地列表移除；真实场景应调用后端接口
       this.favorites = this.favorites.filter((f) => f.id !== fav.id);
       window.alert('已取消收藏');
+    },
+    openFollowers(page = 1) {
+      this.view = 'followers';
+      const p = typeof page === 'number' ? page : (page && page.detail) || 1;
+      axios.get(`/api/user/${this.user.id}/followers?page=${p}&pageSize=10`).then((res) => {
+        let list = [];
+        let total = 0;
+        if (res && res.data && res.data.list) {
+          list = res.data.list;
+          total = res.data.total || 0;
+        }
+        this.followers = list || [];
+        this.followersPage = p;
+        this.followersTotal = total;
+      }).catch(() => {
+        this.followers = [];
+        this.followersPage = 1;
+        this.followersTotal = 0;
+      });
+    },
+    unfollow(f) {
+      const ok = window.confirm(`确定移除粉丝 ${f.name} 吗？`);
+      if (!ok) return;
+      this.followers = this.followers.filter(x => x.id !== f.id);
+      window.alert('已移除粉丝（mock）');
     },
     onImageChange(e) {
       const files = e.target.files ? Array.from(e.target.files) : [];
@@ -256,46 +283,7 @@ export default {
       });
       this.imageIndex = 0;
     },
-    async submitArtwork() {
-      this.submitError = '';
-      this.submitSuccess = '';
-      if (!this.artTitle.trim()) {
-        this.submitError = '请输入画作标题';
-        return;
-      }
-      if (!this.imageFiles || !this.imageFiles.length) {
-        this.submitError = '请上传至少一张画作图片';
-        return;
-      }
-      this.submitting = true;
-      try {
-        const fd = new FormData();
-        fd.append('type', this.artType);
-        fd.append('title', this.artTitle.trim());
-        fd.append('description', this.artDesc.trim());
-  // 多图：每个文件追加为 images[]
-  this.imageFiles.forEach((f) => fd.append('images[]', f));
-
-        const res = await axios.post(`/api/user/${this.user.id}/submit`, fd, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-        if (res && res.data && res.data.success) {
-          this.submitSuccess = '提交成功（mock）';
-          // 重置表单
-          this.artTitle = '';
-          this.imageFiles = [];
-          this.imagePreviews = [];
-          this.imageIndex = 0;
-          this.artDesc = '';
-        } else {
-          this.submitError = (res && res.data && res.data.message) || '提交失败';
-        }
-      } catch (e) {
-        this.submitError = e.response && e.response.data && e.response.data.message ? e.response.data.message : String(e);
-      } finally {
-        this.submitting = false;
-      }
-    },
+    // 提交逻辑已移动到 SubmitArtwork 组件
     prevImage() {
       if (!this.imagePreviews || !this.imagePreviews.length) return;
       this.imageIndex = (this.imageIndex - 1 + this.imagePreviews.length) % this.imagePreviews.length;

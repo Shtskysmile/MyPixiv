@@ -20,6 +20,11 @@
         </div>
       </div>
     </div>
+    <div class="pager" style="margin-top:12px; display:flex; gap:8px; align-items:center; justify-content:center">
+      <button class="button is-small" :disabled="page <= 1" @click="$emit('page-change', page - 1)">上一页</button>
+      <span>第 {{ page }} 页 / {{ totalPages }}</span>
+      <button class="button is-small" :disabled="page >= totalPages" @click="$emit('page-change', page + 1)">下一页</button>
+    </div>
   </div>
 </template>
 
@@ -30,6 +35,23 @@ export default {
     favorites: {
       type: Array,
       default: () => []
+    },
+    page: {
+      type: Number,
+      default: 1
+    },
+    pageSize: {
+      type: Number,
+      default: 12
+    },
+    total: {
+      type: Number,
+      default: 0
+    }
+  },
+  computed: {
+    totalPages() {
+      return Math.max(1, Math.ceil(this.total / this.pageSize));
     }
   }
 };
