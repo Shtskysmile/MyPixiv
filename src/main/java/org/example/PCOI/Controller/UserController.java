@@ -14,7 +14,7 @@ import java.util.Map;
 @RestController()
 public class UserController {
     @Autowired
-    private UserService userservice;
+    private UserService userService;
     @Autowired
     private LogService logService;
 
@@ -25,6 +25,14 @@ public class UserController {
             @RequestParam("gender") String gender,
             @RequestParam("securityIssues") List<SecurityIssue> securityIssues,
             @RequestParam(value = "avatar", required = false) MultipartFile avatar){
+        try {
+            boolean success = userService.register(username, password, gender, securityIssues, avatar);
+            if (success) {
+                return Result.success("注册成功");
+            } else {
+                return Result.error("注册失败，用户名可能已存在");
+            }
+
 
     }
 
