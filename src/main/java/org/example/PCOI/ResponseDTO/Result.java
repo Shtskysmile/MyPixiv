@@ -1,4 +1,4 @@
-package org.example.PCOI.Entity;
+package org.example.PCOI.ResponseDTO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

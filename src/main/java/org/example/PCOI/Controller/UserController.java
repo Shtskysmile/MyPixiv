@@ -1,6 +1,7 @@
 package org.example.PCOI.Controller;
 
-import org.example.PCOI.Entity.*;
+import org.example.PCOI.Entity.Claims;
+import org.example.PCOI.ResponseDTO.*;
 import org.example.PCOI.Service.Inter.UserService;
 import org.example.PCOI.Utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,14 +16,28 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    private Integer getUserIdFromToken(String authHeader) throws Exception {
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            Map<String, Object> claims = JwtUtil.parseToken(token);
-            return (Integer) claims.get("userId");
-        } else {
+
+    private <T> T getAttributeFromToken(String authHeader, String key, Class<T> type) throws Exception {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             throw new Exception("无效的授权头");
         }
+        String token = authHeader.substring(7);
+        Map<String, Object> map = JwtUtil.parseToken(token);
+        Claims claims = Claims.fromMap(map);
+        Object value = switch (key) {
+            case "userId" -> claims.userId();
+            case "username" -> claims.username();
+            case "role" -> claims.role();
+            case "type" -> claims.type();
+            default -> throw new Exception("无效的属性键");
+        };
+        if (value == null) {
+            throw new Exception("属性值为空: " + key);
+        }
+        if (!type.isInstance(value)) {
+            throw new Exception("类型不匹配: 需要 " + type.getSimpleName() + " 实际为 " + value.getClass().getSimpleName());
+        }
+        return type.cast(value);
     }
 
     @PostMapping("/register")
@@ -30,10 +45,10 @@ public class UserController {
             @RequestParam("username") String username,
             @RequestParam("password") String password,
             @RequestParam("gender") String gender,
-            @RequestParam("securityIssues") List<SecurityIssue> securityIssues,
+            @RequestParam("RSecurityIssues") List<R_SecurityIssue> RSecurityIssues,
             @RequestParam(value = "avatar", required = false) MultipartFile avatar){
         try {
-            boolean success = userService.register(username, password, gender, securityIssues, avatar);
+            boolean success = userService.register(username, password, gender, RSecurityIssues, avatar);
             if (success) {
                 return Result.success("注册成功");
             } else {
@@ -48,11 +63,11 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public Result<Map<String, Object>> login(
+    public Result<R_LoginDTO> login(
             @RequestParam("username") String username,
             @RequestParam("password") String password) {
         try {
-            Map<String, Object> result = userService.login(username, password);
+            R_LoginDTO result = userService.login(username, password);
             if (result != null) {
                 return Result.success(result);
             } else {
@@ -64,10 +79,10 @@ public class UserController {
     }
 
     @PostMapping("/contributionList")
-    public Result<List<OverviewContribution>> getContributionList(
+    public Result<List<R_OverviewContribution>> getContributionList(
             @RequestParam ("userId") String userId){
         try {
-            List<OverviewContribution> list = userService.getContributionList(Integer.valueOf(userId));
+            List<R_OverviewContribution> list = userService.getContributionList(Integer.valueOf(userId));
             return Result.success(list);
         } catch (Exception e) {
             return Result.error("获取作品列表出错: " + e.getMessage());
@@ -75,21 +90,21 @@ public class UserController {
     }
 
     @PostMapping("/user/myContributions")
-    public Result<Map<String,Object>> getMyContributions(
+    public Result<R_Audit_My_ContributionsDTO> getMyContributions(
             @RequestHeader("Authorization") String authHeader){
         try {
-            Integer requesterId = getUserIdFromToken(authHeader);
-            Map<String, Object> data = userService.getMyContributions(requesterId);
+            Integer userId = getAttributeFromToken(authHeader, "userId", Integer.class);
+            R_Audit_My_ContributionsDTO data = userService.getMyContributions(userId);
             return Result.success(data);
         } catch (Exception e) {
             return Result.error("获取我的作品出错: " + e.getMessage());
         }
     }
     @PostMapping("/concernedList")
-    public Result<List<User>> getConcernedList(
+    public Result<List<R_User>> getConcernedList(
             @RequestParam ("userId") String userId){
         try {
-            List<User> list = userService.getConcernedList(Integer.valueOf(userId));
+            List<R_User> list = userService.getConcernedList(Integer.valueOf(userId));
             return Result.success(list);
         } catch (Exception e) {
             return Result.error("获取关注列表出错: " + e.getMessage());
@@ -97,10 +112,10 @@ public class UserController {
     }
 
     @PostMapping("/likedList")
-    public Result<List<OverviewContribution>> getLikedList(
+    public Result<List<R_OverviewContribution>> getLikedList(
             @RequestParam ("userId") String userId){
         try {
-            List<OverviewContribution> list = userService.getLikedList(Integer.valueOf(userId));
+            List<R_OverviewContribution> list = userService.getLikedList(Integer.valueOf(userId));
             return Result.success(list);
         } catch (Exception e) {
             return Result.error("获取点赞列表出错: " + e.getMessage());
@@ -109,10 +124,10 @@ public class UserController {
 
 
     @PostMapping("/favouriteList")
-    public Result<List<OverviewContribution>> getFavouriteList(
+    public Result<List<R_OverviewContribution>> getFavouriteList(
             @RequestParam ("userId") String userId){
         try {
-            List<OverviewContribution> list = userService.getFavouriteList(Integer.valueOf(userId));
+            List<R_OverviewContribution> list = userService.getFavouriteList(Integer.valueOf(userId));
             return Result.success(list);
         } catch (Exception e) {
             return Result.error("获取收藏列表出错: " + e.getMessage());
@@ -121,10 +136,10 @@ public class UserController {
     }
 
     @PostMapping("/userCommentList")
-    public Result<List<UserComment>> getUserCommentList(
+    public Result<List<R_UserComment>> getUserCommentList(
             @RequestParam ("userId") String userId){
         try {
-            List<UserComment> list = userService.getUserCommentList(Integer.valueOf(userId));
+            List<R_UserComment> list = userService.getUserCommentList(Integer.valueOf(userId));
             return Result.success(list);
         } catch (Exception e) {
             return Result.error("获取评论列表出错: " + e.getMessage());
@@ -137,8 +152,8 @@ public class UserController {
             @RequestHeader("Authorization") String authHeader,
             @RequestParam ("commentId") Integer commentId){
         try {
-            Integer requesterId = getUserIdFromToken(authHeader);
-            boolean ok = userService.deleteComment(commentId, requesterId);
+            Integer userId = getAttributeFromToken(authHeader, "userId", Integer.class);
+            boolean ok = userService.deleteComment(commentId, userId);
             if (ok) {
                 return Result.success("删除评论成功");
             }
@@ -154,8 +169,8 @@ public class UserController {
             @RequestHeader("Authorization") String authHeader,
             @RequestParam ("contributionId") Integer contributionId){
         try {
-            Integer requesterId = getUserIdFromToken(authHeader);
-            boolean ok = userService.deleteContribution(contributionId, requesterId);
+            Integer userId = getAttributeFromToken(authHeader, "userId", Integer.class);
+            boolean ok = userService.deleteContribution(contributionId, userId);
             if (ok) {
                 return Result.success("删除作品成功");
             }
@@ -166,14 +181,13 @@ public class UserController {
 
     }
 
-
     @PostMapping("/userInfo")
-    public Result<Map<String,Object>> getUserInfo(
+    public Result<R_UserInfoDTO> getUserInfo(
             @RequestHeader("Authorization") String authHeader,
             @RequestParam ("userId") String userId) {
         try {
-            Integer requesterId = getUserIdFromToken(authHeader);
-            Map<String, Object> data = userService.getUserInfo(Integer.valueOf(userId));
+            Integer requesterId = getAttributeFromToken(authHeader, "userId", Integer.class);
+            R_UserInfoDTO data = userService.getUserInfo(requesterId,Integer.valueOf(userId));
             return Result.success(data);
         } catch (Exception e) {
             return Result.error("获取用户信息出错: " + e.getMessage());
@@ -182,7 +196,7 @@ public class UserController {
 
     @PostMapping("/mySecurityIssues")
     public Result<List<String>> getMySecurityIssues(
-            @RequestParam ("username") String username){
+            @RequestParam("username") String username){
         try {
             List<String> issues = userService.getMySecurityIssues(username);
             return Result.success(issues);
@@ -193,20 +207,16 @@ public class UserController {
     }
 
     @PostMapping("/verifySecurityIssues")
-    public Result<Map<String,Object>> verifySecurityIssues(
-            @RequestParam ("username") String username,
-            @RequestParam ("securityIssues") List<SecurityIssue> securityIssues){
+    public Result<R_VerifySecurityIssuesDTO> verifySecurityIssues(
+            @RequestParam("username") String username,
+            @RequestParam ("SecurityIssues") List<R_SecurityIssue> SecurityIssues){
         try {
-            boolean ok = userService.verifySecurityIssues(username, securityIssues);
-            if (!ok) {
-                return Result.error("密保校验失败");
+            R_VerifySecurityIssuesDTO data = userService.verifySecurityIssues(username, SecurityIssues);
+            if(data.getVerified())
+            {
+                return Result.success(data);
             }
-            Map<String, Object> claims = Map.of(
-                    "username", username,
-                    "type", "resetPwd"
-            );
-            String tempToken = JwtUtil.genToken(claims);
-            return Result.success(Map.of("tempToken", tempToken));
+            return Result.error("密保验证失败");
         } catch (Exception e) {
             return Result.error("校验密保出错: " + e.getMessage());
         }
@@ -215,16 +225,16 @@ public class UserController {
 
     @PostMapping("/updatePassword")
     public Result<String> updatePassword(
-            @RequestHeader("tempToken") String tempToken,
+            @RequestHeader("Authorization") String tempToken,
             @RequestParam("username") String username,
             @RequestParam("newPassword") String newPassword) {
         try {
-            Map<String, Object> claims = JwtUtil.parseToken(tempToken);
-            if (!"resetPwd".equals(claims.get("type")) || !username.equals(claims.get("username"))) {
-                return Result.error("无效的操作");
+            String tokenUsername = getAttributeFromToken(tempToken, "username", String.class);
+            String type = getAttributeFromToken(tempToken, "type", String.class);
+            boolean ok = userService.updatePassword(tokenUsername,type,username,newPassword);
+            if (!ok) {
+                return Result.error("密码修改失败");
             }
-            // 修改密码逻辑
-            userService.updatePassword(username, newPassword);
             return Result.success("密码修改成功");
         } catch (Exception e) {
             return Result.error("临时令牌无效或已过期");
@@ -233,11 +243,12 @@ public class UserController {
 
     @PostMapping("/user/updateUserInfo")
     public Result<String> updateUserInfo(
-            @RequestParam ("userId") Integer userId,
+            @RequestHeader("Authorization") String authHeader,
             @RequestParam ("newUsername") String newUsername,
             @RequestParam("newGender") String newGender,
             @RequestParam(value = "newAvatar", required = false) MultipartFile newAvatar){
         try {
+            Integer userId = getAttributeFromToken(authHeader, "userId", Integer.class);
             boolean ok = userService.updateUserInfo(userId, newUsername, newGender, newAvatar);
             if (ok) {
                 return Result.success("更新成功");
@@ -251,9 +262,10 @@ public class UserController {
 
     @PostMapping("/user/concernUser")
     public Result<String> concernUser(
-            @RequestParam ("userId") Integer userId,
+            @RequestHeader("Authorization") String authHeader,
             @RequestParam ("concernedUserId") Integer concernedUserId){
         try {
+            Integer userId = getAttributeFromToken(authHeader, "userId", Integer.class);
             boolean ok = userService.concernUser(userId, concernedUserId);
             if (ok) {
                 return Result.success("关注成功");
@@ -267,9 +279,10 @@ public class UserController {
 
     @PostMapping("/user/unconcernUser")
     public Result<String> unconcernUser(
-            @RequestParam ("userId") Integer userId,
+            @RequestHeader("Authorization") String authHeader,
             @RequestParam ("concernedUserId") Integer concernedUserId){
         try {
+            Integer userId = getAttributeFromToken(authHeader, "userId", Integer.class);
             boolean ok = userService.unconcernUser(userId, concernedUserId);
             if (ok) {
                 return Result.success("已取消关注");

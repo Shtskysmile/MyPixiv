@@ -1,18 +1,18 @@
 package org.example.PCOI.Service.Inter;
 
-import org.example.PCOI.Entity.Contribution;
-import org.example.PCOI.Entity.OverviewContribution;
+import org.example.PCOI.ResponseDTO.R_Contribution;
+import org.example.PCOI.ResponseDTO.R_OverviewContribution;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
 
 public interface ContributionService {
-    List<OverviewContribution> getIllustrations();
-    List<OverviewContribution> getMangas();
+    List<R_OverviewContribution> getIllustrations();
+    List<R_OverviewContribution> getMangas();
     Map<String, Object> getContribution(Integer contributionId);
-    Contribution getUnauditedContribution(Integer contributionId);
-    List<OverviewContribution> getContributionsRanking(String type, String standard);
+    R_Contribution getUnauditedContribution(Integer contributionId);
+    List<R_OverviewContribution> getContributionsRanking(String type, String standard);
 
     boolean likeContribution(Integer userId, Integer contributionId);
     boolean unlikeContribution(Integer userId, Integer contributionId);

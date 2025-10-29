@@ -1,7 +1,7 @@
 package org.example.PCOI.Controller;
-import org.example.PCOI.Entity.OverviewContribution;
-import org.example.PCOI.Entity.Result;
-import org.example.PCOI.Entity.Contribution;
+import org.example.PCOI.ResponseDTO.R_OverviewContribution;
+import org.example.PCOI.ResponseDTO.Result;
+import org.example.PCOI.ResponseDTO.R_Contribution;
 import org.example.PCOI.Service.Inter.ContributionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -19,9 +19,9 @@ public class ContributionController {
     private ContributionService contributionService;
 
     @GetMapping("/illustrations")
-    public Result<List<OverviewContribution>> getIllustrations() {
+    public Result<List<R_OverviewContribution>> getIllustrations() {
         try {
-            List<OverviewContribution> list = contributionService.getIllustrations();
+            List<R_OverviewContribution> list = contributionService.getIllustrations();
             return Result.success(list);
         } catch (Exception e) {
             return Result.error("获取插画列表出错: " + e.getMessage());
@@ -29,9 +29,9 @@ public class ContributionController {
     }
 
     @GetMapping("/mangas")
-    public Result<List<OverviewContribution>> getMangas() {
+    public Result<List<R_OverviewContribution>> getMangas() {
         try {
-            List<OverviewContribution> list = contributionService.getMangas();
+            List<R_OverviewContribution> list = contributionService.getMangas();
             return Result.success(list);
         } catch (Exception e) {
             return Result.error("获取漫画列表出错: " + e.getMessage());
@@ -50,7 +50,7 @@ public class ContributionController {
     }
 
     @PostMapping("/unauditedContribution")
-    public Result<Contribution> getUnauditedContribution(
+    public Result<R_Contribution> getUnauditedContribution(
             @RequestHeader("Authorization") String authHeader,
             @RequestParam("contributionId") Integer contributionId) {
         try {
@@ -59,7 +59,7 @@ public class ContributionController {
                 String token = authHeader.substring(7);
                 JwtUtil.parseToken(token);
             }
-            Contribution c = contributionService.getUnauditedContribution(contributionId);
+            R_Contribution c = contributionService.getUnauditedContribution(contributionId);
             return Result.success(c);
         } catch (Exception e) {
             return Result.error("获取待审核作品出错: " + e.getMessage());
@@ -67,11 +67,11 @@ public class ContributionController {
     }
 
     @PostMapping("/contributionsRanking")
-    public Result<List<OverviewContribution>> getContributionsRanking(
+    public Result<List<R_OverviewContribution>> getContributionsRanking(
             @RequestParam("type") String type,
             @RequestParam("standard") String standard) {
         try {
-            List<OverviewContribution> list = contributionService.getContributionsRanking(type, standard);
+            List<R_OverviewContribution> list = contributionService.getContributionsRanking(type, standard);
             return Result.success(list);
         } catch (Exception e) {
             return Result.error("获取作品排行出错: " + e.getMessage());

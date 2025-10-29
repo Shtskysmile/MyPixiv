@@ -1,8 +1,8 @@
 package org.example.PCOI.Controller;
 
-import org.example.PCOI.Entity.OverviewContribution;
-import org.example.PCOI.Entity.Result;
-import org.example.PCOI.Entity.User;
+import org.example.PCOI.ResponseDTO.R_OverviewContribution;
+import org.example.PCOI.ResponseDTO.Result;
+import org.example.PCOI.ResponseDTO.R_User;
 import org.example.PCOI.Service.Inter.CommunityAdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -112,9 +112,9 @@ public class CommunityAdminController {
     }
 
     @GetMapping("/communityAdmin/blockedUsers")
-    public Result<List<User>> getBlockedUsers() {
+    public Result<List<R_User>> getBlockedUsers() {
         try {
-            List<User> list = communityAdminService.getBlockedUsers();
+            List<R_User> list = communityAdminService.getBlockedUsers();
             return Result.success(list);
         } catch (Exception e) {
             return Result.error("获取封禁用户列表出错: " + e.getMessage());
@@ -122,9 +122,9 @@ public class CommunityAdminController {
     }
 
     @GetMapping("/communityAdmin/blockedContributions")
-    public Result<List<OverviewContribution>> getBlockedContributions() {
+    public Result<List<R_OverviewContribution>> getBlockedContributions() {
         try {
-            List<OverviewContribution> list = communityAdminService.getBlockedContributions();
+            List<R_OverviewContribution> list = communityAdminService.getBlockedContributions();
             return Result.success(list);
         } catch (Exception e) {
             return Result.error("获取封禁作品列表出错: " + e.getMessage());

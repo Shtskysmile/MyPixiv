@@ -1,7 +1,7 @@
 package org.example.PCOI.Controller;
 
-import org.example.PCOI.Entity.Log;
-import org.example.PCOI.Entity.Result;
+import org.example.PCOI.ResponseDTO.R_Log;
+import org.example.PCOI.ResponseDTO.Result;
 import org.example.PCOI.Service.Inter.SystemAdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -46,9 +46,9 @@ public class SystemAdminController {
     }
 
     @GetMapping("/systemAdmin/logs")
-    public Result<List<Log>> getLogs() {
+    public Result<List<R_Log>> getLogs() {
         try {
-            List<Log> logs = systemAdminService.getLogs();
+            List<R_Log> logs = systemAdminService.getLogs();
             return Result.success(logs);
         } catch (Exception e) {
             return Result.error("获取日志出错: " + e.getMessage());

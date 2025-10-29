@@ -1,7 +1,7 @@
-package org.example.PCOI.Entity;
+package org.example.PCOI.ResponseDTO;
 import lombok.Data;
 @Data
-public class SecurityIssue {
+public class R_SecurityIssue {
     private String description;       // 密保问题
     private String answer;        // 密保答案
 }

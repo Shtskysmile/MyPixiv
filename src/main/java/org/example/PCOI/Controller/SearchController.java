@@ -1,6 +1,6 @@
 package org.example.PCOI.Controller;
 
-import org.example.PCOI.Entity.Result;
+import org.example.PCOI.ResponseDTO.Result;
 import org.example.PCOI.Service.Inter.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
