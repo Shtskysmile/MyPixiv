@@ -12,12 +12,7 @@ public class LogServiceImpl implements LogService {
         this.operationlogsmapper = operationlogsmapper;
     }
 
-    public void logMethodExecution(String username) {
-        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-        String operationType = stack.length > 2 ? stack[2].getMethodName() : "defaultOperation";
-
-
-        String ipAddress = "192.168.80.16";
+    public void logMethodExecution(String username,String operationType,String ipAddress) {
 
         operationlogsmapper.insertLog(username, operationType, ipAddress);
     }

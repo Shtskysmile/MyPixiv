@@ -1,4 +1,3 @@
-// WebConfig.java
 package org.example.PCOI.Config;
 
 import org.example.PCOI.Utils.JwtInterceptor;
@@ -11,8 +10,16 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+    private final RequestLoggingInterceptor requestLoggingInterceptor;
+
+    public WebConfig(RequestLoggingInterceptor requestLoggingInterceptor) {
+        this.requestLoggingInterceptor = requestLoggingInterceptor;
+    }
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        // 统一日志拦截，建议第一个注册
+        registry.addInterceptor(requestLoggingInterceptor)
+                .addPathPatterns("/**");
         // 所有接口通用拦截器
         registry.addInterceptor(new JwtInterceptor())
                 .addPathPatterns("/**")

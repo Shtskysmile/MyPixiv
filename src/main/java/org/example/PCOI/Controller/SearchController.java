@@ -1,7 +1,6 @@
 package org.example.PCOI.Controller;
 
 import org.example.PCOI.Entity.Result;
-import org.example.PCOI.Service.Inter.LogService;
 import org.example.PCOI.Service.Inter.SearchService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,8 +14,6 @@ import java.util.Map;
 public class SearchController {
     @Autowired
     private SearchService searchService;
-    @Autowired
-    private LogService logService;
 
     @PostMapping("/search")
     public Result<Map<String,Object>> search(
@@ -24,7 +21,6 @@ public class SearchController {
             @RequestParam("type") String type){
         try {
             Map<String, Object> data = searchService.search(keyword, type);
-            logService.logMethodExecution("search:search");
             return Result.success(data);
         } catch (Exception e) {
             return Result.error("搜索出错: " + e.getMessage());
@@ -36,7 +32,6 @@ public class SearchController {
             @RequestParam("imagePath") String imagePath){
         try {
             MultipartFile file = searchService.imageSearch(imagePath);
-            logService.logMethodExecution("search:imageSearch");
             return Result.success(file);
         } catch (Exception e) {
             return Result.error("以图搜图出错: " + e.getMessage());

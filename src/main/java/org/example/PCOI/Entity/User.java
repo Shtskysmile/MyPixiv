@@ -7,8 +7,8 @@ import lombok.Data;
 public class User {
     private Integer userId;             // 用户ID
     private String role;          // 角色
-    private String state;         // 状态
+    private String status;         // 状态
     private String username;     // 用户名
-    private String gender;       // 性别
-    private String avatarPath; // 头像路径
+    private String sex;       // 性别
+    private String avatar; // 头像路径
 }

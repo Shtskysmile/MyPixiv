@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -56,6 +57,24 @@ public class UserServiceImpl implements UserService {
         user.setAuthority(authority);
         usermapper.insertUser(user);
 
+    }
+
+    @Override
+    public Map<String,Object> login(String username, String password) {
+        String md5String = Md5Util.getMD5String(password);
+        User user = usermapper.selectPasswordByUserName(username);
+        if (user != null && user.getPassword().equals(md5String)) {
+            // 登录成功，返回用户信息
+            return Map.of(
+                    "id", user.getId(),
+                    "username", user.getUsername(),
+                    "identity", user.getIdentity(),
+                    "authority", user.getAuthority()
+            );
+        } else {
+            // 登录失败，返回 null
+            return null;
+        }
     }
 
     @Override

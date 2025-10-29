@@ -1,10 +1,7 @@
 package org.example.PCOI.Controller;
-
-
 import org.example.PCOI.Entity.OverviewContribution;
 import org.example.PCOI.Entity.Result;
 import org.example.PCOI.Entity.Contribution;
-import org.example.PCOI.Service.Inter.LogService;
 import org.example.PCOI.Service.Inter.ContributionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -18,16 +15,13 @@ import org.example.PCOI.Utils.JwtUtil;
 
 @RestController
 public class ContributionController {
-    @Autowired(required = false)
-    private ContributionService contributionService;
     @Autowired
-    private LogService logService;
+    private ContributionService contributionService;
 
     @GetMapping("/illustrations")
     public Result<List<OverviewContribution>> getIllustrations() {
         try {
             List<OverviewContribution> list = contributionService.getIllustrations();
-            logService.logMethodExecution("contribution:getIllustrations");
             return Result.success(list);
         } catch (Exception e) {
             return Result.error("获取插画列表出错: " + e.getMessage());
@@ -38,7 +32,6 @@ public class ContributionController {
     public Result<List<OverviewContribution>> getMangas() {
         try {
             List<OverviewContribution> list = contributionService.getMangas();
-            logService.logMethodExecution("contribution:getMangas");
             return Result.success(list);
         } catch (Exception e) {
             return Result.error("获取漫画列表出错: " + e.getMessage());
@@ -50,7 +43,6 @@ public class ContributionController {
             @RequestParam("contributionId") Integer contributionId) {
         try {
             Map<String, Object> data = contributionService.getContribution(contributionId);
-            logService.logMethodExecution("contribution:getContribution");
             return Result.success(data);
         } catch (Exception e) {
             return Result.error("获取作品详情出错: " + e.getMessage());
@@ -68,7 +60,6 @@ public class ContributionController {
                 JwtUtil.parseToken(token);
             }
             Contribution c = contributionService.getUnauditedContribution(contributionId);
-            logService.logMethodExecution("contribution:getUnauditedContribution");
             return Result.success(c);
         } catch (Exception e) {
             return Result.error("获取待审核作品出错: " + e.getMessage());
@@ -81,7 +72,6 @@ public class ContributionController {
             @RequestParam("standard") String standard) {
         try {
             List<OverviewContribution> list = contributionService.getContributionsRanking(type, standard);
-            logService.logMethodExecution("contribution:getContributionsRanking");
             return Result.success(list);
         } catch (Exception e) {
             return Result.error("获取作品排行出错: " + e.getMessage());
@@ -95,7 +85,6 @@ public class ContributionController {
         try {
             boolean ok = contributionService.likeContribution(userId, contributionId);
             if (ok) {
-                logService.logMethodExecution("user:likeContribution");
                 return Result.success("点赞成功");
             }
             return Result.error("点赞失败");
@@ -111,7 +100,6 @@ public class ContributionController {
         try {
             boolean ok = contributionService.unlikeContribution(userId, contributionId);
             if (ok) {
-                logService.logMethodExecution("user:unlikeContribution");
                 return Result.success("取消点赞成功");
             }
             return Result.error("取消点赞失败");
@@ -127,7 +115,6 @@ public class ContributionController {
         try {
             boolean ok = contributionService.favoriteContribution(userId, contributionId);
             if (ok) {
-                logService.logMethodExecution("user:favoriteContribution");
                 return Result.success("收藏成功");
             }
             return Result.error("收藏失败");
@@ -143,7 +130,6 @@ public class ContributionController {
         try {
             boolean ok = contributionService.unfavoriteContribution(userId, contributionId);
             if (ok) {
-                logService.logMethodExecution("user:unfavoriteContribution");
                 return Result.success("取消收藏成功");
             }
             return Result.error("取消收藏失败");
@@ -160,7 +146,6 @@ public class ContributionController {
         try {
             boolean ok = contributionService.commentContribution(userId, contributionId, comment);
             if (ok) {
-                logService.logMethodExecution("user:commentContribution");
                 return Result.success("评论成功");
             }
             return Result.error("评论失败");
@@ -179,7 +164,6 @@ public class ContributionController {
         try {
             boolean ok = contributionService.uploadContribution(userId, title, type, description, images);
             if (ok) {
-                logService.logMethodExecution("user:uploadContribution");
                 return Result.success("上传成功");
             }
             return Result.error("上传失败");

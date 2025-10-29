@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class Log {
-    private String username;         // 操作用户
+    private String operatorName;         // 操作用户
     private String description; // 操作描述
-    private String timeStamp;     // 操作时间戳
+    private String time;     // 操作时间戳
 }

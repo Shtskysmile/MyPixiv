@@ -2,7 +2,6 @@ package org.example.PCOI.Controller;
 
 import org.example.PCOI.Entity.Log;
 import org.example.PCOI.Entity.Result;
-import org.example.PCOI.Service.Inter.LogService;
 import org.example.PCOI.Service.Inter.SystemAdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -14,8 +13,6 @@ import java.util.List;
 public class SystemAdminController {
     @Autowired
     private SystemAdminService systemAdminService;
-    @Autowired
-    private LogService logService;
 
     @PostMapping("/systemAdmin/updateUserInfo")
     public Result<String> updateUserInfo(
@@ -26,7 +23,6 @@ public class SystemAdminController {
         try {
             boolean ok = systemAdminService.updateUserInfo(userId, newUsername, newGender, newAvatar);
             if (ok) {
-                logService.logMethodExecution("systemAdmin:updateUserInfo");
                 return Result.success("更新用户信息成功");
             }
             return Result.error("更新用户信息失败");
@@ -41,7 +37,6 @@ public class SystemAdminController {
         try {
             boolean ok = systemAdminService.resetPassword(userId);
             if (ok) {
-                logService.logMethodExecution("systemAdmin:resetPassword");
                 return Result.success("重置密码成功");
             }
             return Result.error("重置密码失败");
@@ -54,7 +49,6 @@ public class SystemAdminController {
     public Result<List<Log>> getLogs() {
         try {
             List<Log> logs = systemAdminService.getLogs();
-            logService.logMethodExecution("systemAdmin:getLogs");
             return Result.success(logs);
         } catch (Exception e) {
             return Result.error("获取日志出错: " + e.getMessage());

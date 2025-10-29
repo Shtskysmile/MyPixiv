@@ -5,5 +5,5 @@ import java.util.List;
 
 @Data
 public class Tag {
-    private String name;         // tag名称
+    private String tagName;         // tag名称
 }
