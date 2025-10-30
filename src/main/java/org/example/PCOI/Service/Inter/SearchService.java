@@ -1,11 +1,13 @@
 package org.example.PCOI.Service.Inter;
 
+import org.example.PCOI.ResponseDTO.R_SearchDTO;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Map;
+import java.util.List;
+
 
 public interface SearchService {
-    Map<String, Object> search(String keyword, String type);
-    MultipartFile imageSearch(String imagePath);
+    R_SearchDTO search(String keyword, String isTag);
+    List<MultipartFile> imageSearch(String imagePath);
 }
 

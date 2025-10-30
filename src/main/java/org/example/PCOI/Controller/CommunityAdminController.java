@@ -1,9 +1,11 @@
 package org.example.PCOI.Controller;
 
+import org.example.PCOI.ResponseDTO.R_Audit_My_ContributionsDTO;
 import org.example.PCOI.ResponseDTO.R_OverviewContribution;
 import org.example.PCOI.ResponseDTO.Result;
 import org.example.PCOI.ResponseDTO.R_User;
 import org.example.PCOI.Service.Inter.CommunityAdminService;
+import org.example.PCOI.Utils.TokenProcess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,7 +16,6 @@ import java.util.Map;
 public class CommunityAdminController {
     @Autowired
     private CommunityAdminService communityAdminService;
-
 
     @PostMapping("/communityAdmin/blockUser")
     public Result<String> blockUser(
@@ -73,9 +74,9 @@ public class CommunityAdminController {
     }
 
     @GetMapping("/communityAdmin/auditContributions")
-    public Result<Map<String,Object>> auditContributions() {
+    public Result<R_Audit_My_ContributionsDTO> auditContributions() {
         try {
-            Map<String, Object> data = communityAdminService.auditContributions();
+            R_Audit_My_ContributionsDTO data = communityAdminService.auditContributions();
             return Result.success(data);
         } catch (Exception e) {
             return Result.error("获取待审核作品出错: " + e.getMessage());
@@ -85,9 +86,9 @@ public class CommunityAdminController {
     @PostMapping("/communityAdmin/dismissContribution")
     public Result<String> dismissContribution(
             @RequestParam("contributionId") Integer contributionId,
-            @RequestParam("dismissReason") String dismissReason) {
+            @RequestParam("dismissalReason") String dismissalReason) {
         try {
-            boolean ok = communityAdminService.dismissContribution(contributionId, dismissReason);
+            boolean ok = communityAdminService.dismissContribution(contributionId, dismissalReason);
             if (ok) {
                 return Result.success("已驳回作品");
             }

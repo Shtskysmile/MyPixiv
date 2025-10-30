@@ -1,4 +1,4 @@
-package org.example.PCOI.Config;
+package org.example.PCOI.Utils;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

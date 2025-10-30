@@ -1,5 +1,6 @@
 package org.example.PCOI.Service.Inter;
 
+import org.example.PCOI.ResponseDTO.R_Audit_My_ContributionsDTO;
 import org.example.PCOI.ResponseDTO.R_OverviewContribution;
 import org.example.PCOI.ResponseDTO.R_User;
 
@@ -11,8 +12,8 @@ public interface CommunityAdminService {
     boolean unblockUser(Integer userId);
     boolean blockContribution(Integer contributionId);
     boolean unblockContribution(Integer contributionId);
-    Map<String, Object> auditContributions();
-    boolean dismissContribution(Integer contributionId, String dismissReason);
+    R_Audit_My_ContributionsDTO auditContributions();
+    boolean dismissContribution(Integer contributionId, String dismissalReason);
     boolean approveContribution(Integer contributionId);
     List<R_User> getBlockedUsers();
     List<R_OverviewContribution> getBlockedContributions();

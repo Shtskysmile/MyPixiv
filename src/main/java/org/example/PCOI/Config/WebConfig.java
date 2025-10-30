@@ -1,9 +1,6 @@
 package org.example.PCOI.Config;
 
-import org.example.PCOI.Utils.JwtInterceptor;
-import org.example.PCOI.Utils.JwtUserInterceptor;
-import org.example.PCOI.Utils.JwtSysAdminInterceptor;
-import org.example.PCOI.Utils.JwtCommunityAdminInterceptor;
+import org.example.PCOI.Utils.*;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;

@@ -4,6 +4,7 @@ import org.example.PCOI.Entity.Claims;
 import org.example.PCOI.ResponseDTO.*;
 import org.example.PCOI.Service.Inter.UserService;
 import org.example.PCOI.Utils.JwtUtil;
+import org.example.PCOI.Utils.TokenProcess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,29 +17,10 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    private TokenProcess tokenProcess = new TokenProcess();
 
-    private <T> T getAttributeFromToken(String authHeader, String key, Class<T> type) throws Exception {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new Exception("无效的授权头");
-        }
-        String token = authHeader.substring(7);
-        Map<String, Object> map = JwtUtil.parseToken(token);
-        Claims claims = Claims.fromMap(map);
-        Object value = switch (key) {
-            case "userId" -> claims.userId();
-            case "username" -> claims.username();
-            case "role" -> claims.role();
-            case "type" -> claims.type();
-            default -> throw new Exception("无效的属性键");
-        };
-        if (value == null) {
-            throw new Exception("属性值为空: " + key);
-        }
-        if (!type.isInstance(value)) {
-            throw new Exception("类型不匹配: 需要 " + type.getSimpleName() + " 实际为 " + value.getClass().getSimpleName());
-        }
-        return type.cast(value);
-    }
+
+
 
     @PostMapping("/register")
     public Result<String> register(
@@ -93,7 +75,7 @@ public class UserController {
     public Result<R_Audit_My_ContributionsDTO> getMyContributions(
             @RequestHeader("Authorization") String authHeader){
         try {
-            Integer userId = getAttributeFromToken(authHeader, "userId", Integer.class);
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
             R_Audit_My_ContributionsDTO data = userService.getMyContributions(userId);
             return Result.success(data);
         } catch (Exception e) {
@@ -152,7 +134,7 @@ public class UserController {
             @RequestHeader("Authorization") String authHeader,
             @RequestParam ("commentId") Integer commentId){
         try {
-            Integer userId = getAttributeFromToken(authHeader, "userId", Integer.class);
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
             boolean ok = userService.deleteComment(commentId, userId);
             if (ok) {
                 return Result.success("删除评论成功");
@@ -169,7 +151,7 @@ public class UserController {
             @RequestHeader("Authorization") String authHeader,
             @RequestParam ("contributionId") Integer contributionId){
         try {
-            Integer userId = getAttributeFromToken(authHeader, "userId", Integer.class);
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
             boolean ok = userService.deleteContribution(contributionId, userId);
             if (ok) {
                 return Result.success("删除作品成功");
@@ -186,7 +168,7 @@ public class UserController {
             @RequestHeader("Authorization") String authHeader,
             @RequestParam ("userId") String userId) {
         try {
-            Integer requesterId = getAttributeFromToken(authHeader, "userId", Integer.class);
+            Integer requesterId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
             R_UserInfoDTO data = userService.getUserInfo(requesterId,Integer.valueOf(userId));
             return Result.success(data);
         } catch (Exception e) {
@@ -229,8 +211,8 @@ public class UserController {
             @RequestParam("username") String username,
             @RequestParam("newPassword") String newPassword) {
         try {
-            String tokenUsername = getAttributeFromToken(tempToken, "username", String.class);
-            String type = getAttributeFromToken(tempToken, "type", String.class);
+            String tokenUsername = tokenProcess.getAttributeFromToken(tempToken, "username", String.class);
+            String type = tokenProcess.getAttributeFromToken(tempToken, "type", String.class);
             boolean ok = userService.updatePassword(tokenUsername,type,username,newPassword);
             if (!ok) {
                 return Result.error("密码修改失败");
@@ -248,7 +230,7 @@ public class UserController {
             @RequestParam("newGender") String newGender,
             @RequestParam(value = "newAvatar", required = false) MultipartFile newAvatar){
         try {
-            Integer userId = getAttributeFromToken(authHeader, "userId", Integer.class);
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
             boolean ok = userService.updateUserInfo(userId, newUsername, newGender, newAvatar);
             if (ok) {
                 return Result.success("更新成功");
@@ -265,7 +247,7 @@ public class UserController {
             @RequestHeader("Authorization") String authHeader,
             @RequestParam ("concernedUserId") Integer concernedUserId){
         try {
-            Integer userId = getAttributeFromToken(authHeader, "userId", Integer.class);
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
             boolean ok = userService.concernUser(userId, concernedUserId);
             if (ok) {
                 return Result.success("关注成功");
@@ -282,7 +264,7 @@ public class UserController {
             @RequestHeader("Authorization") String authHeader,
             @RequestParam ("concernedUserId") Integer concernedUserId){
         try {
-            Integer userId = getAttributeFromToken(authHeader, "userId", Integer.class);
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
             boolean ok = userService.unconcernUser(userId, concernedUserId);
             if (ok) {
                 return Result.success("已取消关注");

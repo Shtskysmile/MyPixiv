@@ -1,8 +1,10 @@
 package org.example.PCOI.Controller;
+import org.example.PCOI.ResponseDTO.R_ContributionDTO;
 import org.example.PCOI.ResponseDTO.R_OverviewContribution;
 import org.example.PCOI.ResponseDTO.Result;
 import org.example.PCOI.ResponseDTO.R_Contribution;
 import org.example.PCOI.Service.Inter.ContributionService;
+import org.example.PCOI.Utils.TokenProcess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,6 +19,8 @@ import org.example.PCOI.Utils.JwtUtil;
 public class ContributionController {
     @Autowired
     private ContributionService contributionService;
+
+    private TokenProcess tokenProcess = new TokenProcess();
 
     @GetMapping("/illustrations")
     public Result<List<R_OverviewContribution>> getIllustrations() {
@@ -39,10 +43,12 @@ public class ContributionController {
     }
 
     @PostMapping("/contribution")
-    public Result<Map<String,Object>> getContribution(
+    public Result<R_ContributionDTO> getContribution(
+            @RequestHeader("Authorization") String authHeader,
             @RequestParam("contributionId") Integer contributionId) {
         try {
-            Map<String, Object> data = contributionService.getContribution(contributionId);
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
+            R_ContributionDTO data = contributionService.getContribution(userId,contributionId);
             return Result.success(data);
         } catch (Exception e) {
             return Result.error("获取作品详情出错: " + e.getMessage());
@@ -54,12 +60,9 @@ public class ContributionController {
             @RequestHeader("Authorization") String authHeader,
             @RequestParam("contributionId") Integer contributionId) {
         try {
-            // 简单解析token存在即可
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                String token = authHeader.substring(7);
-                JwtUtil.parseToken(token);
-            }
-            R_Contribution c = contributionService.getUnauditedContribution(contributionId);
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
+            String role = tokenProcess.getAttributeFromToken(authHeader, "role", String.class);
+            R_Contribution c = contributionService.getUnauditedContribution(userId,role,contributionId);
             return Result.success(c);
         } catch (Exception e) {
             return Result.error("获取待审核作品出错: " + e.getMessage());
@@ -69,9 +72,9 @@ public class ContributionController {
     @PostMapping("/contributionsRanking")
     public Result<List<R_OverviewContribution>> getContributionsRanking(
             @RequestParam("type") String type,
-            @RequestParam("standard") String standard) {
+            @RequestParam("key") String key) {
         try {
-            List<R_OverviewContribution> list = contributionService.getContributionsRanking(type, standard);
+            List<R_OverviewContribution> list = contributionService.getContributionsRanking(type, key);
             return Result.success(list);
         } catch (Exception e) {
             return Result.error("获取作品排行出错: " + e.getMessage());
@@ -80,9 +83,10 @@ public class ContributionController {
 
     @PostMapping("/user/likeContribution")
     public Result<String> likeContribution(
-            @RequestParam("userId") Integer userId,
+            @RequestHeader ("Authorization") String authHeader,
             @RequestParam("contributionId") Integer contributionId) {
         try {
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
             boolean ok = contributionService.likeContribution(userId, contributionId);
             if (ok) {
                 return Result.success("点赞成功");
@@ -95,9 +99,10 @@ public class ContributionController {
 
     @PostMapping("/user/unlikeContribution")
     public Result<String> unlikeContribution(
-            @RequestParam("userId") Integer userId,
+            @RequestHeader ("Authorization") String authHeader,
             @RequestParam("contributionId") Integer contributionId) {
         try {
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
             boolean ok = contributionService.unlikeContribution(userId, contributionId);
             if (ok) {
                 return Result.success("取消点赞成功");
@@ -110,9 +115,10 @@ public class ContributionController {
 
     @PostMapping("/user/favoriteContribution")
     public Result<String> favoriteContribution(
-            @RequestParam("userId") Integer userId,
+            @RequestHeader ("Authorization") String authHeader,
             @RequestParam("contributionId") Integer contributionId) {
         try {
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
             boolean ok = contributionService.favoriteContribution(userId, contributionId);
             if (ok) {
                 return Result.success("收藏成功");
@@ -125,9 +131,10 @@ public class ContributionController {
 
     @PostMapping("/user/unfavoriteContribution")
     public Result<String> unfavoriteContribution(
-            @RequestParam("userId") Integer userId,
+            @RequestHeader ("Authorization") String authHeader,
             @RequestParam("contributionId") Integer contributionId) {
         try {
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
             boolean ok = contributionService.unfavoriteContribution(userId, contributionId);
             if (ok) {
                 return Result.success("取消收藏成功");
@@ -140,10 +147,11 @@ public class ContributionController {
 
     @PostMapping("/user/commentContribution")
     public Result<String> commentContribution(
-            @RequestParam("userId") Integer userId,
+            @RequestHeader ("Authorization") String authHeader,
             @RequestParam("contributionId") Integer contributionId,
             @RequestParam("comment") String comment) {
         try {
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
             boolean ok = contributionService.commentContribution(userId, contributionId, comment);
             if (ok) {
                 return Result.success("评论成功");
@@ -156,12 +164,13 @@ public class ContributionController {
 
     @PostMapping("/user/uploadContribution")
     public Result<String> uploadContribution(
-            @RequestParam("userId") Integer userId,
+            @RequestHeader ("Authorization") String authHeader,
             @RequestParam("title") String title,
             @RequestParam("type") String type,
             @RequestParam("description") String description,
             @RequestParam("images") List<MultipartFile> images) {
         try {
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
             boolean ok = contributionService.uploadContribution(userId, title, type, description, images);
             if (ok) {
                 return Result.success("上传成功");
@@ -171,8 +180,4 @@ public class ContributionController {
             return Result.error("上传出错: " + e.getMessage());
         }
     }
-
-
-
-
 }
