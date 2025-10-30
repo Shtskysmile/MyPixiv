@@ -16,11 +16,7 @@ import java.util.Map;
 public class UserController {
     @Autowired
     private UserService userService;
-
-    private TokenProcess tokenProcess = new TokenProcess();
-
-
-
+    
 
     @PostMapping("/register")
     public Result<String> register(
@@ -64,7 +60,7 @@ public class UserController {
     public Result<List<R_OverviewContribution>> getContributionList(
             @RequestParam ("userId") String userId){
         try {
-            List<R_OverviewContribution> list = userService.getContributionList(Integer.valueOf(userId));
+            List<R_OverviewContribution> list = userService.getContributionList(userId);
             return Result.success(list);
         } catch (Exception e) {
             return Result.error("获取作品列表出错: " + e.getMessage());
@@ -75,7 +71,7 @@ public class UserController {
     public Result<R_Audit_My_ContributionsDTO> getMyContributions(
             @RequestHeader("Authorization") String authHeader){
         try {
-            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
+            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
             R_Audit_My_ContributionsDTO data = userService.getMyContributions(userId);
             return Result.success(data);
         } catch (Exception e) {
@@ -86,7 +82,7 @@ public class UserController {
     public Result<List<R_User>> getConcernedList(
             @RequestParam ("userId") String userId){
         try {
-            List<R_User> list = userService.getConcernedList(Integer.valueOf(userId));
+            List<R_User> list = userService.getConcernedList(userId);
             return Result.success(list);
         } catch (Exception e) {
             return Result.error("获取关注列表出错: " + e.getMessage());
@@ -97,7 +93,7 @@ public class UserController {
     public Result<List<R_OverviewContribution>> getLikedList(
             @RequestParam ("userId") String userId){
         try {
-            List<R_OverviewContribution> list = userService.getLikedList(Integer.valueOf(userId));
+            List<R_OverviewContribution> list = userService.getLikedList(userId);
             return Result.success(list);
         } catch (Exception e) {
             return Result.error("获取点赞列表出错: " + e.getMessage());
@@ -109,7 +105,7 @@ public class UserController {
     public Result<List<R_OverviewContribution>> getFavouriteList(
             @RequestParam ("userId") String userId){
         try {
-            List<R_OverviewContribution> list = userService.getFavouriteList(Integer.valueOf(userId));
+            List<R_OverviewContribution> list = userService.getFavouriteList(userId);
             return Result.success(list);
         } catch (Exception e) {
             return Result.error("获取收藏列表出错: " + e.getMessage());
@@ -121,7 +117,7 @@ public class UserController {
     public Result<List<R_UserComment>> getUserCommentList(
             @RequestParam ("userId") String userId){
         try {
-            List<R_UserComment> list = userService.getUserCommentList(Integer.valueOf(userId));
+            List<R_UserComment> list = userService.getUserCommentList(userId);
             return Result.success(list);
         } catch (Exception e) {
             return Result.error("获取评论列表出错: " + e.getMessage());
@@ -132,9 +128,9 @@ public class UserController {
     @PostMapping("/user/deleteComment")
     public Result<String> deleteComment(
             @RequestHeader("Authorization") String authHeader,
-            @RequestParam ("commentId") Integer commentId){
+            @RequestParam ("commentId") String commentId){
         try {
-            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
+            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
             boolean ok = userService.deleteComment(commentId, userId);
             if (ok) {
                 return Result.success("删除评论成功");
@@ -149,9 +145,9 @@ public class UserController {
     @PostMapping("/user/deleteContribution")
     public Result<String> deleteContribution(
             @RequestHeader("Authorization") String authHeader,
-            @RequestParam ("contributionId") Integer contributionId){
+            @RequestParam ("contributionId") String contributionId){
         try {
-            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
+            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
             boolean ok = userService.deleteContribution(contributionId, userId);
             if (ok) {
                 return Result.success("删除作品成功");
@@ -168,8 +164,8 @@ public class UserController {
             @RequestHeader("Authorization") String authHeader,
             @RequestParam ("userId") String userId) {
         try {
-            Integer requesterId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
-            R_UserInfoDTO data = userService.getUserInfo(requesterId,Integer.valueOf(userId));
+            String requesterId = TokenProcess.getAttributeFromToken(authHeader, "userId");
+            R_UserInfoDTO data = userService.getUserInfo(requesterId,userId);
             return Result.success(data);
         } catch (Exception e) {
             return Result.error("获取用户信息出错: " + e.getMessage());
@@ -211,8 +207,8 @@ public class UserController {
             @RequestParam("username") String username,
             @RequestParam("newPassword") String newPassword) {
         try {
-            String tokenUsername = tokenProcess.getAttributeFromToken(tempToken, "username", String.class);
-            String type = tokenProcess.getAttributeFromToken(tempToken, "type", String.class);
+            String tokenUsername = TokenProcess.getAttributeFromToken(tempToken, "username");
+            String type = TokenProcess.getAttributeFromToken(tempToken, "type");
             boolean ok = userService.updatePassword(tokenUsername,type,username,newPassword);
             if (!ok) {
                 return Result.error("密码修改失败");
@@ -230,7 +226,7 @@ public class UserController {
             @RequestParam("newGender") String newGender,
             @RequestParam(value = "newAvatar", required = false) MultipartFile newAvatar){
         try {
-            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
+            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
             boolean ok = userService.updateUserInfo(userId, newUsername, newGender, newAvatar);
             if (ok) {
                 return Result.success("更新成功");
@@ -245,9 +241,9 @@ public class UserController {
     @PostMapping("/user/concernUser")
     public Result<String> concernUser(
             @RequestHeader("Authorization") String authHeader,
-            @RequestParam ("concernedUserId") Integer concernedUserId){
+            @RequestParam ("concernedUserId") String concernedUserId){
         try {
-            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
+            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
             boolean ok = userService.concernUser(userId, concernedUserId);
             if (ok) {
                 return Result.success("关注成功");
@@ -262,9 +258,9 @@ public class UserController {
     @PostMapping("/user/unconcernUser")
     public Result<String> unconcernUser(
             @RequestHeader("Authorization") String authHeader,
-            @RequestParam ("concernedUserId") Integer concernedUserId){
+            @RequestParam ("concernedUserId") String concernedUserId){
         try {
-            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
+            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
             boolean ok = userService.unconcernUser(userId, concernedUserId);
             if (ok) {
                 return Result.success("已取消关注");

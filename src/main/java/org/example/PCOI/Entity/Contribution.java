@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class Contribution {
-    private Integer contributionId;              // 作品ID
+    private String contributionId;              // 作品ID
     private String type;            // 作品类型
     private String title;         // 作品标题
     private String image;         // 作品图片路径
@@ -13,7 +13,6 @@ public class Contribution {
     private String auditStatus;   // 审核状态（待审核，已通过，已驳回）
     private String publishTime;         // 上传时间
     private String authorId;     // 上传者
-    private String uploaderAvatarPath; // 上传者头像路径
     private Integer viewCount;      // 浏览数
     private Integer favoriteCount;        // 收藏数
     private Integer likeCount;      // 点赞数

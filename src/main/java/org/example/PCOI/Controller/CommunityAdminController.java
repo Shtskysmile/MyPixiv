@@ -19,7 +19,7 @@ public class CommunityAdminController {
 
     @PostMapping("/communityAdmin/blockUser")
     public Result<String> blockUser(
-            @RequestParam("userId") Integer userId) {
+            @RequestParam("userId") String userId) {
         try {
             boolean ok = communityAdminService.blockUser(userId);
             if (ok) {
@@ -33,7 +33,7 @@ public class CommunityAdminController {
 
     @PostMapping("/communityAdmin/unblockUser")
     public Result<String> unblockUser(
-            @RequestParam("userId") Integer userId) {
+            @RequestParam("userId") String userId) {
         try {
             boolean ok = communityAdminService.unblockUser(userId);
             if (ok) {
@@ -47,7 +47,7 @@ public class CommunityAdminController {
 
     @PostMapping("/communityAdmin/blockContribution")
     public Result<String> blockContribution(
-            @RequestParam("contributionId") Integer contributionId) {
+            @RequestParam("contributionId") String contributionId) {
         try {
             boolean ok = communityAdminService.blockContribution(contributionId);
             if (ok) {
@@ -61,7 +61,7 @@ public class CommunityAdminController {
 
     @PostMapping("/communityAdmin/unblockContribution")
     public Result<String> unblockContribution(
-            @RequestParam("contributionId") Integer contributionId) {
+            @RequestParam("contributionId") String contributionId) {
         try {
             boolean ok = communityAdminService.unblockContribution(contributionId);
             if (ok) {
@@ -85,7 +85,7 @@ public class CommunityAdminController {
 
     @PostMapping("/communityAdmin/dismissContribution")
     public Result<String> dismissContribution(
-            @RequestParam("contributionId") Integer contributionId,
+            @RequestParam("contributionId") String contributionId,
             @RequestParam("dismissalReason") String dismissalReason) {
         try {
             boolean ok = communityAdminService.dismissContribution(contributionId, dismissalReason);
@@ -100,7 +100,7 @@ public class CommunityAdminController {
 
     @PostMapping("/communityAdmin/approveContribution")
     public Result<String> approveContribution(
-            @RequestParam("contributionId") Integer contributionId) {
+            @RequestParam("contributionId") String contributionId) {
         try {
             boolean ok = communityAdminService.approveContribution(contributionId);
             if (ok) {
@@ -134,7 +134,7 @@ public class CommunityAdminController {
 
     @PostMapping("/communityAdmin/deleteComment")
     public Result<String> deleteComment(
-            @RequestParam("commentId") Integer commentId) {
+            @RequestParam("commentId") String commentId) {
         try {
             boolean ok = communityAdminService.deleteComment(commentId);
             if (ok) {

@@ -1,9 +1,9 @@
-package org.example.PCOI.ResponseDTO;
+package org.example.PCOI.Entity;
 
 import lombok.Data;
 
 @Data
-public class R_Log {
+public class Log {
     private String operatorId;         // 操作用户
     private String description; // 操作描述
     private String time;     // 操作时间戳

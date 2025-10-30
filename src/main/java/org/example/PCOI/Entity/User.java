@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 public class User {
-    private Integer userId;             // 用户ID
+    private String userId;             // 用户ID
     private String password;        // 密码
     private String role;          // 角色
     private String status;         // 状态

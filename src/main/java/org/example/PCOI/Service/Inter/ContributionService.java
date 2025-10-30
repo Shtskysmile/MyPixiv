@@ -11,15 +11,16 @@ import java.util.Map;
 public interface ContributionService {
     List<R_OverviewContribution> getIllustrations();
     List<R_OverviewContribution> getMangas();
-    R_ContributionDTO getContribution(Integer userId,Integer contributionId);
-    R_Contribution getUnauditedContribution(Integer userId,String role,Integer contributionId);
+    R_ContributionDTO getContribution(String userId,String contributionId);
+    R_Contribution getPendingContribution(String userId,String role,String contributionId);
     List<R_OverviewContribution> getContributionsRanking(String type, String key);
 
-    boolean likeContribution(Integer userId, Integer contributionId);
-    boolean unlikeContribution(Integer userId, Integer contributionId);
-    boolean favoriteContribution(Integer userId, Integer contributionId);
-    boolean unfavoriteContribution(Integer userId, Integer contributionId);
-    boolean commentContribution(Integer userId, Integer contributionId, String comment);
-    boolean uploadContribution(Integer userId, String title, String type, String description, List<MultipartFile> images);
+    boolean likeContribution(String userId, String contributionId);
+    boolean unlikeContribution(String userId, String contributionId);
+    boolean favoriteContribution(String userId, String contributionId);
+    boolean unfavoriteContribution(String userId, String contributionId);
+    boolean commentContribution(String userId, String contributionId, String comment);
+    boolean uploadContribution(String userId, String title, String type, String description, List<MultipartFile> images);
 }
+
 

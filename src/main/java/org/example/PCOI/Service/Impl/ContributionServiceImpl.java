@@ -24,13 +24,13 @@ public class ContributionServiceImpl implements ContributionService {
     }
 
     @Override
-    public R_ContributionDTO getContribution(Integer userId, Integer contributionId) {
+    public R_ContributionDTO getContribution(String userId, String contributionId) {
         // TODO: 实现获取作品详情逻辑（含用户上下文）
         return null;
     }
 
     @Override
-    public R_Contribution getUnauditedContribution(Integer userId, String role, Integer contributionId) {
+    public R_Contribution getPendingContribution(String userId, String role, String contributionId) {
         // TODO: 实现获取待审核作品逻辑（根据角色校验权限）
         return null;
     }
@@ -42,37 +42,37 @@ public class ContributionServiceImpl implements ContributionService {
     }
 
     @Override
-    public boolean likeContribution(Integer userId, Integer contributionId) {
+    public boolean likeContribution(String userId, String contributionId) {
         // TODO: 实现点赞逻辑（幂等处理）
         return false;
     }
 
     @Override
-    public boolean unlikeContribution(Integer userId, Integer contributionId) {
+    public boolean unlikeContribution(String userId, String contributionId) {
         // TODO: 实现取消点赞逻辑（幂等处理）
         return false;
     }
 
     @Override
-    public boolean favoriteContribution(Integer userId, Integer contributionId) {
+    public boolean favoriteContribution(String userId, String contributionId) {
         // TODO: 实现收藏逻辑（幂等处理）
         return false;
     }
 
     @Override
-    public boolean unfavoriteContribution(Integer userId, Integer contributionId) {
+    public boolean unfavoriteContribution(String userId, String contributionId) {
         // TODO: 实现取消收藏逻辑（幂等处理）
         return false;
     }
 
     @Override
-    public boolean commentContribution(Integer userId, Integer contributionId, String comment) {
+    public boolean commentContribution(String userId, String contributionId, String comment) {
         // TODO: 实现评论逻辑（内容校验、防刷）
         return false;
     }
 
     @Override
-    public boolean uploadContribution(Integer userId, String title, String type, String description, List<MultipartFile> images) {
+    public boolean uploadContribution(String userId, String title, String type, String description, List<MultipartFile> images) {
         // TODO: 实现作品上传逻辑（文件校验、存储、事务）
         return false;
     }

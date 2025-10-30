@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class R_Contribution {
-    private Integer contributionId;              // 作品ID
+    private String contributionId;              // 作品ID
     private String type;            // 作品类型
     private String title;         // 作品标题
     private String image;         // 作品图片路径

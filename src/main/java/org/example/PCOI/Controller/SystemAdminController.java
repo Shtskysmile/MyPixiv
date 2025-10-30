@@ -16,7 +16,7 @@ public class SystemAdminController {
 
     @PostMapping("/systemAdmin/updateUserInfo")
     public Result<String> updateUserInfo(
-            @RequestParam("userId") Integer userId,
+            @RequestParam("userId") String userId,
             @RequestParam ("newUsername") String newUsername,
             @RequestParam("newGender") String newGender,
             @RequestParam(value = "newAvatar", required = false) MultipartFile newAvatar) {
@@ -33,7 +33,7 @@ public class SystemAdminController {
 
     @PostMapping("/systemAdmin/resetPassword")
     public Result<String> resetPassword(
-            @RequestParam("userId") Integer userId) {
+            @RequestParam("userId") String userId) {
         try {
             boolean ok = systemAdminService.resetPassword(userId);
             if (ok) {

@@ -12,25 +12,25 @@ import java.util.List;
 @Service
 public class CommunityAdminServiceImpl implements CommunityAdminService {
     @Override
-    public boolean blockUser(Integer userId) {
+    public boolean blockUser(String userId) {
         // TODO: 封禁用户
         return false;
     }
 
     @Override
-    public boolean unblockUser(Integer userId) {
+    public boolean unblockUser(String userId) {
         // TODO: 解除封禁
         return false;
     }
 
     @Override
-    public boolean blockContribution(Integer contributionId) {
+    public boolean blockContribution(String contributionId) {
         // TODO: 封禁作品
         return false;
     }
 
     @Override
-    public boolean unblockContribution(Integer contributionId) {
+    public boolean unblockContribution(String contributionId) {
         // TODO: 解除作品封禁
         return false;
     }
@@ -42,13 +42,13 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
     }
 
     @Override
-    public boolean dismissContribution(Integer contributionId, String dismissalReason) {
+    public boolean dismissContribution(String contributionId, String dismissalReason) {
         // TODO: 驳回作品
         return false;
     }
 
     @Override
-    public boolean approveContribution(Integer contributionId) {
+    public boolean approveContribution(String contributionId) {
         // TODO: 审核通过
         return false;
     }
@@ -66,7 +66,7 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
     }
 
     @Override
-    public boolean deleteComment(Integer commentId) {
+    public boolean deleteComment(String commentId) {
         // TODO: 管理员删除评论
         return false;
     }

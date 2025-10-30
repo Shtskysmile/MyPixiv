@@ -6,8 +6,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface SystemAdminService {
-    boolean updateUserInfo(Integer userId, String newUsername, String newGender, MultipartFile newAvatar);
-    boolean resetPassword(Integer userId);
+    boolean updateUserInfo(String userId, String newUsername, String newGender, MultipartFile newAvatar);
+    boolean resetPassword(String userId);
     List<R_Log> getLogs();
 }
 
