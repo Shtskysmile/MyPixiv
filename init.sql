@@ -1,7 +1,9 @@
+CREATE DATABASE MyPixiv CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE MyPixiv;
 -- 1. 用户表
 CREATE TABLE users (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    userId VARCHAR(32) NOT NULL UNIQUE,
+    userId VARCHAR(36) NOT NULL UNIQUE  DEFAULT (UUID()),
     username VARCHAR(64) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     avatar VARCHAR(512) DEFAULT 'https://example.com/default-avatar.png',
@@ -15,15 +17,15 @@ CREATE TABLE users (
 -- 2. 作品表
 CREATE TABLE contribution (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    contributionId VARCHAR(32) NOT NULL UNIQUE,
+    contributionId VARCHAR(36) NOT NULL UNIQUE  DEFAULT (UUID()),
     type TINYINT  COMMENT '0=插画,1=漫画',
     title VARCHAR(255) NOT NULL,
     image VARCHAR(512) NOT NULL,
     description TEXT,
-    state TINYINT NOT NULL DEFAULT 0 COMMENT '0=未封禁,1=已封禁',
+    status TINYINT NOT NULL DEFAULT 0 COMMENT '0=未封禁,1=已封禁',
     publishTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    authorId VARCHAR(32) NOT NULL,
-    auditState TINYINT NOT NULL DEFAULT 0 COMMENT '0=待审核,1=通过,2=驳回',
+    authorId VARCHAR(36) NOT NULL,
+    auditStatus TINYINT NOT NULL DEFAULT 0 COMMENT '0=待审核,1=通过,2=驳回',
     viewCount INT NOT NULL DEFAULT 0,
     favoriteCount INT NOT NULL DEFAULT 0,
     likeCount INT NOT NULL DEFAULT 0,
@@ -33,7 +35,7 @@ CREATE TABLE contribution (
     INDEX idx_author (authorId),
     INDEX idx_contributionId (contributionId),
     INDEX idx_type (type),
-    INDEX idx_audit (auditState)
+    INDEX idx_audit (auditStatus)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 3. 评论表
@@ -41,8 +43,8 @@ CREATE TABLE comments (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     description TEXT NOT NULL,
     time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    author VARCHAR(32) NOT NULL,
-    contribution VARCHAR(32) NOT NULL,
+    author VARCHAR(36) NOT NULL,
+    contribution VARCHAR(36) NOT NULL,
     FOREIGN KEY (author) REFERENCES users(userId) ON DELETE CASCADE,
     FOREIGN KEY (contribution) REFERENCES contribution(contributionId) ON DELETE CASCADE,
     INDEX idx_author (author),
@@ -51,17 +53,17 @@ CREATE TABLE comments (
 
 -- 4. 关注表
 CREATE TABLE follows (
-    follower_id VARCHAR(32) NOT NULL,
-    followed_id VARCHAR(32) NOT NULL,
-    PRIMARY KEY (follower_id, followed_id),
-    FOREIGN KEY (follower_id) REFERENCES users(userId) ON DELETE CASCADE,
-    FOREIGN KEY (followed_id) REFERENCES users(userId) ON DELETE CASCADE
+    followerId VARCHAR(36) NOT NULL,
+    followedId VARCHAR(36) NOT NULL,
+    PRIMARY KEY (followerId, followedId),
+    FOREIGN KEY (followerId) REFERENCES users(userId) ON DELETE CASCADE,
+    FOREIGN KEY (followedId) REFERENCES users(userId) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 5. 点赞表
 CREATE TABLE likes (
-    userId VARCHAR(32) NOT NULL,
-    contributionId VARCHAR(32) NOT NULL,
+    userId VARCHAR(36) NOT NULL,
+    contributionId VARCHAR(36) NOT NULL,
     PRIMARY KEY (userId, contributionId),
     FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE,
     FOREIGN KEY (contributionId) REFERENCES contribution(contributionId) ON DELETE CASCADE
@@ -69,8 +71,8 @@ CREATE TABLE likes (
 
 -- 6. 收藏表
 CREATE TABLE favorites (
-    userId VARCHAR(32) NOT NULL,
-    contributionId VARCHAR(32) NOT NULL,
+    userId VARCHAR(36) NOT NULL,
+    contributionId VARCHAR(36) NOT NULL,
     PRIMARY KEY (userId, contributionId),
     FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE,
     FOREIGN KEY (contributionId) REFERENCES contribution(contributionId) ON DELETE CASCADE
@@ -86,7 +88,7 @@ CREATE TABLE tags (
 -- 8. 标签关系表
 CREATE TABLE tag_relations (
     tagId BIGINT NOT NULL,
-    contributionId VARCHAR(32) NOT NULL,
+    contributionId VARCHAR(36) NOT NULL,
     PRIMARY KEY (tagId, contributionId),
     FOREIGN KEY (tagId) REFERENCES tags(id) ON DELETE CASCADE,
     FOREIGN KEY (contributionId) REFERENCES contribution(contributionId) ON DELETE CASCADE
@@ -95,7 +97,7 @@ CREATE TABLE tag_relations (
 -- 9. 操作日志表
 CREATE TABLE operation_logs (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    operatorId VARCHAR(32) NOT NULL,
+    operatorId VARCHAR(36) NOT NULL,
     time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     description VARCHAR(512) NOT NULL,
     FOREIGN KEY (operatorId) REFERENCES users(userId) ON DELETE CASCADE,
@@ -105,7 +107,7 @@ CREATE TABLE operation_logs (
 -- 10. 密保问题表
 CREATE TABLE security_questions (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
-    userId VARCHAR(32) NOT NULL,
+    userId VARCHAR(36) NOT NULL,
     description VARCHAR(255) NOT NULL,
     answer VARCHAR(255) NOT NULL,
     FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE,
