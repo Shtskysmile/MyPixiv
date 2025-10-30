@@ -2,6 +2,10 @@ package org.example.PCOI.Service.Impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.example.PCOI.Entity.*;
+import org.example.PCOI.Mapper.CommentMapper;
+import org.example.PCOI.Mapper.ContributionMapper;
+import org.example.PCOI.Mapper.SecurityIssueMapper;
+import org.example.PCOI.Mapper.UserMapper;
 import org.example.PCOI.ResponseDTO.*;
 import org.example.PCOI.Service.Inter.UserService;
 import org.example.PCOI.Service.Support.FileStorageService;
@@ -30,6 +34,8 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private TransformService transformService;
+    @Autowired
+    private CommentMapper commentMapper;
 
     @Override
     public boolean register(String username, String password, String gender, List<R_SecurityIssue> SecurityIssues, MultipartFile avatar) {
@@ -151,7 +157,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<R_OverviewContribution> getLikedList(String userId) {
         try{
-            List<Contribution> likedContributions = usermapper.selectLikedContributionsByUserId(userId);
+            List<Contribution> likedContributions = contributionmapper.selectLikeContributionsByUserId(userId);
             List<R_OverviewContribution> rOverviewContributions = null;
             for(Contribution contribution : likedContributions) {
                 User user = usermapper.selectUserById(contribution.getAuthorId());
@@ -168,7 +174,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<R_OverviewContribution> getFavouriteList(String userId) {
         try{
-            List<Contribution> favouriteContributions = usermapper.selectFavouriteContributionsByUserId(userId);
+            List<Contribution> favouriteContributions = contributionmapper.selectFavoriteContributionsByUserId(userId);
             List<R_OverviewContribution> rOverviewContributions = null;
             for(Contribution contribution : favouriteContributions) {
                 User user = usermapper.selectUserById(contribution.getAuthorId());
@@ -186,9 +192,9 @@ public class UserServiceImpl implements UserService {
     public List<R_UserComment> getUserCommentList(String userId) {
         try{
             List<R_UserComment> rUserComments = null;
-            List<Comment> comments = usermapper.selectCommentsByUserId(userId);
+            List<Comment> comments = commentMapper.selectCommentsByUserId(userId);
             for(Comment comment : comments) {
-                Contribution contribution = usermapper.selectContributionById(comment.getContribution());
+                Contribution contribution = contributionmapper.selectContributionById(comment.getContribution());
                 User contribtinUser = usermapper.selectUserById(contribution.getAuthorId());
                 User commentUser = usermapper.selectUserById(comment.getAuthor());
                 R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contribtinUser.getAvatar());
