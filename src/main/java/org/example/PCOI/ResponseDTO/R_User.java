@@ -1,12 +1,11 @@
-package org.example.PCOI.Entity;
+package org.example.PCOI.ResponseDTO;
 
 import lombok.Data;
 
 
 @Data
-public class User {
+public class R_User {
     private Integer userId;             // 用户ID
-    private String password;        // 密码
     private String role;          // 角色
     private String status;         // 状态
     private String username;     // 用户名

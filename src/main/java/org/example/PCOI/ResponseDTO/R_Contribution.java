@@ -1,9 +1,9 @@
-package org.example.PCOI.Entity;
+package org.example.PCOI.ResponseDTO;
 
 import lombok.Data;
 
 @Data
-public class Contribution {
+public class R_Contribution {
     private Integer contributionId;              // 作品ID
     private String type;            // 作品类型
     private String title;         // 作品标题

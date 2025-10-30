@@ -1,151 +1,133 @@
 package org.example.PCOI.Service.Impl;
 
-import org.example.PCOI.Entity.SecurityIssue;
-import org.example.PCOI.Entity.Tag;
 import org.example.PCOI.Entity.User;
-import org.example.PCOI.Mapper.LaboratorysMapper;
-import org.example.PCOI.Mapper.ProjectMapper;
-import org.example.PCOI.Mapper.UserMapper;
+import org.example.PCOI.ResponseDTO.*;
 import org.example.PCOI.Service.Inter.UserService;
-import org.example.PCOI.Utils.Md5Util;
+import org.example.PCOI.Service.Support.FileStorageService;
+import org.example.PCOI.Utils.BcryptUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
 public class UserServiceImpl implements UserService {
     @Autowired
     private UserMapper usermapper;
-    @Autowired
-    private ProjectMapper projectMapper;
 
     @Autowired
-    private LaboratorysMapper laboratorsmapper;
+    private FileStorageService fileStorageService;
 
     @Override
-    public User findByUserName(String username) {
-        // 实现根据用户名查找用户的逻辑
-        User user = usermapper.selectUserByName(username);
-        return user;
-    }
-
-    @Override
-    public void register(String username, String password, String identity) {
-        int authority = switch (identity) {
-            case "学生" -> {
-                identity = "student";
-                yield 3;
-            }
-            case "教师" -> {
-                identity = "teacher";
-                yield 2;
-            }
-            case "管理员" -> {
-                identity = "admin";
-                yield 1;
-            }
-            default -> throw new IllegalArgumentException("未知身份类型: " + identity);
-        };
-        String pwd_password= Md5Util.getMD5String(password);
+    public boolean register(String username, String password, String gender, List<R_SecurityIssue> RSecurityIssues, MultipartFile avatar) {
+        if (usermapper.selectUserByName(username) != null) {
+            return false; // 用户名已存在
+        }
         User user = new User();
         user.setUsername(username);
-        user.setPassword(pwd_password);
-        user.setIdentity(identity);
-        user.setAuthority(authority);
-        usermapper.insertUser(user);
+        user.setPassword(BcryptUtil.hash(password));
+        user.setSex(gender);
+        String avatarUrl = fileStorageService.saveAvatar(avatar);
+        user.setAvatar(avatarUrl);
 
+        return true;
     }
 
     @Override
-    public void updateUser(String username, String identity) {
-        // 获取当前用户的ID
-        User user = usermapper.selectUserByName(username);
-
-        int authority = switch (identity) {
-            case "学生" -> {
-                identity = "student";
-                yield 3;
-            }
-            case "教师" -> {
-                identity = "teacher";
-                yield 2;
-            }
-            case "管理员" -> {
-                identity = "admin";
-                yield 1;
-            }
-            default -> throw new IllegalArgumentException("未知身份类型: " + identity);
-        };
-        user.setIdentity(identity);
-        user.setAuthority(authority);
-
-        usermapper.updateUser(user);
+    public R_LoginDTO login(String username, String password) {
+        // TODO: 登录逻辑：查询用户、校验密码、签发 JWT、返回必要信息
+        return null;
     }
 
     @Override
-    public boolean ExistName(String username) {
-        // 实现检查用户名是否存在的逻辑
-        User user = usermapper.selectUserByName(username);
-        return user != null;
+    public boolean updatePassword(String tokenUsername, String type, String username, String newPassword) {
+        // TODO: 密码更新逻辑：校验临时令牌、强度校验、哈希入库
+        return false;
     }
 
     @Override
-    public void updatePwd(String username, String newPwd) {
-        // 实现更新密码的逻辑
-        String md5String = Md5Util.getMD5String(newPwd);
-        User user = usermapper.selectUserByName(username);
-        user.setPassword(md5String);
-            usermapper.updateUser(user);
-
+    public List<R_OverviewContribution> getContributionList(Integer userId) {
+        // TODO: 查询用户作品列表
+        return Collections.emptyList();
     }
 
     @Override
-    public List<Project> getmyProjects(String username)
-    {
-        // 获取当前用户的ID
-        User user = usermapper.selectUserByName(username);
-        if (user == null) {
-            return null; // 如果用户不存在，返回null
-        }
-        List<Project> projects = usermapper.selectProjectsByUserId(user.getId());
-        if (projects != null && !projects.isEmpty()) {
-            return projects; // 返回用户的项目列表
-        } else {
-            return null; // 如果没有项目，返回null
-        }
+    public R_Audit_My_ContributionsDTO getMyContributions(Integer userId) {
+        // TODO: 查询我的作品（含审核状态）
+        return null;
     }
 
     @Override
-    public List<Tag> getLaboratorysByUserId(Integer id) {
+    public List<R_User> getConcernedList(Integer userId) {
+        // TODO: 查询关注列表
+        return Collections.emptyList();
+    }
 
-        List<Project> projects = usermapper.selectProjectsByUserId(id);
-        if (projects.isEmpty()) {
-            return List.of(); // 返回空列表而不是 null
-        }
-        List<Tag> laboratories = new ArrayList<>();
-        for (Project project : projects) {
-            laboratories.addAll(laboratorsmapper.selectLaboratorysByProjectId(project.getId()));
-        }
-
-        if (laboratories.isEmpty()) {
-            return List.of(); // 返回空列表而不是 null
-        }
-        return laboratories;
-        }
     @Override
-    public List<SecurityIssue> getEquipmentByUserId(Integer id) {
-        // 获取当前用户的ID
-        User user = usermapper.selectUserBasicById(id);
-        if (user == null) {
-            return List.of(); // 返回空列表而不是 null
-        }
-        List<SecurityIssue> securityIssueList = usermapper.selectEquipmentByUserId(user.getId());
-        if (securityIssueList != null && !securityIssueList.isEmpty()) {
-            return securityIssueList; // 返回用户的设备列表
-        } else {
-            return List.of(); // 如果没有设备，返回空列表
-        }
+    public List<R_OverviewContribution> getLikedList(Integer userId) {
+        // TODO: 查询点赞列表
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<R_OverviewContribution> getFavouriteList(Integer userId) {
+        // TODO: 查询收藏列表
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<R_UserComment> getUserCommentList(Integer userId) {
+        // TODO: 查询我的评论
+        return Collections.emptyList();
+    }
+
+    @Override
+    public boolean deleteComment(Integer commentId, Integer userId) {
+        // TODO: 删除评论（需鉴权）
+        return false;
+    }
+
+    @Override
+    public boolean deleteContribution(Integer contributionId, Integer userId) {
+        // TODO: 删除作品（需鉴权与状态判断）
+        return false;
+    }
+
+    @Override
+    public R_UserInfoDTO getUserInfo(Integer requesterId, Integer userId) {
+        // TODO: 查询用户资料（按请求者身份控制可见字段）
+        return null;
+    }
+
+    @Override
+    public boolean updateUserInfo(Integer userId, String newUsername, String newGender, MultipartFile newAvatar) {
+        // TODO: 更新用户资料（唯一性与文件处理）
+        return false;
+    }
+
+    @Override
+    public boolean concernUser(Integer userId, Integer concernedUserId) {
+        // TODO: 关注用户（幂等处理）
+        return false;
+    }
+
+    @Override
+    public boolean unconcernUser(Integer userId, Integer concernedUserId) {
+        // TODO: 取消关注（幂等处理）
+        return false;
+    }
+
+    @Override
+    public List<String> getMySecurityIssues(String username) {
+        // TODO: 读取用户密保问题
+        return Collections.emptyList();
+    }
+
+    @Override
+    public R_VerifySecurityIssuesDTO verifySecurityIssues(String username, List<R_SecurityIssue> RSecurityIssues) {
+        // TODO: 校验密保问题与答案
+        return new R_VerifySecurityIssuesDTO(false, null);
     }
 }

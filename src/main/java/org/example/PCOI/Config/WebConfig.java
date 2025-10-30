@@ -1,18 +1,30 @@
-// WebConfig.java
 package org.example.PCOI.Config;
 
-import org.example.PCOI.Utils.JwtInterceptor;
-import org.example.PCOI.Utils.JwtUserInterceptor;
-import org.example.PCOI.Utils.JwtSysAdminInterceptor;
-import org.example.PCOI.Utils.JwtCommunityAdminInterceptor;
+import org.example.PCOI.Utils.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+    private final RequestLoggingInterceptor requestLoggingInterceptor;
+
+    public WebConfig(RequestLoggingInterceptor requestLoggingInterceptor) {
+        this.requestLoggingInterceptor = requestLoggingInterceptor;
+    }
+
+    @Value("${pcoi.upload.base-dir}")
+    private String uploadBaseDir;
+    @Value("${pcoi.upload.url-prefix}")
+    private String uploadUrlPrefix;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        // 统一日志拦截，建议第一个注册
+        registry.addInterceptor(requestLoggingInterceptor)
+                .addPathPatterns("/**");
         // 所有接口通用拦截器
         registry.addInterceptor(new JwtInterceptor())
                 .addPathPatterns("/**")
@@ -39,5 +51,18 @@ public class WebConfig implements WebMvcConfigurer {
         // 社区管理员接口
         registry.addInterceptor(new JwtCommunityAdminInterceptor())
                 .addPathPatterns("/communityAdmin/**");
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        String urlPattern = ensureTrailingSlash(uploadUrlPrefix) + "**";
+        String location = "file:" + ensureTrailingSlash(uploadBaseDir);
+        registry.addResourceHandler(urlPattern)
+                .addResourceLocations(location);
+    }
+
+    private static String ensureTrailingSlash(String s) {
+        if (s == null || s.isEmpty()) return "/";
+        return s.endsWith("/") ? s : s + "/";
     }
 }

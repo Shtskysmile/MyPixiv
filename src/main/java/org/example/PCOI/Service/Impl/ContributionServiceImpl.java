@@ -1,0 +1,80 @@
+package org.example.PCOI.Service.Impl;
+
+import org.example.PCOI.ResponseDTO.R_Contribution;
+import org.example.PCOI.ResponseDTO.R_ContributionDTO;
+import org.example.PCOI.ResponseDTO.R_OverviewContribution;
+import org.example.PCOI.Service.Inter.ContributionService;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+
+@Service
+public class ContributionServiceImpl implements ContributionService {
+    @Override
+    public List<R_OverviewContribution> getIllustrations() {
+        // TODO: 实现获取插画列表逻辑
+        return List.of();
+    }
+
+    @Override
+    public List<R_OverviewContribution> getMangas() {
+        // TODO: 实现获取漫画列表逻辑
+        return List.of();
+    }
+
+    @Override
+    public R_ContributionDTO getContribution(Integer userId, Integer contributionId) {
+        // TODO: 实现获取作品详情逻辑（含用户上下文）
+        return null;
+    }
+
+    @Override
+    public R_Contribution getUnauditedContribution(Integer userId, String role, Integer contributionId) {
+        // TODO: 实现获取待审核作品逻辑（根据角色校验权限）
+        return null;
+    }
+
+    @Override
+    public List<R_OverviewContribution> getContributionsRanking(String type, String key) {
+        // TODO: 实现排行榜查询逻辑
+        return List.of();
+    }
+
+    @Override
+    public boolean likeContribution(Integer userId, Integer contributionId) {
+        // TODO: 实现点赞逻辑（幂等处理）
+        return false;
+    }
+
+    @Override
+    public boolean unlikeContribution(Integer userId, Integer contributionId) {
+        // TODO: 实现取消点赞逻辑（幂等处理）
+        return false;
+    }
+
+    @Override
+    public boolean favoriteContribution(Integer userId, Integer contributionId) {
+        // TODO: 实现收藏逻辑（幂等处理）
+        return false;
+    }
+
+    @Override
+    public boolean unfavoriteContribution(Integer userId, Integer contributionId) {
+        // TODO: 实现取消收藏逻辑（幂等处理）
+        return false;
+    }
+
+    @Override
+    public boolean commentContribution(Integer userId, Integer contributionId, String comment) {
+        // TODO: 实现评论逻辑（内容校验、防刷）
+        return false;
+    }
+
+    @Override
+    public boolean uploadContribution(Integer userId, String title, String type, String description, List<MultipartFile> images) {
+        // TODO: 实现作品上传逻辑（文件校验、存储、事务）
+        return false;
+    }
+}
+

@@ -1,9 +1,10 @@
 package org.example.PCOI.Controller;
 
-import org.example.PCOI.Entity.*;
-import org.example.PCOI.Service.Inter.LogService;
+import org.example.PCOI.Entity.Claims;
+import org.example.PCOI.ResponseDTO.*;
 import org.example.PCOI.Service.Inter.UserService;
 import org.example.PCOI.Utils.JwtUtil;
+import org.example.PCOI.Utils.TokenProcess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,133 +15,208 @@ import java.util.Map;
 @RestController()
 public class UserController {
     @Autowired
-    private UserService userservice;
-    @Autowired
-    private LogService logService;
+    private UserService userService;
+
+    private TokenProcess tokenProcess = new TokenProcess();
+
+
+
 
     @PostMapping("/register")
     public Result<String> register(
             @RequestParam("username") String username,
             @RequestParam("password") String password,
             @RequestParam("gender") String gender,
-            @RequestParam("securityIssues") List<SecurityIssue> securityIssues,
+            @RequestParam("RSecurityIssues") List<R_SecurityIssue> SecurityIssues,
             @RequestParam(value = "avatar", required = false) MultipartFile avatar){
+        try {
+            boolean success = userService.register(username, password, gender, SecurityIssues, avatar);
+            if (success) {
+                return Result.success("注册成功");
+            } else {
+                return Result.error("注册失败，用户名已存在");
+            }
+        }
+        catch (Exception e) {
+                return Result.error("注册过程中出现错误: " + e.getMessage());
+            }
+
 
     }
 
     @PostMapping("/login")
-    public Result<Map<String, Object>> login(
+    public Result<R_LoginDTO> login(
             @RequestParam("username") String username,
             @RequestParam("password") String password) {
-        User user = userservice.login(username, password);
-        if (user != null) {
-            Map<String, Object> claims = Map.of(
-                    "userId", user.getUserId(),
-                    "username", user.getUsername(),
-                    "role", user.getRole()
-            );
-            String token = JwtUtil.genToken(claims);
-            Map<String, Object> result = Map.of(
-                    "user", user,
-                    "token", token
-            );
-            return Result.success(result);
-        } else {
-            return Result.error("用户名或密码错误");
+        try {
+            R_LoginDTO result = userService.login(username, password);
+            if (result != null) {
+                return Result.success(result);
+            } else {
+                return Result.error("用户名或密码错误");
+            }
+        } catch (Exception e) {
+            return Result.error("登录过程中出现错误: " + e.getMessage());
         }
     }
 
     @PostMapping("/contributionList")
-    public Result<List<OverviewContribution>> getContributionList(
+    public Result<List<R_OverviewContribution>> getContributionList(
             @RequestParam ("userId") String userId){
-
+        try {
+            List<R_OverviewContribution> list = userService.getContributionList(Integer.valueOf(userId));
+            return Result.success(list);
+        } catch (Exception e) {
+            return Result.error("获取作品列表出错: " + e.getMessage());
+        }
     }
 
-    @PostMapping("/myContributions")
-    public Result<Map<String,Object>> getMyContributions(
-            @RequestHeader("Authorization") String authHeader,
-            @RequestParam ("userId") String userId){
-
+    @PostMapping("/user/myContributions")
+    public Result<R_Audit_My_ContributionsDTO> getMyContributions(
+            @RequestHeader("Authorization") String authHeader){
+        try {
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
+            R_Audit_My_ContributionsDTO data = userService.getMyContributions(userId);
+            return Result.success(data);
+        } catch (Exception e) {
+            return Result.error("获取我的作品出错: " + e.getMessage());
+        }
     }
     @PostMapping("/concernedList")
-    public Result<List<User>> getConcernedList(
+    public Result<List<R_User>> getConcernedList(
             @RequestParam ("userId") String userId){
-
+        try {
+            List<R_User> list = userService.getConcernedList(Integer.valueOf(userId));
+            return Result.success(list);
+        } catch (Exception e) {
+            return Result.error("获取关注列表出错: " + e.getMessage());
+        }
     }
 
     @PostMapping("/likedList")
-    public Result<List<Contribution>> getLikedList(
+    public Result<List<R_OverviewContribution>> getLikedList(
             @RequestParam ("userId") String userId){
-
+        try {
+            List<R_OverviewContribution> list = userService.getLikedList(Integer.valueOf(userId));
+            return Result.success(list);
+        } catch (Exception e) {
+            return Result.error("获取点赞列表出错: " + e.getMessage());
+        }
     }
 
 
     @PostMapping("/favouriteList")
-    public Result<List<Contribution>> getFavouriteList(
+    public Result<List<R_OverviewContribution>> getFavouriteList(
             @RequestParam ("userId") String userId){
-
+        try {
+            List<R_OverviewContribution> list = userService.getFavouriteList(Integer.valueOf(userId));
+            return Result.success(list);
+        } catch (Exception e) {
+            return Result.error("获取收藏列表出错: " + e.getMessage());
+        }
 
     }
 
     @PostMapping("/userCommentList")
-    public Result<List<UserComment>> getUserCommentList(
+    public Result<List<R_UserComment>> getUserCommentList(
             @RequestParam ("userId") String userId){
+        try {
+            List<R_UserComment> list = userService.getUserCommentList(Integer.valueOf(userId));
+            return Result.success(list);
+        } catch (Exception e) {
+            return Result.error("获取评论列表出错: " + e.getMessage());
+        }
 
     }
 
     @PostMapping("/user/deleteComment")
     public Result<String> deleteComment(
-            @RequestParam ("commentId") Integer commentId,
-            @RequestParam ("userId") Integer userId){
+            @RequestHeader("Authorization") String authHeader,
+            @RequestParam ("commentId") Integer commentId){
+        try {
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
+            boolean ok = userService.deleteComment(commentId, userId);
+            if (ok) {
+                return Result.success("删除评论成功");
+            }
+            return Result.error("删除评论失败");
+        } catch (Exception e) {
+            return Result.error("删除评论出错: " + e.getMessage());
+        }
 
     }
 
     @PostMapping("/user/deleteContribution")
     public Result<String> deleteContribution(
-            @RequestParam ("contributionId") Integer contributionId,
-            @RequestParam ("userId") Integer userId){
+            @RequestHeader("Authorization") String authHeader,
+            @RequestParam ("contributionId") Integer contributionId){
+        try {
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
+            boolean ok = userService.deleteContribution(contributionId, userId);
+            if (ok) {
+                return Result.success("删除作品成功");
+            }
+            return Result.error("删除作品失败");
+        } catch (Exception e) {
+            return Result.error("删除作品出错: " + e.getMessage());
+        }
 
     }
 
-
     @PostMapping("/userInfo")
-    public Result<Map<String,Object>> getUserInfo(
+    public Result<R_UserInfoDTO> getUserInfo(
             @RequestHeader("Authorization") String authHeader,
             @RequestParam ("userId") String userId) {
+        try {
+            Integer requesterId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
+            R_UserInfoDTO data = userService.getUserInfo(requesterId,Integer.valueOf(userId));
+            return Result.success(data);
+        } catch (Exception e) {
+            return Result.error("获取用户信息出错: " + e.getMessage());
+        }
     }
 
     @PostMapping("/mySecurityIssues")
     public Result<List<String>> getMySecurityIssues(
-            @RequestParam ("username") String username){
+            @RequestParam("username") String username){
+        try {
+            List<String> issues = userService.getMySecurityIssues(username);
+            return Result.success(issues);
+        } catch (Exception e) {
+            return Result.error("获取密保问题出错: " + e.getMessage());
+        }
 
     }
 
     @PostMapping("/verifySecurityIssues")
-    public Result<Map<String,Object>> verifySecurityIssues(
-            @RequestParam ("username") String username,
-            @RequestParam ("securityIssues") List<SecurityIssue> securityIssues){
-        // 验证密保问题通过后
-//        Map<String, Object> claims = Map.of(
-//                "username", username,
-//                "type", "resetPwd"
-//        );
-//        String tempToken = JwtUtil.genToken(claims, 10 * 60 * 1000); // 10分钟有效
-//        return Result.success(Map.of("tempToken", tempToken));
+    public Result<R_VerifySecurityIssuesDTO> verifySecurityIssues(
+            @RequestParam("username") String username,
+            @RequestParam ("SecurityIssues") List<R_SecurityIssue> SecurityIssues){
+        try {
+            R_VerifySecurityIssuesDTO data = userService.verifySecurityIssues(username, SecurityIssues);
+            if(data.getVerified())
+            {
+                return Result.success(data);
+            }
+            return Result.error("密保验证失败");
+        } catch (Exception e) {
+            return Result.error("校验密保出错: " + e.getMessage());
+        }
 
     }
 
     @PostMapping("/updatePassword")
     public Result<String> updatePassword(
-            @RequestHeader("tempToken") String tempToken,
+            @RequestHeader("Authorization") String tempToken,
             @RequestParam("username") String username,
             @RequestParam("newPassword") String newPassword) {
         try {
-            Map<String, Object> claims = JwtUtil.parseToken(tempToken);
-            if (!"resetPwd".equals(claims.get("type")) || !username.equals(claims.get("username"))) {
-                return Result.error("无效的操作");
+            String tokenUsername = tokenProcess.getAttributeFromToken(tempToken, "username", String.class);
+            String type = tokenProcess.getAttributeFromToken(tempToken, "type", String.class);
+            boolean ok = userService.updatePassword(tokenUsername,type,username,newPassword);
+            if (!ok) {
+                return Result.error("密码修改失败");
             }
-            // 修改密码逻辑
-            userservice.updatePassword(username, newPassword);
             return Result.success("密码修改成功");
         } catch (Exception e) {
             return Result.error("临时令牌无效或已过期");
@@ -149,42 +225,55 @@ public class UserController {
 
     @PostMapping("/user/updateUserInfo")
     public Result<String> updateUserInfo(
-            @RequestParam ("userId") Integer userId,
+            @RequestHeader("Authorization") String authHeader,
             @RequestParam ("newUsername") String newUsername,
             @RequestParam("newGender") String newGender,
             @RequestParam(value = "newAvatar", required = false) MultipartFile newAvatar){
+        try {
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
+            boolean ok = userService.updateUserInfo(userId, newUsername, newGender, newAvatar);
+            if (ok) {
+                return Result.success("更新成功");
+            }
+            return Result.error("更新失败");
+        } catch (Exception e) {
+            return Result.error("更新用户信息出错: " + e.getMessage());
+        }
 
     }
 
     @PostMapping("/user/concernUser")
     public Result<String> concernUser(
-            @RequestParam ("userId") Integer userId,
+            @RequestHeader("Authorization") String authHeader,
             @RequestParam ("concernedUserId") Integer concernedUserId){
+        try {
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
+            boolean ok = userService.concernUser(userId, concernedUserId);
+            if (ok) {
+                return Result.success("关注成功");
+            }
+            return Result.error("关注失败");
+        } catch (Exception e) {
+            return Result.error("关注出错: " + e.getMessage());
+        }
 
     }
 
     @PostMapping("/user/unconcernUser")
     public Result<String> unconcernUser(
-            @RequestParam ("userId") Integer userId,
+            @RequestHeader("Authorization") String authHeader,
             @RequestParam ("concernedUserId") Integer concernedUserId){
+        try {
+            Integer userId = tokenProcess.getAttributeFromToken(authHeader, "userId", Integer.class);
+            boolean ok = userService.unconcernUser(userId, concernedUserId);
+            if (ok) {
+                return Result.success("已取消关注");
+            }
+            return Result.error("取消关注失败");
+        } catch (Exception e) {
+            return Result.error("取消关注出错: " + e.getMessage());
+        }
 
     }
-
-//    @PostMapping("/someApi")
-//    public Result<?> someApi(@RequestHeader("Authorization") String authHeader) {
-//        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-//            String token = authHeader.substring(7);
-//            try {
-//                Map<String, Object> claims = JwtUtil.parseToken(token);
-//                // 现在可以使用 claims 中的用户信息
-//                String username = (String) claims.get("username");
-//                // 业务逻辑...
-//                return Result.success(username);
-//            } catch (Exception e) {
-//                return Result.error("token无效");
-//            }
-//        }
-//        return Result.error("未携带token");
-//    }
 
 }

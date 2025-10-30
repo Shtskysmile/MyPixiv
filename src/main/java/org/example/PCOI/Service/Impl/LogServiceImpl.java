@@ -1,24 +1,19 @@
 package org.example.PCOI.Service.Impl;
 
-import org.example.PCOI.Mapper.OperationLogsMapper;
 import org.example.PCOI.Service.Inter.LogService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 public class LogServiceImpl implements LogService {
-    private final OperationLogsMapper operationlogsmapper;
 
-    public LogServiceImpl(OperationLogsMapper operationlogsmapper) {
-        this.operationlogsmapper = operationlogsmapper;
-    }
+    private static final Logger LOGGER = LoggerFactory.getLogger(LogServiceImpl.class);
 
-    public void logMethodExecution(String username) {
-        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-        String operationType = stack.length > 2 ? stack[2].getMethodName() : "defaultOperation";
-
-
-        String ipAddress = "192.168.80.16";
-
-        operationlogsmapper.insertLog(username, operationType, ipAddress);
+    @Override
+    public void logMethodExecution(String username, String operationType, String ipAddress) {
+        // 目前仅输出到应用日志；后续可接入数据库/消息队列
+        LOGGER.info("operation={}, user={}, ip={}", operationType, username, ipAddress);
     }
 }
+

@@ -1,5 +1,5 @@
 package org.example.PCOI.Service.Inter;
 
 public interface LogService {
-    void logMethodExecution(String username);
+    void logMethodExecution(String username, String operationType, String ipAddress);
 }
