@@ -1,9 +1,12 @@
 package org.example.PCOI.Service.Impl;
 
+import org.example.PCOI.Entity.Contribution;
+import org.example.PCOI.Mapper.ContributionMapper;
 import org.example.PCOI.ResponseDTO.R_Contribution;
 import org.example.PCOI.ResponseDTO.R_ContributionDTO;
 import org.example.PCOI.ResponseDTO.R_OverviewContribution;
 import org.example.PCOI.Service.Inter.ContributionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -11,9 +14,15 @@ import java.util.List;
 
 @Service
 public class ContributionServiceImpl implements ContributionService {
+    @Autowired
+    private ContributionMapper contributionMapper;
+
     @Override
     public List<R_OverviewContribution> getIllustrations() {
-        // TODO: 实现获取插画列表逻辑
+        try{
+            List<Contribution> contributions = contributionMapper.selectContributionsByType("illustration");
+
+        }
         return List.of();
     }
 

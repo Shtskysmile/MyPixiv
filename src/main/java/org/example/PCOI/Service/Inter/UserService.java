@@ -30,5 +30,5 @@ public interface UserService {
 
     // 密保相关
     List<String> getMySecurityIssues(String username);
-    R_VerifySecurityIssuesDTO verifySecurityIssues(String username, List<R_SecurityIssue> SecurityIssues);
+    R_VerifySecurityIssuesDTO verifySecurityIssues(String username, List<R_SecurityIssue> securityIssues);
 }

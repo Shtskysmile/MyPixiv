@@ -2,6 +2,7 @@ package org.example.PCOI.Service.Impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.example.PCOI.Entity.*;
+import org.example.PCOI.Mapper.ContributionMapper;
 import org.example.PCOI.ResponseDTO.*;
 import org.example.PCOI.Service.Inter.UserService;
 import org.example.PCOI.Service.Support.FileStorageService;
@@ -24,6 +25,8 @@ public class UserServiceImpl implements UserService {
     private SecurityIssueMapper securityissuemapper;
     @Autowired
     private ContributionMapper contributionmapper;
+    @Autowired
+    private CommentMapper commentmapper;
 
     @Autowired
     private FileStorageService fileStorageService;
@@ -32,7 +35,7 @@ public class UserServiceImpl implements UserService {
     private TransformService transformService;
 
     @Override
-    public boolean register(String username, String password, String gender, List<R_SecurityIssue> SecurityIssues, MultipartFile avatar) {
+    public boolean register(String username, String password, String gender, List<R_SecurityIssue> securityIssues, MultipartFile avatar) {
         if (usermapper.selectUserByName(username) != null) {
             return false; // 用户名已存在
         }
@@ -44,7 +47,7 @@ public class UserServiceImpl implements UserService {
         user.setAvatar(avatarUrl);
         usermapper.insertUser(user);
         user = usermapper.selectUserByName(username); // 获取插入后的用户以获取其 ID
-        for(R_SecurityIssue issue : SecurityIssues) {
+        for(R_SecurityIssue issue : securityIssues) {
             SecurityIssue securityIssue = transformService.transformRSecurityIssueToSecurityIssue(issue, user.getUserId());
             securityissuemapper.insertSecurityIssue(securityIssue);
         }
@@ -84,7 +87,7 @@ public class UserServiceImpl implements UserService {
     public List<R_OverviewContribution> getContributionList(String userId) {
         try{
             User user = usermapper.selectUserById(userId);
-            List<Contribution> contributions = usermapper.selectApprovedContributionsByUserId(userId);
+            List<Contribution> contributions = usermapper.selectContributionsByUserId(userId);
             List<R_OverviewContribution> rOverviewContributions = null;
             for(Contribution contribution : contributions) {
                 R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
@@ -105,9 +108,9 @@ public class UserServiceImpl implements UserService {
             List<R_OverviewContribution> pendingContributions = null;
             List<R_OverviewContribution> approvedContributions = null;
             List<R_OverviewContribution> dismissalContributions = null;
-            List<Contribution> pending = usermapper.selectPendingContributionsByUserId(userId);
-            List<Contribution> approved = usermapper.selectApprovedContributionsByUserId(userId);
-            List<Contribution> dismissal = usermapper.selectDismissalContributionsByUserId(userId);
+            List<Contribution> pending = usermapper.selectContributionsByUserIdAndAuditStatus(userId,"pending");
+            List<Contribution> approved = usermapper.selectContributionsByUserIdAndAuditStatus(userId,"approved");
+            List<Contribution> dismissal = usermapper.selectContributionsByUserIdAndAuditStatus(userId,"dismissal");
             for(Contribution contribution : pending) {
                 R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
                 pendingContributions.add(rOverviewContribution);
@@ -135,7 +138,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<R_User> getConcernedList(String userId) {
         try{
-            List<User> concernedUsers = usermapper.selectConcernedUsersByUserId(userId);
+            List<User> concernedUsers = usermapper.selectConcernedUsersById(userId);
             List<R_User> rUsers = null;
             for(User user : concernedUsers) {
                 R_User rUser = transformService.transformUserToRUser(user);
@@ -188,11 +191,11 @@ public class UserServiceImpl implements UserService {
             List<R_UserComment> rUserComments = null;
             List<Comment> comments = usermapper.selectCommentsByUserId(userId);
             for(Comment comment : comments) {
-                Contribution contribution = usermapper.selectContributionById(comment.getContribution());
-                User contribtinUser = usermapper.selectUserById(contribution.getAuthorId());
+                Contribution contribution = contributionmapper.selectContributionById(comment.getContribution());
+                User contributionUser = usermapper.selectUserById(contribution.getAuthorId());
                 User commentUser = usermapper.selectUserById(comment.getAuthor());
-                R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contribtinUser.getAvatar());
-                R_UserComment rUserComment = transformService.transformCommentToRUserComment(comment, rOverviewContribution);
+                R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar());
+                R_UserComment rUserComment = transformService.transformCommentToRUserComment(comment, rOverviewContribution,commentUser.getAvatar());
                 rUserComments.add(rUserComment);
             }
             return rUserComments;
@@ -200,54 +203,191 @@ public class UserServiceImpl implements UserService {
             log.error("Error fetching user comments for userId {}: {}", userId, e.getMessage());
             return null;
         }
-        return Collections.emptyList();
     }
 
     @Override
     public boolean deleteComment(String commentId, String userId) {
-        // TODO: 删除评论（需鉴权）
-        return false;
+        try{
+            Comment comment = commentmapper.selectCommentById(commentId);
+            if(comment == null || !comment.getAuthor().equals(userId)) {
+                return false; // 评论不存在或用户无权限删除
+            }
+            commentmapper.deleteCommentById(commentId);
+            return true;
+        }catch(Exception e){
+            log.error("Error deleting commentId {} by userId {}: {}", commentId, userId, e.getMessage());
+            return false;
+        }
     }
 
     @Override
     public boolean deleteContribution(String contributionId, String userId) {
-        // TODO: 删除作品（需鉴权与状态判断）
-        return false;
+        try{
+            Contribution contribution = contributionmapper.selectContributionById(contributionId);
+            if(contribution == null || !contribution.getAuthorId().equals(userId)) {
+                return false; // 作品不存在或用户无权限删除
+            }
+            contributionmapper.deleteContributionById(contributionId);
+            return true;
+        }catch (Exception e){
+            log.error("Error deleting contributionId {} by userId {}: {}", contributionId, userId, e.getMessage());
+            return false;
+        }
     }
 
     @Override
     public R_UserInfoDTO getUserInfo(String requesterId, String userId) {
-        // TODO: 查询用户资料（按请求者身份控制可见字段）
-        return null;
+        try{
+            User user = usermapper.selectUserById(userId);
+            if(user == null) {
+                return null; // 用户不存在
+            }
+            R_User rUser = transformService.transformUserToRUser(user);
+            R_UserInfoDTO userInfoDTO = new R_UserInfoDTO();
+            userInfoDTO.setUser(rUser);
+            boolean isConcerned = false;
+            List<User> concernedUsers = usermapper.selectConcernedUsersById(requesterId);
+            for(User concernedUser : concernedUsers) {
+                if(concernedUser.getUserId().equals(userId)) {
+                    isConcerned = true;
+                    break;
+                }
+            }
+            userInfoDTO.setIsConcerned(isConcerned);
+            return userInfoDTO;
+        }catch (Exception e){
+            log.error("Error fetching user info for userId {} requested by {}: {}", userId, requesterId, e.getMessage());
+            return null;
+        }
     }
 
     @Override
     public boolean updateUserInfo(String userId, String newUsername, String newGender, MultipartFile newAvatar) {
-        // TODO: 更新用户资料（唯一性与文件处理）
-        return false;
+        try {
+            User user = usermapper.selectUserById(userId);
+            User existingUser = usermapper.selectUserByName(newUsername);
+            if (user == null|| (existingUser != null && !existingUser.getUserId().equals(userId))) {
+                return false; // 用户不存在
+            }
+            if (newUsername != null && !newUsername.isEmpty()) {
+                user.setUsername(newUsername);
+            }
+            if (newGender != null && !newGender.isEmpty()) {
+                user.setSex(newGender);
+            }
+            if (newAvatar != null) {
+                String avatarUrl = fileStorageService.saveAvatar(newAvatar);
+                user.setAvatar(avatarUrl);
+            }
+            usermapper.updateUser(user);
+            return true;
+        }catch(Exception e){
+            log.error("Error updating user info for userId {}: {}", userId, e.getMessage());
+            return false;
+        }
     }
 
     @Override
     public boolean concernUser(String userId, String concernedUserId) {
-        // TODO: 关注用户（幂等处理）
-        return false;
+        try{
+            User user = usermapper.selectUserById(userId);
+            User concernedUser = usermapper.selectUserById(concernedUserId);
+            if(user == null || concernedUser == null) {
+                return false; // 用户不存在
+            }
+            List<User> concernedUsers = usermapper.selectConcernedUsersById(userId);
+            for(User u : concernedUsers) {
+                if(u.getUserId().equals(concernedUserId)) {
+                    return true; // 已关注，幂等处理
+                }
+            }
+            usermapper.insertConcernedUser(userId, concernedUserId);
+            return true;
+        }catch (Exception e){
+            log.error("Error concerning userId {} by userId {}: {}", concernedUserId, userId, e.getMessage());
+            return false;
+        }
     }
 
     @Override
     public boolean unconcernUser(String userId, String concernedUserId) {
-        // TODO: 取消关注（幂等处理）
-        return false;
+        try {
+            User user = usermapper.selectUserById(userId);
+            User concernedUser = usermapper.selectUserById(concernedUserId);
+            if (user == null || concernedUser == null) {
+                return false; // 用户不存在
+            }
+            List<User> concernedUsers = usermapper.selectConcernedUsersById(userId);
+            boolean isConcerned = false;
+            for (User u : concernedUsers) {
+                if (u.getUserId().equals(concernedUserId)) {
+                    isConcerned = true;
+                    break;
+                }
+            }
+            if (!isConcerned) {
+                return true; // 未关注，幂等处理
+            }
+            usermapper.deleteConcernedUser(userId, concernedUserId);
+            return true;
+        }catch( Exception e){
+            log.error("Error unconcerning userId {} by userId {}: {}", concernedUserId, userId, e.getMessage());
+            return false;
+        }
     }
 
     @Override
     public List<String> getMySecurityIssues(String username) {
-        // TODO: 读取用户密保问题
-        return Collections.emptyList();
+        try {
+            User user = usermapper.selectUserByName(username);
+            if (user == null) {
+                return null; // 用户不存在
+            }
+            List<SecurityIssue> securityIssues = securityissuemapper.selectSecurityIssuesById(user.getUserId());
+            List<String> questions = null;
+            for (SecurityIssue issue : securityIssues) {
+                questions.add(issue.getDescription());
+            }
+            return questions;
+        }catch (Exception e){
+            log.error("Error fetching security issues for username {}: {}", username, e.getMessage());
+            return null;
+        }
+        
     }
 
     @Override
-    public R_VerifySecurityIssuesDTO verifySecurityIssues(String username, List<R_SecurityIssue> RSecurityIssues) {
-        // TODO: 校验密保问题与答案
-        return new R_VerifySecurityIssuesDTO(false, null);
+    public R_VerifySecurityIssuesDTO verifySecurityIssues(String username, List<R_SecurityIssue> securityIssues) {
+        try {
+            User user = usermapper.selectUserByName(username);
+            if (user == null) {
+                return null; // 用户不存在
+            }
+            List<SecurityIssue> storedIssues = securityissuemapper.selectSecurityIssuesById(user.getUserId());
+            if (storedIssues.size() != securityIssues.size()) {
+                return null; // 问题数量不匹配
+            }
+            for (R_SecurityIssue rIssue : securityIssues) {
+                boolean matchFound = false;
+                for (SecurityIssue storedIssue : storedIssues) {
+                    if (storedIssue.getDescription().equals(rIssue.getDescription()) &&
+                            storedIssue.getAnswer().equals(rIssue.getAnswer())) {
+                        matchFound = true;
+                        break;
+                    }
+                }
+                if (!matchFound) {
+                    return null; // 有问题不匹配
+                }
+            }
+            String token = JwtUtil.genToken(new Claims(username, user.getUserId(), user.getRole(), "updatePWD").toMap());
+            R_VerifySecurityIssuesDTO dto = new R_VerifySecurityIssuesDTO();
+            dto.setVerified(true);
+            dto.setTempToken(token);
+            return dto ;
+        } catch (Exception e) {
+            log.error("Error verifying security issues for username {}: {}", username, e.getMessage());
+            return null;
+        }
     }
 }
