@@ -44,7 +44,8 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
             operation = controller + ":" + hm.getMethod().getName();
         }
 
-        logService.logMethodExecution(username, ip, operation);
+        // 依接口签名顺序：username, operationType, ipAddress
+        logService.logMethodExecution(username, operation, ip);
         return true;
     }
 

@@ -38,18 +38,5 @@ public final class BcryptUtil {
         return ENCODER.matches(rawPassword, encodedPassword);
     }
 
-    /**
-     * 如需平滑提升强度，可在登录成功后检测是否需要升级并返回新哈希。
-     * 若不需要升级返回 null，调用方据此决定是否更新数据库。
-     */
-    public static String upgradeIfNeeded(String rawPassword, String encodedPassword) {
-        if (rawPassword == null || encodedPassword == null) {
-            return null;
-        }
-        if (ENCODER instanceof BCryptPasswordEncoder bpe && bpe.upgradeEncoding(encodedPassword)) {
-            return bpe.encode(rawPassword);
-        }
-        return null;
-    }
 }
 

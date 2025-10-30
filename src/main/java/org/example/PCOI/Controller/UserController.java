@@ -27,10 +27,10 @@ public class UserController {
             @RequestParam("username") String username,
             @RequestParam("password") String password,
             @RequestParam("gender") String gender,
-            @RequestParam("RSecurityIssues") List<R_SecurityIssue> RSecurityIssues,
+            @RequestParam("RSecurityIssues") List<R_SecurityIssue> SecurityIssues,
             @RequestParam(value = "avatar", required = false) MultipartFile avatar){
         try {
-            boolean success = userService.register(username, password, gender, RSecurityIssues, avatar);
+            boolean success = userService.register(username, password, gender, SecurityIssues, avatar);
             if (success) {
                 return Result.success("注册成功");
             } else {
