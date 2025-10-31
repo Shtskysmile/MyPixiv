@@ -2,7 +2,6 @@ package org.example.PCOI.Mapper;
 
 import org.apache.ibatis.annotations.*;
 import org.example.PCOI.Entity.Contribution;
-import org.example.PCOI.common.enums.ContributionType;
 
 import java.util.List;
 
@@ -33,7 +32,7 @@ public interface ContributionMapper {
     void deleteContributionById(String contributionId);
 
     @Select("SELECT * FROM contribution WHERE type = #{type} AND status = 0 AND auditStatus = 1")
-    List<Contribution> selectContributionsByType(ContributionType type);
+    List<Contribution> selectContributionsByType(int type);
 
     @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 ORDER BY viewCount DESC LIMIT #{limit}")
     List<Contribution> selectContributionsByViewCount(@Param("limit") int limit);

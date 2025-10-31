@@ -5,6 +5,7 @@ import org.example.PCOI.Entity.*;
 import org.example.PCOI.Mapper.*;
 import org.example.PCOI.ResponseDTO.*;
 import org.example.PCOI.Service.Inter.UserService;
+import org.example.PCOI.Service.Support.Enum;
 import org.example.PCOI.Service.Support.FileStorageService;
 import org.example.PCOI.Service.Support.TransformService;
 import org.example.PCOI.Utils.BcryptUtil;
@@ -15,6 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
 import java.util.List;
+
+import static org.example.PCOI.Service.Support.Enum.*;
 
 @Slf4j
 @Service
@@ -62,7 +65,7 @@ public class UserServiceImpl implements UserService {
         if(user == null || !BcryptUtil.matches(password, user.getPassword())) {
             return null;
         }
-        Claims claims = new Claims(user.getUsername(), user.getUserId(),user.getRole(),"login" );
+        Claims claims = new Claims(user.getUsername(), user.getUserId(),user.getRole(),login);
         String token = JwtUtil.genToken(claims.toMap());
         R_User rUser = transformService.transformUserToRUser(user);
         R_LoginDTO loginDTO = new R_LoginDTO();
@@ -73,7 +76,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean updatePassword(String tokenUsername, Integer type, String username, String newPassword) {
-        if(!tokenUsername.equals(username)||!type.equals("updatePWD")) {
+        if(!tokenUsername.equals(username)||!type.equals(updatePWD)) {
             return false; // 鉴权失败
         }
         User user = usermapper.selectUserByName(username);
@@ -110,18 +113,18 @@ public class UserServiceImpl implements UserService {
             List<R_OverviewContribution> pendingContributions = null;
             List<R_OverviewContribution> approvedContributions = null;
             List<R_OverviewContribution> dismissalContributions = null;
-            List<Contribution> pending = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId,0);
-            List<Contribution> approved = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId,1);
-            List<Contribution> dismissal = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId,2);
-            for(Contribution contribution : pending) {
+            List<Contribution> pendingList = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId, pending);
+            List<Contribution> approvedList = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId,approved);
+            List<Contribution> dismissalList = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId, dismissal);
+            for(Contribution contribution : pendingList) {
                 R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
                 pendingContributions.add(rOverviewContribution);
             }
-            for(Contribution contribution : approved) {
+            for(Contribution contribution : approvedList) {
                 R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
                 approvedContributions.add(rOverviewContribution);
             }
-            for(Contribution contribution : dismissal) {
+            for(Contribution contribution : dismissalList) {
                 R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
                 dismissalContributions.add(rOverviewContribution);
             }
@@ -364,7 +367,7 @@ public class UserServiceImpl implements UserService {
                     return null; // 有问题不匹配
                 }
             }
-            String token = JwtUtil.genToken(new Claims(username, user.getUserId(), user.getRole(), "updatePWD").toMap());
+            String token = JwtUtil.genToken(new Claims(username, user.getUserId(), user.getRole(), updatePWD).toMap());
             R_VerifySecurityIssuesDTO dto = new R_VerifySecurityIssuesDTO();
             dto.setVerified(true);
             dto.setTempToken(token);
