@@ -7,7 +7,7 @@ import java.util.List;
 
 
 public interface SearchService {
-    R_SearchDTO search(String keyword, String isTag);
+    R_SearchDTO search(String keyword, Boolean isTag);
     List<MultipartFile> imageSearch(String imagePath);
 }
 

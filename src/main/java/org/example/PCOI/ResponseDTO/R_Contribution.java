@@ -2,16 +2,18 @@ package org.example.PCOI.ResponseDTO;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 public class R_Contribution {
     private String contributionId;              // 作品ID
-    private String type;            // 作品类型
+    private Integer type;            // 作品类型
     private String title;         // 作品标题
     private String image;         // 作品图片路径
     private String description;  // 描述信息
-    private String status;        // 状态(封禁状态，正常状态）
-    private String auditStatus;   // 审核状态（待审核，已通过，已驳回）
-    private String publishTime;         // 上传时间
+    private Integer status;        // 状态(封禁状态，正常状态）
+    private Integer auditStatus;   // 审核状态（待审核，已通过，已驳回）
+    private LocalDateTime publishTime;         // 上传时间
     private String authorId;     // 上传者
     private String uploaderAvatarPath; // 上传者头像路径
     private Integer viewCount;      // 浏览数

@@ -8,9 +8,9 @@ import java.util.Map;
 
 public interface UserService {
     // 账号相关
-    boolean register(String username, String password, String gender, List<R_SecurityIssue> SecurityIssues, MultipartFile avatar);
+    boolean register(String username, String password, Integer gender, List<R_SecurityIssue> SecurityIssues, MultipartFile avatar);
     R_LoginDTO login(String username, String password);
-    boolean updatePassword(String tokenUsername,String type,String username, String newPassword);
+    boolean updatePassword(String tokenUsername,Integer type,String username, String newPassword);
 
     // 作品和用户信息相关
     List<R_OverviewContribution> getContributionList(String userId);
@@ -22,7 +22,7 @@ public interface UserService {
     boolean deleteComment(String commentId, String userId);
     boolean deleteContribution(String contributionId, String userId);
     R_UserInfoDTO getUserInfo(String requesterId,String userId);
-    boolean updateUserInfo(String userId, String newUsername, String newGender, MultipartFile newAvatar);
+    boolean updateUserInfo(String userId, String newUsername, Integer newGender, MultipartFile newAvatar);
 
     // 关注相关
     boolean concernUser(String userId, String concernedUserId);

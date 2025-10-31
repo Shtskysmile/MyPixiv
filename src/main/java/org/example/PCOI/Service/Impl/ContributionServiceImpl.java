@@ -49,13 +49,13 @@ public class ContributionServiceImpl implements ContributionService {
     }
 
     @Override
-    public R_Contribution getPendingContribution(String userId, String role, String contributionId) {
+    public R_Contribution getPendingContribution(String userId, Integer role, String contributionId) {
         // TODO: 实现获取待审核作品逻辑（根据角色校验权限）
         return null;
     }
 
     @Override
-    public List<R_OverviewContribution> getContributionsRanking(String type, String key) {
+    public List<R_OverviewContribution> getContributionsRanking(Integer type, Integer key) {
         // TODO: 实现排行榜查询逻辑
         return List.of();
     }
@@ -91,7 +91,7 @@ public class ContributionServiceImpl implements ContributionService {
     }
 
     @Override
-    public boolean uploadContribution(String userId, String title, String type, String description, List<MultipartFile> images) {
+    public boolean uploadContribution(String userId, String title, Integer type, String description, List<MultipartFile> images) {
         // TODO: 实现作品上传逻辑（文件校验、存储、事务）
         return false;
     }

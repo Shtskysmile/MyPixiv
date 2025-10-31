@@ -22,7 +22,7 @@ public class UserController {
     public Result<String> register(
             @RequestParam("username") String username,
             @RequestParam("password") String password,
-            @RequestParam("gender") String gender,
+            @RequestParam("gender") Integer gender,
             @RequestParam("RSecurityIssues") List<R_SecurityIssue> SecurityIssues,
             @RequestParam(value = "avatar", required = false) MultipartFile avatar){
         try {
@@ -71,7 +71,7 @@ public class UserController {
     public Result<R_Audit_My_ContributionsDTO> getMyContributions(
             @RequestHeader("Authorization") String authHeader){
         try {
-            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
+            String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
             R_Audit_My_ContributionsDTO data = userService.getMyContributions(userId);
             return Result.success(data);
         } catch (Exception e) {
@@ -130,7 +130,7 @@ public class UserController {
             @RequestHeader("Authorization") String authHeader,
             @RequestParam ("commentId") String commentId){
         try {
-            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
+            String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
             boolean ok = userService.deleteComment(commentId, userId);
             if (ok) {
                 return Result.success("删除评论成功");
@@ -147,7 +147,7 @@ public class UserController {
             @RequestHeader("Authorization") String authHeader,
             @RequestParam ("contributionId") String contributionId){
         try {
-            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
+            String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
             boolean ok = userService.deleteContribution(contributionId, userId);
             if (ok) {
                 return Result.success("删除作品成功");
@@ -164,7 +164,7 @@ public class UserController {
             @RequestHeader("Authorization") String authHeader,
             @RequestParam ("userId") String userId) {
         try {
-            String requesterId = TokenProcess.getAttributeFromToken(authHeader, "userId");
+            String requesterId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
             R_UserInfoDTO data = userService.getUserInfo(requesterId,userId);
             return Result.success(data);
         } catch (Exception e) {
@@ -207,8 +207,8 @@ public class UserController {
             @RequestParam("username") String username,
             @RequestParam("newPassword") String newPassword) {
         try {
-            String tokenUsername = TokenProcess.getAttributeFromToken(tempToken, "username");
-            String type = TokenProcess.getAttributeFromToken(tempToken, "type");
+            String tokenUsername = (String) TokenProcess.getAttributeFromToken(tempToken, "username");
+            Integer type = (Integer) TokenProcess.getAttributeFromToken(tempToken, "type");
             boolean ok = userService.updatePassword(tokenUsername,type,username,newPassword);
             if (!ok) {
                 return Result.error("密码修改失败");
@@ -223,10 +223,10 @@ public class UserController {
     public Result<String> updateUserInfo(
             @RequestHeader("Authorization") String authHeader,
             @RequestParam ("newUsername") String newUsername,
-            @RequestParam("newGender") String newGender,
+            @RequestParam("newGender") Integer newGender,
             @RequestParam(value = "newAvatar", required = false) MultipartFile newAvatar){
         try {
-            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
+            String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
             boolean ok = userService.updateUserInfo(userId, newUsername, newGender, newAvatar);
             if (ok) {
                 return Result.success("更新成功");
@@ -243,7 +243,7 @@ public class UserController {
             @RequestHeader("Authorization") String authHeader,
             @RequestParam ("concernedUserId") String concernedUserId){
         try {
-            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
+            String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
             boolean ok = userService.concernUser(userId, concernedUserId);
             if (ok) {
                 return Result.success("关注成功");
@@ -260,7 +260,7 @@ public class UserController {
             @RequestHeader("Authorization") String authHeader,
             @RequestParam ("concernedUserId") String concernedUserId){
         try {
-            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
+            String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
             boolean ok = userService.unconcernUser(userId, concernedUserId);
             if (ok) {
                 return Result.success("已取消关注");

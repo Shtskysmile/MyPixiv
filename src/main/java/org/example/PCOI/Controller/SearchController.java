@@ -20,7 +20,7 @@ public class SearchController {
     @PostMapping("/search")
     public Result<R_SearchDTO> search(
             @RequestParam("keyword") String keyword,
-            @RequestParam("isTag") String isTag){
+            @RequestParam("isTag") Boolean isTag){
         try {
             R_SearchDTO data = searchService.search(keyword, isTag);
             return Result.success(data);
