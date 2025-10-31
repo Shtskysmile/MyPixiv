@@ -3,12 +3,12 @@ package org.example.PCOI.Utils;
 import org.example.PCOI.Entity.Claims;
 
 import java.util.Map;
-import java.util.Objects;
+
 
 public class TokenProcess {
     public static Object getAttributeFromToken(String authHeader, String key) throws Exception {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new Exception("无效的授权头");
+            throw new Exception("Invalid Authorization header" );
         }
         String token = authHeader.substring(7);
         Map<String, Object> map = JwtUtil.parseToken(token);
@@ -18,10 +18,10 @@ public class TokenProcess {
             case "username" -> claims.username();
             case "role" -> claims.role();
             case "type" -> claims.type();
-            default -> throw new Exception("无效的属性键");
+            default -> throw new Exception("Invalid key: " + key);
         };
         if (value == null) {
-            throw new Exception("属性值为空: " + key);
+            throw new Exception("Key not found in token claims: " + key);
         }
         return value;
     }

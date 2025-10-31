@@ -80,7 +80,7 @@ public class SearchServiceImpl implements SearchService {
             rSearchDTO.setUsers(rUsers);
             return rSearchDTO;
             }catch (Exception e) {
-              log.error("搜索失败，keyword：{}:{}", keyword, e.getMessage() );
+              log.error("Error searching for keyword {}: {}", keyword, e.getMessage());
             return null;
             }
         }
@@ -90,7 +90,7 @@ public class SearchServiceImpl implements SearchService {
         try{
             return fileFetchService.loadImages(imagePath);
         } catch (IOException e) {
-            log.error("图片检索失败，path：{}: {}", imagePath, e.getMessage());
+            log.error("Error fetching images from path {}: {}", imagePath, e.getMessage());
             return null;
         }
     }

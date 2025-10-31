@@ -42,7 +42,7 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
             userMapper.updateUser(user);
             return true;
         }catch (Exception e){
-            log.error("封禁用户失败，userId：{}:{}", userId, e.getMessage());
+            log.error("Error block user，userId：{}:{}", userId, e.getMessage());
             return false;
         }
     }
@@ -57,7 +57,7 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
             userMapper.updateUser(user);
             return true;
         }catch (Exception e){
-            log.error("解除用户封禁失败，userId：{}:{}",userId,e.getMessage());
+            log.error("Error unblock user，userId：{}:{}", userId, e.getMessage());
             return false;
         }
     }
@@ -72,7 +72,7 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
             contributionMapper.updateContribution(contribution);
             return true;
         }catch (Exception e){
-            log.error("封禁作品失败，contributionId：{}:{}",contributionId,e.getMessage());
+            log.error("Error block contribution，contributionId：{}:{}", contributionId, e.getMessage());
             return false;
         }
     }
@@ -87,7 +87,7 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
             contributionMapper.updateContribution(contribution);
             return true;
         }catch (Exception e){
-            log.error("解除作品封禁失败，contributionId：{}:{}",contributionId,e.getMessage());
+            log.error("Error unblock contribution，contributionId：{}:{}", contributionId, e.getMessage());
             return true;
         }
     }
@@ -122,7 +122,7 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
             rAuditContributionsDTO.setDismissalContributions(dismissalContributions);
             return rAuditContributionsDTO;
         }catch (Exception e){
-            log.error("查询待审核作品失败:{}",e.getMessage());
+            log.error("Error audit contributions:{}", e.getMessage());
             return null;
         }
     }
@@ -138,7 +138,7 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
             contributionMapper.updateContribution(contribution);
             return true;
         }catch (Exception e){
-            log.error("驳回作品失败，contributionId：{}:{}",contributionId,e.getMessage());
+            log.error(("Error dismiss contribution，contributionId：{}:{}"),contributionId,e.getMessage());
             return false;
         }
     }
@@ -154,7 +154,7 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
             contributionMapper.updateContribution(contribution);
             return true;
         }catch (Exception e){
-            log.error("通过作品审核失败，contributionId：{}:{}",contributionId,e.getMessage());
+            log.error(("Error approve contribution，contributionId：{}:{}"),contributionId,e.getMessage());
             return false;
         }
     }
@@ -170,7 +170,7 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
             }
             return blockedRUsers;
         }catch (Exception e){
-            log.error("查询被封禁用户失败:{}",e.getMessage());
+            log.error("Error get blocked users:{}",e.getMessage());
             return null;
         }
     }
@@ -187,7 +187,7 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
             }
             return blockedRContributions;
         }catch( Exception e){
-            log.error("查询被封禁作品失败:{}",e.getMessage());
+            log.error("Error get blocked contributions:{}",e.getMessage());
             return null;
         }
     }
@@ -201,7 +201,7 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
             commentMapper.deleteCommentById(commentId);
             return true;
         }catch (Exception e){
-            log.error("删除评论失败，commentId：{}:{}",commentId,e.getMessage());
+            log.error("Error delete comment，commentId：{}:{}", commentId, e.getMessage());
             return false;
         }
     }
