@@ -1,6 +1,7 @@
 package org.example.PCOI.Service.Support;
 
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.lang.NonNull;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -16,6 +17,7 @@ public class SimpleMultipartFile implements MultipartFile {
     }
 
     @Override
+    @NonNull
     public String getName() {
         return file.getName();
     }
@@ -41,11 +43,13 @@ public class SimpleMultipartFile implements MultipartFile {
     }
 
     @Override
+    @NonNull
     public byte[] getBytes() throws IOException {
         return Files.readAllBytes(file.toPath());
     }
 
     @Override
+    @NonNull
     public InputStream getInputStream() throws IOException {
         return new BufferedInputStream(new FileInputStream(file));
     }
@@ -55,4 +59,3 @@ public class SimpleMultipartFile implements MultipartFile {
         Files.copy(file.toPath(), dest.toPath());
     }
 }
-

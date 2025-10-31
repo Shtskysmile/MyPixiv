@@ -5,7 +5,6 @@ import org.example.PCOI.Entity.*;
 import org.example.PCOI.Mapper.*;
 import org.example.PCOI.ResponseDTO.*;
 import org.example.PCOI.Service.Inter.UserService;
-import org.example.PCOI.Service.Support.Enum;
 import org.example.PCOI.Service.Support.FileStorageService;
 import org.example.PCOI.Service.Support.TransformService;
 import org.example.PCOI.Utils.BcryptUtil;
@@ -14,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.example.PCOI.Service.Support.Enum.*;
@@ -96,7 +95,7 @@ public class UserServiceImpl implements UserService {
         try{
             User user = usermapper.selectUserById(userId);
             List<Contribution> contributions = contributionmapper.selectContributionsByAuthorId(userId);
-            List<R_OverviewContribution> rOverviewContributions = null;
+            List<R_OverviewContribution> rOverviewContributions = new ArrayList<>();
             for(Contribution contribution : contributions) {
                 R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
                 rOverviewContributions.add(rOverviewContribution);
@@ -113,9 +112,9 @@ public class UserServiceImpl implements UserService {
     public R_Audit_My_ContributionsDTO getMyContributions(String userId) {
         try{
             User user = usermapper.selectUserById(userId);
-            List<R_OverviewContribution> pendingContributions = null;
-            List<R_OverviewContribution> approvedContributions = null;
-            List<R_OverviewContribution> dismissalContributions = null;
+            List<R_OverviewContribution> pendingContributions = new ArrayList<>();
+            List<R_OverviewContribution> approvedContributions = new ArrayList<>();
+            List<R_OverviewContribution> dismissalContributions = new ArrayList<>();
             List<Contribution> pendingList = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId,pending);
             List<Contribution> approvedList = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId,approved);
             List<Contribution> dismissalList = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId, dismissal);
@@ -147,7 +146,7 @@ public class UserServiceImpl implements UserService {
     public List<R_User> getConcernedList(String userId) {
         try{
             List<User> concernedUsers = usermapper.selectFollowedUsersByUserId(userId);
-            List<R_User> rUsers = null;
+            List<R_User> rUsers = new ArrayList<>();
             for(User user : concernedUsers) {
                 R_User rUser = transformService.transformUserToRUser(user);
                 rUsers.add(rUser);
@@ -163,7 +162,7 @@ public class UserServiceImpl implements UserService {
     public List<R_OverviewContribution> getLikedList(String userId) {
         try{
             List<Contribution> likedContributions = contributionmapper.selectLikeContributionsByUserId(userId);
-            List<R_OverviewContribution> rOverviewContributions = null;
+            List<R_OverviewContribution> rOverviewContributions = new ArrayList<>();
             for(Contribution contribution : likedContributions) {
                 User user = usermapper.selectUserById(contribution.getAuthorId());
                 R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
@@ -180,7 +179,7 @@ public class UserServiceImpl implements UserService {
     public List<R_OverviewContribution> getFavouriteList(String userId) {
         try{
             List<Contribution> favouriteContributions = contributionmapper.selectFavoriteContributionsByUserId(userId);
-            List<R_OverviewContribution> rOverviewContributions = null;
+            List<R_OverviewContribution> rOverviewContributions = new ArrayList<>();
             for(Contribution contribution : favouriteContributions) {
                 User user = usermapper.selectUserById(contribution.getAuthorId());
                 R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
@@ -196,7 +195,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<R_UserComment> getUserCommentList(String userId) {
         try{
-            List<R_UserComment> rUserComments = null;
+            List<R_UserComment> rUserComments = new ArrayList<>();
             List<Comment> comments = commentmapper.selectCommentsByAuthorId(userId);
             for(Comment comment : comments) {
                 Contribution contribution = contributionmapper.selectContributionById(comment.getContribution());
@@ -331,13 +330,14 @@ public class UserServiceImpl implements UserService {
                 return null; // 用户不存在
             }
             List<SecurityIssue> securityIssues = securityissuemapper.selectSecurityIssuesByUserId(user.getUserId());
-            List<String> questions = null;
+            List<String> questions = new ArrayList<>();
             for (SecurityIssue issue : securityIssues) {
                 questions.add(issue.getDescription());
             }
             return questions;
         }catch (Exception e){
             log.error("Error fetching security issues for username {}: {}", username, e.getMessage());
+            log.error("e: ", e);
             return null;
         }
         

@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.example.PCOI.Service.Support.Enum.*;
@@ -95,9 +96,9 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
     @Override
     public R_Audit_My_ContributionsDTO auditContributions() {
         try{
-            List<R_OverviewContribution> pendingContributions = null;
-            List<R_OverviewContribution> approvedContributions = null;
-            List<R_OverviewContribution> dismissalContributions = null;
+            List<R_OverviewContribution> pendingContributions = new ArrayList<>();
+            List<R_OverviewContribution> approvedContributions = new ArrayList<>();
+            List<R_OverviewContribution> dismissalContributions = new ArrayList<>();
             List<Contribution> pendingList = contributionMapper.selectContributionsByAuditStatus(pending);
             List<Contribution> approvedList = contributionMapper.selectContributionsByAuditStatus(approved);
             List<Contribution> dismissalList = contributionMapper.selectContributionsByAuditStatus(dismissal);
@@ -162,7 +163,7 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
     @Override
     public List<R_User> getBlockedUsers() {
         try{
-            List<R_User> blockedRUsers = null;
+            List<R_User> blockedRUsers = new ArrayList<>();
             List<User> blockedUsers = userMapper.selectUsersByStatus(banned);
             for(User user : blockedUsers){
                 R_User rUser = transformService.transformUserToRUser(user);
@@ -178,7 +179,7 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
     @Override
     public List<R_OverviewContribution> getBlockedContributions() {
         try{
-            List<R_OverviewContribution> blockedRContributions = null;
+            List<R_OverviewContribution> blockedRContributions = new ArrayList<>();
             List<Contribution> blockedContributions = contributionMapper.selectContributionsByStatus(banned);
             for(Contribution contribution : blockedContributions){
                 User user = userMapper.selectUserById(contribution.getAuthorId());

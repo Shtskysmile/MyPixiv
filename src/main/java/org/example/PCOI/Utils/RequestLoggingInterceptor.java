@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.example.PCOI.Service.Inter.LogService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -20,7 +21,7 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
     private LogService logService;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+    public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) {
         try {
             String authHeader = request.getHeader("Authorization");
             String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
@@ -36,8 +37,6 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
                 controller = lowerFirst(controller);
                 operation = controller + ":" + hm.getMethod().getName();
             }
-
-            // 依接口签名顺序：username, operationType, ipAddress
             logService.logMethodExecution(userId, operation);
             return true;
         }catch(Exception e){

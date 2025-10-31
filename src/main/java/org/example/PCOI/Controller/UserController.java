@@ -1,16 +1,13 @@
 package org.example.PCOI.Controller;
-
-import org.example.PCOI.Entity.Claims;
 import org.example.PCOI.ResponseDTO.*;
 import org.example.PCOI.Service.Inter.UserService;
-import org.example.PCOI.Utils.JwtUtil;
 import org.example.PCOI.Utils.TokenProcess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Map;
+
 
 @RestController()
 public class UserController {
@@ -47,6 +44,7 @@ public class UserController {
         try {
             R_LoginDTO result = userService.login(username, password);
             if (result != null) {
+                System.out.println("生成的Token: " + result.getToken());
                 return Result.success(result);
             } else {
                 return Result.error("用户名或密码错误");

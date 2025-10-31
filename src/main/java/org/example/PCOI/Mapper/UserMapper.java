@@ -1,7 +1,6 @@
 package org.example.PCOI.Mapper;
 
 import org.apache.ibatis.annotations.*;
-import org.example.PCOI.Entity.Contribution;
 import org.example.PCOI.Entity.User;
 
 import java.util.List;

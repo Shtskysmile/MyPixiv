@@ -2,7 +2,6 @@ package org.example.PCOI.Utils;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import org.example.PCOI.Entity.Claims;
 
 import java.util.Date;
 import java.util.Map;

@@ -10,15 +10,16 @@ import org.example.PCOI.ResponseDTO.R_SearchDTO;
 import org.example.PCOI.ResponseDTO.R_User;
 import org.example.PCOI.Service.Inter.SearchService;
 import org.example.PCOI.Service.Support.FileFetchService;
-import org.example.PCOI.Service.Support.FileStorageService;
+
 import org.example.PCOI.Service.Support.TransformService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
+
 
 import static org.example.PCOI.Service.Support.Enum.*;
 
@@ -38,11 +39,10 @@ public class SearchServiceImpl implements SearchService {
     @Override
     public R_SearchDTO search(String keyword, Boolean isTag) {
         try {
-            List<Contribution> contributions = null;
-            List<User> users = null;
-            List<R_OverviewContribution> illustrations = null;
-            List<R_OverviewContribution> mangas = null;
-            List<R_User> rUsers = null;
+            List<Contribution> contributions;
+            List<R_OverviewContribution> illustrations = new ArrayList<>();
+            List<R_OverviewContribution> mangas = new ArrayList<>();
+            List<R_User> rUsers = new ArrayList<>();
             R_SearchDTO rSearchDTO = new R_SearchDTO();
             if (isTag) {
                 contributions = contributionMapper.selectContributionsByTag(keyword);
@@ -61,7 +61,7 @@ public class SearchServiceImpl implements SearchService {
             }
             contributions = contributionMapper.selectContributionsByTitle(maxSearchLimit,keyword);
             contributions.add(contributionMapper.selectContributionById(keyword));
-            users = userMapper.selectUsersByName(maxSearchLimit,keyword);
+            List<User> users = userMapper.selectUsersByName(maxSearchLimit,keyword);
             users.add(userMapper.selectUserById(keyword));
             for(Contribution contribution:contributions) {
                 User user = userMapper.selectUserById(contribution.getAuthorId());

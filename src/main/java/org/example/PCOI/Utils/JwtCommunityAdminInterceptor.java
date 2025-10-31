@@ -4,17 +4,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.HandlerInterceptor;
 import java.util.Map;
+import org.springframework.lang.NonNull;
+import static org.example.PCOI.Service.Support.Enum.communityAdmin;
 
 public class JwtCommunityAdminInterceptor implements HandlerInterceptor {
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+    public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) {
         String token = request.getHeader("Authorization");
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);
             try {
                 Map<String, Object> claims = JwtUtil.parseToken(token);
-                String role = (String) claims.get("role");
-                if ("communityAdmin".equals(role)) {
+                Integer role = (Integer) claims.get("role");
+                if (role.equals(communityAdmin)) {
                     request.setAttribute("claims", claims);
                     return true;
                 } else {
