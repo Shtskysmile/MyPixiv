@@ -1,35 +1,41 @@
 package org.example.PCOI.Service.Impl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.example.PCOI.Entity.Comment;
 import org.example.PCOI.Entity.Contribution;
 import org.example.PCOI.Entity.User;
-import org.example.PCOI.Mapper.ContributionMapper;
-import org.example.PCOI.Mapper.UserMapper;
+import org.example.PCOI.Mapper.*;
 import org.example.PCOI.ResponseDTO.R_Contribution;
 import org.example.PCOI.ResponseDTO.R_ContributionDTO;
 import org.example.PCOI.ResponseDTO.R_OverviewContribution;
+import org.example.PCOI.ResponseDTO.R_UserComment;
 import org.example.PCOI.Service.Inter.ContributionService;
-import org.example.PCOI.Service.Support.TransformService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.example.PCOI.Service.Support.TransformService;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.example.PCOI.Service.Support.Enum.illustration;
-import static org.example.PCOI.Service.Support.Enum.manga;
 
 @Slf4j
 @Service
 public class ContributionServiceImpl implements ContributionService {
     @Autowired
-    private UserMapper userMapper;
-    @Autowired
     private ContributionMapper contributionMapper;
     @Autowired
+    private UserMapper userMapper;
+    @Autowired
     private TransformService transformService;
+    @Autowired
+    private CommentMapper commentMapper;
 
+    @Autowired
+    private LikeMapper likeMapper;
+
+    @Autowired
+    private FavoriteMapper favoriteMapper;
 
     @Override
     public List<R_OverviewContribution> getIllustrations() {
@@ -37,38 +43,62 @@ public class ContributionServiceImpl implements ContributionService {
             List<Contribution> contributions = contributionMapper.selectContributionsByType(illustration);
             List<R_OverviewContribution> rOverviewContributions = null;
             for (Contribution contribution : contributions) {
-                User user = userMapper.selectUserById(contribution.getAuthorId());
-                R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution,user.getAvatar());
+                User contributionUser = userMapper.selectUserById(contribution.getAuthorId());
+                R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar());
                 rOverviewContributions.add(rOverviewContribution);
             }
             return rOverviewContributions;
         } catch (Exception e) {
-            log.error("获取插画列表失败: {}", e.getMessage());
-            return null;
+            log.error("Error fetching illustrations:{}", e.getMessage());
+            return List.of();
         }
+
     }
 
     @Override
     public List<R_OverviewContribution> getMangas() {
-        try{
-            List<Contribution> contributions = contributionMapper.selectContributionsByType(manga);
-            List<R_OverviewContribution> rOverviewContributions = null;
+        try {
+            List<Contribution> contributions = contributionMapper.selectContributionsByType(illustration);
+            List<R_OverviewContribution> rOverviewContributions = new ArrayList<>();
             for (Contribution contribution : contributions) {
-                User user = userMapper.selectUserById(contribution.getAuthorId());
-                R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution,user.getAvatar());
+                User contributionUser = userMapper.selectUserById(contribution.getAuthorId());
+                R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar());
                 rOverviewContributions.add(rOverviewContribution);
             }
             return rOverviewContributions;
         } catch (Exception e) {
-            log.error("获取插画列表失败: {}", e.getMessage());
-            return null;
+            log.error("Error fetching mangas:{}", e.getMessage());
+            return List.of();
         }
     }
 
     @Override
     public R_ContributionDTO getContribution(String userId, String contributionId) {
-
-        return null;
+        try {
+            Contribution contribution = contributionMapper.selectContributionById(contributionId);
+            User User = userMapper.selectUserById(userId);
+            List< Comment> comments = commentMapper.selectCommentsByContributionId(contributionId);
+            boolean isLiked = likeMapper.isLike(userId, contributionId);
+            boolean isFavorite = favoriteMapper.isFavorite(userId, contributionId);
+            R_Contribution rContribution = transformService.transformContributionToRContribution(contribution);
+            List<R_UserComment> rUserComments = null;
+            for (Comment comment : comments) {
+                User contributionUser = userMapper.selectUserById(contribution.getAuthorId());
+                User commentUser = userMapper.selectUserById(comment.getAuthor());
+                R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar());
+                R_UserComment rUserComment = transformService.transformCommentToRUserComment(comment, rOverviewContribution,commentUser.getAvatar());
+                rUserComments.add(rUserComment);
+            }
+            R_ContributionDTO rContributionDTO = new R_ContributionDTO();
+            rContributionDTO.setContribution(rContribution);
+            rContributionDTO.setComments(rUserComments);
+            rContributionDTO.setIsLiked(isLiked);
+            rContributionDTO.setIsFavorite(isFavorite);
+            return rContributionDTO;
+        } catch (Exception e) {
+            log.error("Error fetching contribution details:{}", e.getMessage());
+            return null;
+        }
     }
 
     @Override
