@@ -1,15 +1,13 @@
 package org.example.PCOI.Mapper;
 
-import org.apache.ibatis.annotations.Delete;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 import org.example.PCOI.Entity.Tag;
 
 import java.util.List;
 @Mapper
 public interface TagMapper {
     @Insert("INSERT INTO tag (tagName) VALUES (#{tagName})")
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     void insertTag(String tagName);
 
     @Delete("DELETE FROM tag WHERE tagName = #{tagName}")

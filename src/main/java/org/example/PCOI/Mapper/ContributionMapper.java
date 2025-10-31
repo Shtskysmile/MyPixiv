@@ -1,7 +1,6 @@
 package org.example.PCOI.Mapper;
 
 import org.apache.ibatis.annotations.*;
-import org.example.PCOI.Entity.Comment;
 import org.example.PCOI.Entity.Contribution;
 
 import java.util.List;
@@ -17,11 +16,14 @@ public interface ContributionMapper {
     @Select("SELECT * FROM contribution WHERE authorId = #{authorId}")
     List<Contribution> selectContributionsByAuthorId(String authorId);
 
-    @Select("SELECT * FROM contribution AND status = 0 AND auditStatus = 1")
+    @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1")
     List<Contribution> selectAllContributions();
 
     @Select("SELECT * FROM contribution WHERE auditStatus = #{auditStatus}")
     List<Contribution> selectContributionsByAuditStatus(int auditStatus);
+
+    @Select("SELECT * FROM contribution WHERE authorId = #{authorId} AND auditStatus = #{auditStatus}")
+    List<Contribution> selectContributionsByAuthorIdAndAuditStatus(@Param("authorId") String authorId, @Param("auditStatus") int auditStatus);
 
     @Select("SELECT * FROM contribution WHERE status = #{status} ")
     List<Contribution> selectContributionsByStatus(int status);
@@ -64,7 +66,7 @@ public interface ContributionMapper {
     SELECT c.*
     FROM contribution c
     JOIN tag_relation tr ON c.contributionId = tr.contributionId
-    JOIN tags t ON tr.tagId = t.id
+    JOIN tag t ON tr.tagId = t.id
     WHERE t.tagName = #{tagName}
     AND c.auditStatus = 1 AND c.status = 0
     ORDER BY c.publishTime DESC
@@ -84,14 +86,13 @@ public interface ContributionMapper {
 
     @Select("""
     SELECT c.*
-    FROM contribution c 
-    JOIN like_relation lc ON c.contributionId = lc.contributionId
+    FROM contribution c
+    JOIN likes lc ON c.contributionId = lc.contributionId
     WHERE lc.userId = #{userId}
     AND c.auditStatus = 1 AND c.status = 0
     ORDER BY  c.publishTime DESC
     """)
     List<Contribution> selectLikeContributionsByUserId(String userId);
-
 
 
 

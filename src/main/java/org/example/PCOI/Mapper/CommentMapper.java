@@ -9,7 +9,7 @@ import org.example.PCOI.Entity.Comment;
 import java.util.List;
 @Mapper
 public interface CommentMapper {
-    @Insert("INSERT INTO comment (contribution, author, description) VALUES ( #{contribution}, #{author}, #{content})")
+    @Insert("INSERT INTO comment (contribution, author, description) VALUES (#{contribution}, #{author}, #{description})")
     void insertComment(Comment comment);
 
     @Delete("DELETE FROM comment WHERE id = #{commentId}")
@@ -19,6 +19,6 @@ public interface CommentMapper {
     List<Comment> selectCommentsByContributionId(String contributionId);
 
     @Select("SELECT * FROM comment WHERE author = #{authorId} ORDER BY time DESC")
-    List<Comment> selectCommentsByUserId(String authorId);
+    List<Comment> selectCommentsByAuthorId(String authorId);
 
 }

@@ -1,9 +1,6 @@
 package org.example.PCOI.Mapper;
 
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 import org.example.PCOI.Entity.User;
 
 import java.util.List;
@@ -16,7 +13,7 @@ public interface UserMapper {
     void updateUser(User user);
 
     @Select("SELECT * FROM user WHERE userId = #{userId}")
-    User selectUserById(String user);
+    User selectUserById(String userId);
 
     @Select("SELECT * FROM user WHERE username = #{username}")
     User selectUserByName(String username);
@@ -28,6 +25,7 @@ public interface UserMapper {
             WHERE f.followedId = #{userId}
          """)
     List<User> selectFollowerUsersByUserId(String userId);
+
     @Select("""
             SELECT u.*
             FROM user u
