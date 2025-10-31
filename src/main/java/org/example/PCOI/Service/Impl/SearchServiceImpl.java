@@ -10,7 +10,7 @@ import java.util.List;
 @Service
 public class SearchServiceImpl implements SearchService {
     @Override
-    public R_SearchDTO search(String keyword, String isTag) {
+    public R_SearchDTO search(String keyword, Boolean isTag) {
         // TODO: 实现关键词/标签搜索
         return null;
     }

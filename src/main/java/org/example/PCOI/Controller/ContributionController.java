@@ -45,7 +45,7 @@ public class ContributionController {
             @RequestHeader("Authorization") String authHeader,
             @RequestParam("contributionId") String contributionId) {
         try {
-            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
+            String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
             R_ContributionDTO data = contributionService.getContribution(userId,contributionId);
             return Result.success(data);
         } catch (Exception e) {
@@ -58,8 +58,8 @@ public class ContributionController {
             @RequestHeader("Authorization") String authHeader,
             @RequestParam("contributionId") String contributionId) {
         try {
-            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
-            String role = TokenProcess.getAttributeFromToken(authHeader, "role");
+            String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
+            Integer role = (Integer) TokenProcess.getAttributeFromToken(authHeader, "role");
             R_Contribution c = contributionService.getPendingContribution(userId,role,contributionId);
             return Result.success(c);
         } catch (Exception e) {
@@ -69,8 +69,8 @@ public class ContributionController {
 
     @PostMapping("/contributionsRanking")
     public Result<List<R_OverviewContribution>> getContributionsRanking(
-            @RequestParam("type") String type,
-            @RequestParam("key") String key) {
+            @RequestParam("type") Integer type,
+            @RequestParam("key") Integer key) {
         try {
             List<R_OverviewContribution> list = contributionService.getContributionsRanking(type, key);
             return Result.success(list);
@@ -84,7 +84,7 @@ public class ContributionController {
             @RequestHeader ("Authorization") String authHeader,
             @RequestParam("contributionId") String contributionId) {
         try {
-            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
+            String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
             boolean ok = contributionService.likeContribution(userId, contributionId);
             if (ok) {
                 return Result.success("点赞成功");
@@ -100,7 +100,7 @@ public class ContributionController {
             @RequestHeader ("Authorization") String authHeader,
             @RequestParam("contributionId") String contributionId) {
         try {
-            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
+            String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
             boolean ok = contributionService.unlikeContribution(userId, contributionId);
             if (ok) {
                 return Result.success("取消点赞成功");
@@ -116,7 +116,7 @@ public class ContributionController {
             @RequestHeader ("Authorization") String authHeader,
             @RequestParam("contributionId") String contributionId) {
         try {
-            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
+            String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
             boolean ok = contributionService.favoriteContribution(userId, contributionId);
             if (ok) {
                 return Result.success("收藏成功");
@@ -132,7 +132,7 @@ public class ContributionController {
             @RequestHeader ("Authorization") String authHeader,
             @RequestParam("contributionId") String contributionId) {
         try {
-            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
+            String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
             boolean ok = contributionService.unfavoriteContribution(userId, contributionId);
             if (ok) {
                 return Result.success("取消收藏成功");
@@ -149,7 +149,7 @@ public class ContributionController {
             @RequestParam("contributionId") String contributionId,
             @RequestParam("comment") String comment) {
         try {
-            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
+            String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
             boolean ok = contributionService.commentContribution(userId, contributionId, comment);
             if (ok) {
                 return Result.success("评论成功");
@@ -164,11 +164,11 @@ public class ContributionController {
     public Result<String> uploadContribution(
             @RequestHeader ("Authorization") String authHeader,
             @RequestParam("title") String title,
-            @RequestParam("type") String type,
+            @RequestParam("type") Integer type,
             @RequestParam("description") String description,
             @RequestParam("images") List<MultipartFile> images) {
         try {
-            String userId = TokenProcess.getAttributeFromToken(authHeader, "userId");
+            String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
             boolean ok = contributionService.uploadContribution(userId, title, type, description, images);
             if (ok) {
                 return Result.success("上传成功");

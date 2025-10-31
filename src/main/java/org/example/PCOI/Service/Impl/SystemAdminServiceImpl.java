@@ -11,7 +11,7 @@ import java.util.List;
 @Service
 public class SystemAdminServiceImpl implements SystemAdminService {
     @Override
-    public boolean updateUserInfo(String userId, String newUsername, String newGender, MultipartFile newAvatar) {
+    public boolean updateUserInfo(String userId, String newUsername, Integer newGender, MultipartFile newAvatar) {
         // TODO: 系统管理员更新用户信息
         return false;
     }

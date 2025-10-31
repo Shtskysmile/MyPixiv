@@ -2,6 +2,8 @@ package org.example.PCOI.Entity;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Data
 public class Contribution {
     private String contributionId;              // 作品ID
@@ -11,7 +13,7 @@ public class Contribution {
     private String description;  // 描述信息
     private Integer status;        // 状态(正常状态,封禁状态）0-正常，1-封禁
     private Integer auditStatus;   // 审核状态（待审核，已通过，已驳回）0-待审核，1-已通过，2-已驳回
-    private String publishTime;         // 上传时间
+    private LocalDateTime publishTime;         // 上传时间
     private String authorId;     // 上传者
     private Integer viewCount;      // 浏览数
     private Integer favoriteCount;        // 收藏数

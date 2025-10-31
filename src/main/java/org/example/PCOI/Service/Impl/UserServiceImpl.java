@@ -37,7 +37,7 @@ public class UserServiceImpl implements UserService {
     private TransformService transformService;
 
     @Override
-    public boolean register(String username, String password, String gender, List<R_SecurityIssue> securityIssues, MultipartFile avatar) {
+    public boolean register(String username, String password, Integer gender, List<R_SecurityIssue> securityIssues, MultipartFile avatar) {
         if (usermapper.selectUserByName(username) != null) {
             return false; // 用户名已存在
         }
@@ -72,7 +72,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean updatePassword(String tokenUsername, String type, String username, String newPassword) {
+    public boolean updatePassword(String tokenUsername, Integer type, String username, String newPassword) {
         if(!tokenUsername.equals(username)||!type.equals("updatePWD")) {
             return false; // 鉴权失败
         }
@@ -257,7 +257,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean updateUserInfo(String userId, String newUsername, String newGender, MultipartFile newAvatar) {
+    public boolean updateUserInfo(String userId, String newUsername, Integer newGender, MultipartFile newAvatar) {
         try {
             User user = usermapper.selectUserById(userId);
             User existingUser = usermapper.selectUserByName(newUsername);
@@ -267,7 +267,7 @@ public class UserServiceImpl implements UserService {
             if (newUsername != null && !newUsername.isEmpty()) {
                 user.setUsername(newUsername);
             }
-            if (newGender != null && !newGender.isEmpty()) {
+            if (newGender != null && (newGender == 0 || newGender == 1 || newGender == 2)) {
                 user.setSex(newGender);
             }
             if (newAvatar != null) {
