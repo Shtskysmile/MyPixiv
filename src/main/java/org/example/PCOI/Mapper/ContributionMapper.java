@@ -33,7 +33,7 @@ public interface ContributionMapper {
     void deleteContributionById(String contributionId);
 
     @Select("SELECT * FROM contribution WHERE type = #{type} AND status = 0 AND auditStatus = 1")
-    List<Contribution> selectContributionsByType(ContributionType type);
+    List<Contribution> selectContributionsByType(int type);
 
     @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 ORDER BY viewCount DESC LIMIT #{limit}")
     List<Contribution> selectContributionsByViewCount(@Param("limit") int limit);

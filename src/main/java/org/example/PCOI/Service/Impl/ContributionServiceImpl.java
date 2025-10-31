@@ -13,6 +13,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.example.PCOI.Service.Support.Enum.illustration;
+
 @Service
 public class ContributionServiceImpl implements ContributionService {
     @Autowired
@@ -21,7 +23,7 @@ public class ContributionServiceImpl implements ContributionService {
     @Override
     public List<R_OverviewContribution> getIllustrations() {
         try{
-            List<Contribution> contributions = contributionMapper.selectContributionsByType(0);
+            List<Contribution> contributions = contributionMapper.selectContributionsByType(illustration);
             List<R_OverviewContribution> rOverviewContributions = null;
             for (Contribution contribution : contributions) {
                 R_OverviewContribution rOverviewContribution = new R_OverviewContribution();
