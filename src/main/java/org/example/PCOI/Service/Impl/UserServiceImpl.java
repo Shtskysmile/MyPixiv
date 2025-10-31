@@ -2,7 +2,7 @@ package org.example.PCOI.Service.Impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.example.PCOI.Entity.*;
-import org.example.PCOI.Mapper.ContributionMapper;
+import org.example.PCOI.Mapper.*;
 import org.example.PCOI.ResponseDTO.*;
 import org.example.PCOI.Service.Inter.UserService;
 import org.example.PCOI.Service.Support.FileStorageService;
@@ -27,6 +27,8 @@ public class UserServiceImpl implements UserService {
     private ContributionMapper contributionmapper;
     @Autowired
     private CommentMapper commentmapper;
+    @Autowired
+    private FollowMapper followmapper;
 
     @Autowired
     private FileStorageService fileStorageService;
@@ -87,7 +89,7 @@ public class UserServiceImpl implements UserService {
     public List<R_OverviewContribution> getContributionList(String userId) {
         try{
             User user = usermapper.selectUserById(userId);
-            List<Contribution> contributions = usermapper.selectContributionsByUserId(userId);
+            List<Contribution> contributions = contributionmapper.selectContributionsByAuthorId(userId);
             List<R_OverviewContribution> rOverviewContributions = null;
             for(Contribution contribution : contributions) {
                 R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
@@ -108,9 +110,9 @@ public class UserServiceImpl implements UserService {
             List<R_OverviewContribution> pendingContributions = null;
             List<R_OverviewContribution> approvedContributions = null;
             List<R_OverviewContribution> dismissalContributions = null;
-            List<Contribution> pending = usermapper.selectContributionsByUserIdAndAuditStatus(userId,"pending");
-            List<Contribution> approved = usermapper.selectContributionsByUserIdAndAuditStatus(userId,"approved");
-            List<Contribution> dismissal = usermapper.selectContributionsByUserIdAndAuditStatus(userId,"dismissal");
+            List<Contribution> pending = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId,0);
+            List<Contribution> approved = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId,1);
+            List<Contribution> dismissal = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId,2);
             for(Contribution contribution : pending) {
                 R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
                 pendingContributions.add(rOverviewContribution);
@@ -138,7 +140,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<R_User> getConcernedList(String userId) {
         try{
-            List<User> concernedUsers = usermapper.selectConcernedUsersById(userId);
+            List<User> concernedUsers = usermapper.selectFollowedUsersByUserId(userId);
             List<R_User> rUsers = null;
             for(User user : concernedUsers) {
                 R_User rUser = transformService.transformUserToRUser(user);
@@ -154,7 +156,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<R_OverviewContribution> getLikedList(String userId) {
         try{
-            List<Contribution> likedContributions = usermapper.selectLikedContributionsByUserId(userId);
+            List<Contribution> likedContributions = contributionmapper.selectLikeContributionsByUserId(userId);
             List<R_OverviewContribution> rOverviewContributions = null;
             for(Contribution contribution : likedContributions) {
                 User user = usermapper.selectUserById(contribution.getAuthorId());
@@ -171,7 +173,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<R_OverviewContribution> getFavouriteList(String userId) {
         try{
-            List<Contribution> favouriteContributions = usermapper.selectFavouriteContributionsByUserId(userId);
+            List<Contribution> favouriteContributions = contributionmapper.selectFavoriteContributionsByUserId(userId);
             List<R_OverviewContribution> rOverviewContributions = null;
             for(Contribution contribution : favouriteContributions) {
                 User user = usermapper.selectUserById(contribution.getAuthorId());
@@ -189,7 +191,7 @@ public class UserServiceImpl implements UserService {
     public List<R_UserComment> getUserCommentList(String userId) {
         try{
             List<R_UserComment> rUserComments = null;
-            List<Comment> comments = usermapper.selectCommentsByUserId(userId);
+            List<Comment> comments = commentmapper.selectCommentsByAuthorId(userId);
             for(Comment comment : comments) {
                 Contribution contribution = contributionmapper.selectContributionById(comment.getContribution());
                 User contributionUser = usermapper.selectUserById(contribution.getAuthorId());
@@ -245,14 +247,7 @@ public class UserServiceImpl implements UserService {
             R_User rUser = transformService.transformUserToRUser(user);
             R_UserInfoDTO userInfoDTO = new R_UserInfoDTO();
             userInfoDTO.setUser(rUser);
-            boolean isConcerned = false;
-            List<User> concernedUsers = usermapper.selectConcernedUsersById(requesterId);
-            for(User concernedUser : concernedUsers) {
-                if(concernedUser.getUserId().equals(userId)) {
-                    isConcerned = true;
-                    break;
-                }
-            }
+            boolean isConcerned = followmapper.isFollow(requesterId, userId);
             userInfoDTO.setIsConcerned(isConcerned);
             return userInfoDTO;
         }catch (Exception e){
@@ -295,13 +290,10 @@ public class UserServiceImpl implements UserService {
             if(user == null || concernedUser == null) {
                 return false; // 用户不存在
             }
-            List<User> concernedUsers = usermapper.selectConcernedUsersById(userId);
-            for(User u : concernedUsers) {
-                if(u.getUserId().equals(concernedUserId)) {
-                    return true; // 已关注，幂等处理
-                }
+            if(followmapper.isFollow(userId, concernedUserId)) {
+                return true; // 已关注，幂等处理
             }
-            usermapper.insertConcernedUser(userId, concernedUserId);
+            followmapper.insertFollow(userId, concernedUserId);
             return true;
         }catch (Exception e){
             log.error("Error concerning userId {} by userId {}: {}", concernedUserId, userId, e.getMessage());
@@ -317,18 +309,10 @@ public class UserServiceImpl implements UserService {
             if (user == null || concernedUser == null) {
                 return false; // 用户不存在
             }
-            List<User> concernedUsers = usermapper.selectConcernedUsersById(userId);
-            boolean isConcerned = false;
-            for (User u : concernedUsers) {
-                if (u.getUserId().equals(concernedUserId)) {
-                    isConcerned = true;
-                    break;
-                }
-            }
-            if (!isConcerned) {
+            if (!followmapper.isFollow(userId, concernedUserId)) {
                 return true; // 未关注，幂等处理
             }
-            usermapper.deleteConcernedUser(userId, concernedUserId);
+            followmapper.deleteFollow(userId, concernedUserId);
             return true;
         }catch( Exception e){
             log.error("Error unconcerning userId {} by userId {}: {}", concernedUserId, userId, e.getMessage());
@@ -343,7 +327,7 @@ public class UserServiceImpl implements UserService {
             if (user == null) {
                 return null; // 用户不存在
             }
-            List<SecurityIssue> securityIssues = securityissuemapper.selectSecurityIssuesById(user.getUserId());
+            List<SecurityIssue> securityIssues = securityissuemapper.selectSecurityIssuesByUserId(user.getUserId());
             List<String> questions = null;
             for (SecurityIssue issue : securityIssues) {
                 questions.add(issue.getDescription());
@@ -363,7 +347,7 @@ public class UserServiceImpl implements UserService {
             if (user == null) {
                 return null; // 用户不存在
             }
-            List<SecurityIssue> storedIssues = securityissuemapper.selectSecurityIssuesById(user.getUserId());
+            List<SecurityIssue> storedIssues = securityissuemapper.selectSecurityIssuesByUserId(user.getUserId());
             if (storedIssues.size() != securityIssues.size()) {
                 return null; // 问题数量不匹配
             }

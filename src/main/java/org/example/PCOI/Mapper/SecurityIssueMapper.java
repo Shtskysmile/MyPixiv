@@ -13,5 +13,5 @@ public interface SecurityIssueMapper {
     void insertSecurityIssue(SecurityIssue securityIssue);
 
     @Select("SELECT * FROM security_issue WHERE userId = #{userId}")
-    List<SecurityIssue> selectSecurityIssueByUserId(String userId);
+    List<SecurityIssue> selectSecurityIssuesByUserId(String userId);
 }

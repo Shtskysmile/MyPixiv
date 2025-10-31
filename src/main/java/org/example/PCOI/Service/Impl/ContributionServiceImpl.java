@@ -21,7 +21,6 @@ public class ContributionServiceImpl implements ContributionService {
     public List<R_OverviewContribution> getIllustrations() {
         try{
             List<Contribution> contributions = contributionMapper.selectContributionsByType("illustration");
-
         }
         return List.of();
     }
