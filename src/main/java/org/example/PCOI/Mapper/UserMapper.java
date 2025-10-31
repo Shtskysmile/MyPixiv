@@ -7,7 +7,6 @@ import java.util.List;
 @Mapper
 public interface UserMapper {
     @Insert("INSERT INTO user (username, password, avatar, sex) VALUES (#{username},#{password},#{avatar},#{sex})")
-    @Options(useGeneratedKeys = true, keyProperty = "userId", keyColumn = "userId")
     void insertUser(User user);
 
     @Update("UPDATE user SET username=#{username}, password=#{password}, avatar=#{avatar},sex =#{sex} WHERE userId=#{userId}")
