@@ -21,4 +21,7 @@ public class Enum {
     public static final Integer commentCount = 3;
     public static final Integer login = 0;
     public static final Integer updatePWD = 1;
+    public static final Integer maxSearchLimit = 100;
+    public static final String defaultPWD = "password123";
+    public static final String DEFAULT_GUEST = "游客";
 }

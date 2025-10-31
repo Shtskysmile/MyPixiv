@@ -48,10 +48,13 @@ public class UserServiceImpl implements UserService {
         user.setUsername(username);
         user.setPassword(BcryptUtil.hash(password));
         user.setSex(gender);
-        String avatarUrl = fileStorageService.saveAvatar(avatar);
-        user.setAvatar(avatarUrl);
+        user.setRole(normalUser);
+        user.setStatus(normal);
         usermapper.insertUser(user);
         user = usermapper.selectUserByName(username); // 获取插入后的用户以获取其 ID
+        String avatarUrl = fileStorageService.saveAvatar(avatar,user.getUserId());
+        user.setAvatar(avatarUrl);
+        usermapper.updateUser(user);
         for(R_SecurityIssue issue : securityIssues) {
             SecurityIssue securityIssue = transformService.transformRSecurityIssueToSecurityIssue(issue, user.getUserId());
             securityissuemapper.insertSecurityIssue(securityIssue);
@@ -113,7 +116,7 @@ public class UserServiceImpl implements UserService {
             List<R_OverviewContribution> pendingContributions = null;
             List<R_OverviewContribution> approvedContributions = null;
             List<R_OverviewContribution> dismissalContributions = null;
-            List<Contribution> pendingList = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId, pending);
+            List<Contribution> pendingList = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId,pending);
             List<Contribution> approvedList = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId,approved);
             List<Contribution> dismissalList = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId, dismissal);
             for(Contribution contribution : pendingList) {
@@ -264,21 +267,18 @@ public class UserServiceImpl implements UserService {
         try {
             User user = usermapper.selectUserById(userId);
             User existingUser = usermapper.selectUserByName(newUsername);
-            if (user == null|| (existingUser != null && !existingUser.getUserId().equals(userId))) {
-                return false; // 用户不存在
-            }
-            if (newUsername != null && !newUsername.isEmpty()) {
+            if (user != null && (existingUser == null || existingUser.getUserId().equals(userId))
+                    && newUsername != null && !newUsername.isEmpty()
+                    && newGender != null && (newGender.equals(undefined) || newGender.equals(male) || newGender.equals(female))
+                    && newAvatar != null ) {
                 user.setUsername(newUsername);
-            }
-            if (newGender != null && (newGender == 0 || newGender == 1 || newGender == 2)) {
                 user.setSex(newGender);
-            }
-            if (newAvatar != null) {
-                String avatarUrl = fileStorageService.saveAvatar(newAvatar);
+                String avatarUrl = fileStorageService.saveAvatar(newAvatar, userId);
                 user.setAvatar(avatarUrl);
+                usermapper.updateUser(user);
+                return true;
             }
-            usermapper.updateUser(user);
-            return true;
+            return false;
         }catch(Exception e){
             log.error("Error updating user info for userId {}: {}", userId, e.getMessage());
             return false;

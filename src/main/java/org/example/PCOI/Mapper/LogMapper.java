@@ -9,8 +9,8 @@ import org.example.PCOI.Entity.Log;
 import java.util.List;
 @Mapper
 public interface LogMapper {
-    @Insert("INSERT INTO log (operatorId, description, time) VALUES (#{operatorId}, #{description}, #{time})")
-    void insertLog(@Param("operatorId") String operatorId, @Param("description") String description, @Param("time") String time);
+    @Insert("INSERT INTO log (operatorId, description) VALUES (#{operatorId}, #{description})")
+    void insertLog(@Param("operatorId") String operatorId, @Param("description") String description);
 
     @Select("SELECT * FROM log")
     List<Log> selectAllLogs();

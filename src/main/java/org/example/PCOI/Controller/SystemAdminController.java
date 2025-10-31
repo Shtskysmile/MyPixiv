@@ -1,5 +1,6 @@
 package org.example.PCOI.Controller;
 
+import org.example.PCOI.Entity.Log;
 import org.example.PCOI.ResponseDTO.R_Log;
 import org.example.PCOI.ResponseDTO.Result;
 import org.example.PCOI.Service.Inter.SystemAdminService;
@@ -46,9 +47,9 @@ public class SystemAdminController {
     }
 
     @GetMapping("/systemAdmin/logs")
-    public Result<List<R_Log>> getLogs() {
+    public Result<List<Log>> getLogs() {
         try {
-            List<R_Log> logs = systemAdminService.getLogs();
+            List<Log> logs = systemAdminService.getLogs();
             return Result.success(logs);
         } catch (Exception e) {
             return Result.error("获取日志出错: " + e.getMessage());

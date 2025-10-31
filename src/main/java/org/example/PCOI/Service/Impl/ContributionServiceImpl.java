@@ -1,11 +1,15 @@
 package org.example.PCOI.Service.Impl;
 
+import lombok.extern.slf4j.Slf4j;
 import org.example.PCOI.Entity.Contribution;
+import org.example.PCOI.Entity.User;
 import org.example.PCOI.Mapper.ContributionMapper;
+import org.example.PCOI.Mapper.UserMapper;
 import org.example.PCOI.ResponseDTO.R_Contribution;
 import org.example.PCOI.ResponseDTO.R_ContributionDTO;
 import org.example.PCOI.ResponseDTO.R_OverviewContribution;
 import org.example.PCOI.Service.Inter.ContributionService;
+import org.example.PCOI.Service.Support.TransformService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -13,38 +17,57 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.example.PCOI.Service.Support.Enum.illustration;
+import static org.example.PCOI.Service.Support.Enum.manga;
+
+@Slf4j
 @Service
 public class ContributionServiceImpl implements ContributionService {
     @Autowired
+    private UserMapper userMapper;
+    @Autowired
     private ContributionMapper contributionMapper;
+    @Autowired
+    private TransformService transformService;
+
 
     @Override
     public List<R_OverviewContribution> getIllustrations() {
         try{
-            List<Contribution> contributions = contributionMapper.selectContributionsByType(0);
+            List<Contribution> contributions = contributionMapper.selectContributionsByType(illustration);
             List<R_OverviewContribution> rOverviewContributions = null;
             for (Contribution contribution : contributions) {
-                R_OverviewContribution rOverviewContribution = new R_OverviewContribution();
-
+                User user = userMapper.selectUserById(contribution.getAuthorId());
+                R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution,user.getAvatar());
                 rOverviewContributions.add(rOverviewContribution);
             }
-
-
+            return rOverviewContributions;
         } catch (Exception e) {
-            log
+            log.error("获取插画列表失败: {}", e.getMessage());
+            return null;
         }
-        return List.of();
     }
 
     @Override
     public List<R_OverviewContribution> getMangas() {
-        // TODO: 实现获取漫画列表逻辑
-        return List.of();
+        try{
+            List<Contribution> contributions = contributionMapper.selectContributionsByType(manga);
+            List<R_OverviewContribution> rOverviewContributions = null;
+            for (Contribution contribution : contributions) {
+                User user = userMapper.selectUserById(contribution.getAuthorId());
+                R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution,user.getAvatar());
+                rOverviewContributions.add(rOverviewContribution);
+            }
+            return rOverviewContributions;
+        } catch (Exception e) {
+            log.error("获取插画列表失败: {}", e.getMessage());
+            return null;
+        }
     }
 
     @Override
     public R_ContributionDTO getContribution(String userId, String contributionId) {
-        // TODO: 实现获取作品详情逻辑（含用户上下文）
+
         return null;
     }
 

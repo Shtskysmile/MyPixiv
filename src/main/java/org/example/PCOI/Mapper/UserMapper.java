@@ -1,6 +1,7 @@
 package org.example.PCOI.Mapper;
 
 import org.apache.ibatis.annotations.*;
+import org.example.PCOI.Entity.Contribution;
 import org.example.PCOI.Entity.User;
 
 import java.util.List;
@@ -25,6 +26,17 @@ public interface UserMapper {
             WHERE f.followedId = #{userId}
          """)
     List<User> selectFollowerUsersByUserId(String userId);
+
+    @Select("""
+            SELECT * FROM user
+            WHERE MATCH(name) AGAINST(#{keyword} IN NATURAL LANGUAGE MODE)
+            ORDER BY MATCH(name) AGAINST(#{keyword} IN NATURAL LANGUAGE MODE) DESC
+            LIMIT #{limit}
+            """)
+    List<User> selectUsersByName(
+            @Param("limit") int limit,
+            @Param("titleKeyword") String keyword
+    );
 
     @Select("""
             SELECT u.*
