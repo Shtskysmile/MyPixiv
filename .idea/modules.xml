@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/MyPixiv.iml" filepath="$PROJECT_DIR$/.idea/MyPixiv.iml" />
+      <module fileurl="file://$PROJECT_DIR$/PCOI.iml" filepath="$PROJECT_DIR$/PCOI.iml" />
     </modules>
   </component>
 </project>
