@@ -9,9 +9,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
 
 import static org.example.PCOI.Service.Support.Enum.illustration;
 
@@ -22,46 +24,58 @@ public class FileStorageService {
     private String uploadBaseDir;
     @Value("${pcoi.upload.url-prefix}")
     private String uploadUrlPrefix;
-    @Value("${pcoi.upload.avatar-subdir:avatars}")
+    // 每个用户目录下的三个固定子目录名
+    @Value("${pcoi.upload.avatar-subdir:avatar}")
     private String avatarSubdir;
-    @Value("${pcoi.upload.work-subdir:works}")
-    private String workSubdir;
     @Value("${pcoi.upload.illustration-subdir:illustration}")
     private String illustrationSubdir;
     @Value("${pcoi.upload.manga-subdir:manga}")
     private String mangaSubdir;
 
-    // 新签名：头像保存到 avatars/{userId}/YYYY/MM/DD
+    // 头像：保存到 baseDir/{userId}/avatar/ 下，更新时清空旧头像；返回该文件夹 URL
     public String saveAvatar(MultipartFile avatar, String userId) {
         if (avatar == null || avatar.isEmpty()) return null;
-        String subdir = Paths.get(avatarSubdir, sanitize(userId)).toString();
-        return saveImageInternal(avatar, subdir);
-    }
-
-    // 保存作品图片到 works/{illustration|manga}/YYYY/MM/DD
-    public String saveWorkImage(MultipartFile file, Integer type) {
-        if (file == null || file.isEmpty() || type == null) return null;
-        String typeDir = type.equals(illustration) ? illustrationSubdir : mangaSubdir;
-        String subdir = Paths.get(workSubdir, typeDir).toString();
-        return saveImageInternal(file, subdir);
-    }
-
-    private String saveImageInternal(MultipartFile file, String categorySubdir) {
-        if (file == null || file.isEmpty()) {
-            return null;
+        String relFolder = Paths.get(sanitize(userId), avatarSubdir).toString();
+        Path dir = Paths.get(uploadBaseDir, relFolder);
+        try {
+            Files.createDirectories(dir);
+            // 清空旧头像，保证唯一
+            clearDirectory(dir);
+            saveOneFile(avatar, dir);
+        } catch (IOException e) {
+            throw new RuntimeException("保存头像失败", e);
         }
+        return buildFolderUrl(relFolder);
+    }
+
+    // 作品：统一按 List 存至 baseDir/{userId}/{illustration|manga}/{workId}/，返回作品文件夹 URL
+    public String saveWorkImages(List<MultipartFile> files, Integer type, String userId) {
+        if (files == null || files.isEmpty() || type == null) return null;
+        String typeDir = type.equals(illustration) ? illustrationSubdir : mangaSubdir;
+        String workId = UUID.randomUUID().toString().replace("-", "");
+        String relFolder = Paths.get(sanitize(userId), typeDir, workId).toString();
+        Path dir = Paths.get(uploadBaseDir, relFolder);
+        List<MultipartFile> list = new ArrayList<>();
+        for (MultipartFile f : files) {
+            if (f != null && !f.isEmpty()) list.add(f);
+        }
+        if (list.isEmpty()) return null;
+        try {
+            Files.createDirectories(dir);
+            for (MultipartFile f : list) {
+                saveOneFile(f, dir);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("保存作品失败", e);
+        }
+        return buildFolderUrl(relFolder);
+    }
+
+    // 保存单文件到指定目录（校验为图片类型；文件名使用 UUID+扩展名）
+    private void saveOneFile(MultipartFile file, Path targetDir) throws IOException {
         String contentType = file.getContentType();
         if (contentType != null && !contentType.startsWith("image/")) {
             throw new IllegalArgumentException("仅支持图片类型文件");
-        }
-        LocalDate today = LocalDate.now();
-        Path dir = Paths.get(ensureTrailingSlash(uploadBaseDir),
-                normalize(categorySubdir),
-                String.valueOf(today.getYear()), String.format("%02d", today.getMonthValue()), String.format("%02d", today.getDayOfMonth()));
-        try {
-            Files.createDirectories(dir);
-        } catch (IOException e) {
-            throw new RuntimeException("创建目录失败", e);
         }
         String ext = getFileExtension(Objects.requireNonNullElse(file.getOriginalFilename(), ""));
         if (ext == null && contentType != null) {
@@ -69,34 +83,41 @@ public class FileStorageService {
         }
         String filename = UUID.randomUUID().toString().replace("-", "");
         filename = (ext == null || ext.isEmpty()) ? filename : filename + "." + ext;
-        Path dest = dir.resolve(filename);
-        try {
-            file.transferTo(dest.toFile());
-        } catch (IOException e) {
-            throw new RuntimeException("保存文件失败", e);
-        }
-        String relPath = String.join("/",
-                normalize(categorySubdir),
-                String.valueOf(today.getYear()),
-                String.format("%02d", today.getMonthValue()),
-                String.format("%02d", today.getDayOfMonth()),
-                filename);
-        return buildPublicUrl(relPath);
+        Path dest = targetDir.resolve(filename);
+        file.transferTo(dest.toFile());
     }
 
-    private String buildPublicUrl(String relPath) {
-        return ensureTrailingSlash(uploadUrlPrefix) + (relPath.startsWith("/") ? relPath.substring(1) : relPath);
+    // 清空目录内容（删除文件与子目录）
+    private static void clearDirectory(Path dir) throws IOException {
+        if (!Files.exists(dir)) return;
+        try (Stream<Path> paths = Files.list(dir)) {
+            for (Path p : (Iterable<Path>) paths::iterator) {
+                deleteRecursively(p);
+            }
+        }
+    }
+
+    private static void deleteRecursively(Path path) throws IOException {
+        if (!Files.exists(path)) return;
+        if (Files.isDirectory(path)) {
+            try (Stream<Path> children = Files.list(path)) {
+                for (Path c : (Iterable<Path>) children::iterator) {
+                    deleteRecursively(c);
+                }
+            }
+        }
+        Files.deleteIfExists(path);
+    }
+
+    // 生成以 URL 前缀开头且以 / 结尾的文件夹 URL
+    private String buildFolderUrl(String relFolder) {
+        String url = ensureTrailingSlash(uploadUrlPrefix) + (relFolder.startsWith("/") ? relFolder.substring(1) : relFolder);
+        return ensureTrailingSlash(url);
     }
 
     private static String ensureTrailingSlash(String s) {
         if (s == null || s.isEmpty()) return "/";
         return s.endsWith("/") ? s : s + "/";
-    }
-
-    private static String normalize(String s) {
-        if (s == null) return "";
-        // 去掉开头斜杠，避免 Paths 拼接吞掉上级目录
-        return s.startsWith("/") ? s.substring(1) : s;
     }
 
     private static String sanitize(String s) {

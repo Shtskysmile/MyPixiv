@@ -6,12 +6,13 @@ CREATE TABLE user (
     userId VARCHAR(36) NOT NULL UNIQUE  DEFAULT (UUID()),
     username VARCHAR(64) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    avatar VARCHAR(512) DEFAULT 'https://example.com/default-avatar.png',
+    avatar VARCHAR(512) DEFAULT 'D:/software_engin/PCOI/uploads/default_user/avatar/default_avatar.png',
     sex TINYINT DEFAULT 0 COMMENT '0=未知,1=男,2=女',
     status TINYINT NOT NULL DEFAULT 0 COMMENT '0=正常,1=封禁',
     role TINYINT NOT NULL DEFAULT 0 COMMENT '0=普通用户,1=社区管理员,2=系统管理员',
     INDEX idx_username (username),
-    INDEX idx_userId (userId)
+    INDEX idx_userId (userId),
+    FULLTEXT idx_username_fulltext (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 2. 作品表

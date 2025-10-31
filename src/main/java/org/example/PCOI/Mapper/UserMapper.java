@@ -29,14 +29,17 @@ public interface UserMapper {
 
     @Select("""
             SELECT * FROM user
-            WHERE MATCH(name) AGAINST(#{keyword} IN NATURAL LANGUAGE MODE)
-            ORDER BY MATCH(name) AGAINST(#{keyword} IN NATURAL LANGUAGE MODE) DESC
+            WHERE MATCH(username) AGAINST(#{keyword} IN NATURAL LANGUAGE MODE)
+            ORDER BY MATCH(username) AGAINST(#{keyword} IN NATURAL LANGUAGE MODE) DESC
             LIMIT #{limit}
             """)
     List<User> selectUsersByName(
             @Param("limit") int limit,
             @Param("titleKeyword") String keyword
     );
+
+    @Select("SELECT * FROM user WHERE status = #{status}")
+    List<User> selectUsersByStatus(@Param("status") int status);
 
     @Select("""
             SELECT u.*

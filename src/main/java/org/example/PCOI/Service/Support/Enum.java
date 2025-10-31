@@ -2,26 +2,26 @@ package org.example.PCOI.Service.Support;
 
 
 public class Enum {
-    public static final Integer illustration = 0;
-    public static final Integer manga = 1;
-    public static final Integer undefined = 0;
-    public static final Integer male = 1;
-    public static final Integer female = 2;
-    public static final Integer normal = 0;
-    public static final Integer banned = 1;
-    public static final Integer pending = 0;
-    public static final Integer approved = 1;
-    public static final Integer dismissal = 2;
-    public static final Integer normalUser = 0;
-    public static final Integer communityAdmin = 1;
-    public static final Integer systemAdmin = 2;
-    public static final Integer viewCount = 0;
-    public static final Integer favoriteCount = 1;
-    public static final Integer likeCount = 2;
-    public static final Integer commentCount = 3;
-    public static final Integer login = 0;
-    public static final Integer updatePWD = 1;
-    public static final Integer maxSearchLimit = 100;
+    public static final int illustration = 0;
+    public static final int manga = 1;
+    public static final int undefined = 0;
+    public static final int male = 1;
+    public static final int female = 2;
+    public static final int normal = 0;
+    public static final int banned = 1;
+    public static final int pending = 0;
+    public static final int approved = 1;
+    public static final int dismissal = 2;
+    public static final int normalUser = 0;
+    public static final int communityAdmin = 1;
+    public static final int systemAdmin = 2;
+    public static final int viewCount = 0;
+    public static final int favoriteCount = 1;
+    public static final int likeCount = 2;
+    public static final int commentCount = 3;
+    public static final int login = 0;
+    public static final int updatePWD = 1;
+    public static final int maxSearchLimit = 100;
     public static final String defaultPWD = "password123";
     public static final String DEFAULT_GUEST = "游客";
 }

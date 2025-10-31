@@ -63,4 +63,25 @@ public class TransformService {
         rUserComment.setContribution(contribution);
         return rUserComment;
     }
+
+    public R_Contribution transformContributionToRContribution(Contribution contribution,String avatar)
+    {
+        R_Contribution rContribution = new R_Contribution();
+        rContribution.setType(contribution.getType());
+        rContribution.setContributionId(contribution.getContributionId());
+        rContribution.setTitle(contribution.getTitle());
+        rContribution.setAuthorId(contribution.getAuthorId());
+        rContribution.setDescription(contribution.getDescription());
+        rContribution.setImage(contribution.getImage());
+        rContribution.setViewCount(contribution.getViewCount());
+        rContribution.setFavoriteCount(contribution.getFavoriteCount());
+        rContribution.setLikeCount(contribution.getLikeCount());
+        rContribution.setCommentCount(contribution.getCommentCount());
+        rContribution.setStatus(contribution.getStatus());
+        rContribution.setDismissalReason(contribution.getDismissalReason());
+        rContribution.setPublishTime(contribution.getPublishTime());
+        rContribution.setAuditStatus(contribution.getAuditStatus());
+        rContribution.setUploaderAvatarPath(avatar);
+        return rContribution;
+    }
 }
