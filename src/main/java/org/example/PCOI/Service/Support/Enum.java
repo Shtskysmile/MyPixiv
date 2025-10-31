@@ -19,4 +19,6 @@ public class Enum {
     public static final Integer favoriteCount = 1;
     public static final Integer likeCount = 2;
     public static final Integer commentCount = 3;
+    public static final Integer login = 0;
+    public static final Integer updatePWD = 1;
 }
