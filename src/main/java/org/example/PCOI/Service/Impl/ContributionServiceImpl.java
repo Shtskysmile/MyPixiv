@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -20,7 +21,17 @@ public class ContributionServiceImpl implements ContributionService {
     @Override
     public List<R_OverviewContribution> getIllustrations() {
         try{
-            List<Contribution> contributions = contributionMapper.selectContributionsByType("illustration");
+            List<Contribution> contributions = contributionMapper.selectContributionsByType(0);
+            List<R_OverviewContribution> rOverviewContributions = null;
+            for (Contribution contribution : contributions) {
+                R_OverviewContribution rOverviewContribution = new R_OverviewContribution();
+
+                rOverviewContributions.add(rOverviewContribution);
+            }
+
+
+        } catch (Exception e) {
+            log
         }
         return List.of();
     }
