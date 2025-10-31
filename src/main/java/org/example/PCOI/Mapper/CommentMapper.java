@@ -12,8 +12,11 @@ public interface CommentMapper {
     @Insert("INSERT INTO comment (contribution, author, description) VALUES (#{contribution}, #{author}, #{description})")
     void insertComment(Comment comment);
 
-    @Delete("DELETE FROM comment WHERE id = #{commentId}")
+    @Delete("DELETE FROM comment WHERE commentId = #{commentId}")
     void deleteCommentById(String commentId);
+
+    @Select("SELECT * FROM comment WHERE commentId = #{commentId}")
+    Comment selectCommentById(String commentId);
 
     @Select("SELECT * FROM comment WHERE contribution = #{contributionId} ORDER BY time DESC")
     List<Comment> selectCommentsByContributionId(String contributionId);

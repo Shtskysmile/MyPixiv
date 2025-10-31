@@ -8,7 +8,7 @@ CREATE TABLE user (
     password VARCHAR(255) NOT NULL,
     avatar VARCHAR(512) DEFAULT 'https://example.com/default-avatar.png',
     sex TINYINT DEFAULT 0 COMMENT '0=未知,1=男,2=女',
-    status TINYINT NOT NULL DEFAULT 1 COMMENT '1=正常,0=封禁',
+    status TINYINT NOT NULL DEFAULT 0 COMMENT '0=正常,1=封禁',
     role TINYINT NOT NULL DEFAULT 0 COMMENT '0=普通用户,1=社区管理员,2=系统管理员',
     INDEX idx_username (username),
     INDEX idx_userId (userId)
@@ -22,7 +22,7 @@ CREATE TABLE contribution (
     title VARCHAR(255) NOT NULL,
     image VARCHAR(512) NOT NULL,
     description TEXT,
-    status TINYINT NOT NULL DEFAULT 0 COMMENT '0=未封禁,1=已封禁',
+    status TINYINT NOT NULL DEFAULT 0 COMMENT '0=正常,1=已封禁',
     publishTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     authorId VARCHAR(36) NOT NULL,
     auditStatus TINYINT NOT NULL DEFAULT 0 COMMENT '0=待审核,1=通过,2=驳回',
@@ -43,12 +43,14 @@ CREATE TABLE contribution (
 -- 3. 评论表
 CREATE TABLE comment (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    commentId VARCHAR(36) NOT NULL UNIQUE DEFAULT (UUID()),
     description TEXT NOT NULL,
     time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     author VARCHAR(36) NOT NULL,
     contribution VARCHAR(36) NOT NULL,
     FOREIGN KEY (author) REFERENCES user(userId) ON DELETE CASCADE,
     FOREIGN KEY (contribution) REFERENCES contribution(contributionId) ON DELETE CASCADE,
+    INDEX idx_commentId (commentId),
     INDEX idx_author (author),
     INDEX idx_contribution (contribution)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
