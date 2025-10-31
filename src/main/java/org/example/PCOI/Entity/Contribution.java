@@ -5,12 +5,12 @@ import lombok.Data;
 @Data
 public class Contribution {
     private String contributionId;              // 作品ID
-    private String type;            // 作品类型
+    private Integer type;            // 作品类型0-插画，1-漫画
     private String title;         // 作品标题
     private String image;         // 作品图片路径
     private String description;  // 描述信息
-    private String status;        // 状态(封禁状态，正常状态）
-    private String auditStatus;   // 审核状态（待审核，已通过，已驳回）
+    private Integer status;        // 状态(正常状态,封禁状态）0-正常，1-封禁
+    private Integer auditStatus;   // 审核状态（待审核，已通过，已驳回）0-待审核，1-已通过，2-已驳回
     private String publishTime;         // 上传时间
     private String authorId;     // 上传者
     private Integer viewCount;      // 浏览数

@@ -1,7 +1,7 @@
 package org.example.PCOI.Entity;
 import java.util.Map;
 
-public record Claims(String username, String userId, String role, String type) {
+public record Claims(String username, String userId, String role, Integer type) {
     public Map<String, Object> toMap() {
         return Map.of(
                 "username", username,
@@ -16,7 +16,7 @@ public record Claims(String username, String userId, String role, String type) {
         String username = (String) m.get("username");
         String userId = (String) m.get("userId");
         String role = (String) m.get("role");
-        String type = (String) m.get("type");
+        Integer type = (Integer) m.get("type");
         return new Claims(username, userId, role, type);
     }
 }

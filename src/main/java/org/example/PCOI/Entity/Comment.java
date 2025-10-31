@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class Comment {
+    private String commentId;               // 评论ID
     private String description;  // 评论内容
     private String time;         // 评论时间
     private String author;     // 评论者
