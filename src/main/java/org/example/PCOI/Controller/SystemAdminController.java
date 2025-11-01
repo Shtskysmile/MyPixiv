@@ -20,7 +20,7 @@ public class SystemAdminController {
             @RequestParam("userId") String userId,
             @RequestParam ("newUsername") String newUsername,
             @RequestParam("newGender") Integer newGender,
-            @RequestParam(value = "newAvatar", required = false) MultipartFile newAvatar) {
+            @RequestPart(name = "newAvatar", required = false) MultipartFile newAvatar) {
         try {
             boolean ok = systemAdminService.updateUserInfo(userId, newUsername, newGender, newAvatar);
             if (ok) {
