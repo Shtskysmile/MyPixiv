@@ -21,28 +21,23 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
     private LogService logService;
 
     @Override
-    public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) {
-        try {
-            String authHeader = request.getHeader("Authorization");
-            String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
-            if (isBlank(userId)) {
-                userId = DEFAULT_GUEST;
-            }
-            String operation = request.getRequestURI();
-            if (handler instanceof HandlerMethod hm) {
-                String controller = hm.getBeanType().getSimpleName();
-                if (controller.endsWith("Controller")) {
-                    controller = controller.substring(0, controller.length() - "Controller".length());
-                }
-                controller = lowerFirst(controller);
-                operation = controller + ":" + hm.getMethod().getName();
-            }
-            logService.logMethodExecution(userId, operation);
-            return true;
-        }catch(Exception e){
-            log.error("Logging failed: {}", e.getMessage());
-            return false;
+    public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) throws Exception {
+        String authHeader = request.getHeader("Authorization");
+        String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
+        if (isBlank(userId)) {
+            userId = DEFAULT_GUEST;
         }
+        String operation = request.getRequestURI();
+        if (handler instanceof HandlerMethod hm) {
+            String controller = hm.getBeanType().getSimpleName();
+            if (controller.endsWith("Controller")) {
+                controller = controller.substring(0, controller.length() - "Controller".length());
+            }
+            controller = lowerFirst(controller);
+            operation = controller + ":" + hm.getMethod().getName();
+        }
+        logService.logMethodExecution(userId, operation);
+        return true;
     }
     private static String lowerFirst(String s) {
         if (isBlank(s)) return s;

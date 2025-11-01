@@ -1,7 +1,6 @@
 package org.example.PCOI.Service.Inter;
 
 import org.example.PCOI.Entity.Log;
-import org.example.PCOI.ResponseDTO.R_Log;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;

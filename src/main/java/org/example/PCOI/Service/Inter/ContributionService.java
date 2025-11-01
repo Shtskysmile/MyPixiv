@@ -6,7 +6,7 @@ import org.example.PCOI.ResponseDTO.R_OverviewContribution;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Map;
+
 
 public interface ContributionService {
     List<R_OverviewContribution> getIllustrations();

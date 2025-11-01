@@ -25,7 +25,6 @@ public class JwtCommunityAdminInterceptor implements HandlerInterceptor {
                 }
             } catch (Exception e) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return false;
             }
         }
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

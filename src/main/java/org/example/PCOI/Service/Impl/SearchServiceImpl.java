@@ -38,32 +38,14 @@ public class SearchServiceImpl implements SearchService {
 
     @Override
     public R_SearchDTO search(String keyword, Boolean isTag) {
-        try {
-            List<Contribution> contributions;
-            List<R_OverviewContribution> illustrations = new ArrayList<>();
-            List<R_OverviewContribution> mangas = new ArrayList<>();
-            List<R_User> rUsers = new ArrayList<>();
-            R_SearchDTO rSearchDTO = new R_SearchDTO();
-            if (isTag) {
-                contributions = contributionMapper.selectContributionsByTag(keyword);
-                for (Contribution contribution : contributions) {
-                    User user = userMapper.selectUserById(contribution.getAuthorId());
-                    R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
-                    if (contribution.getType().equals(illustration))
-                        illustrations.add(rOverviewContribution);
-                    else if (contribution.getType().equals(manga))
-                        mangas.add(rOverviewContribution);
-                }
-                rSearchDTO.setIllustrations(illustrations);
-                rSearchDTO.setMangas(mangas);
-                rSearchDTO.setUsers(null);
-                return rSearchDTO;
-            }
-            contributions = contributionMapper.selectContributionsByTitle(maxSearchLimit,keyword);
-            contributions.add(contributionMapper.selectContributionById(keyword));
-            List<User> users = userMapper.selectUsersByName(maxSearchLimit,keyword);
-            users.add(userMapper.selectUserById(keyword));
-            for(Contribution contribution:contributions) {
+        List<Contribution> contributions;
+        List<R_OverviewContribution> illustrations = new ArrayList<>();
+        List<R_OverviewContribution> mangas = new ArrayList<>();
+        List<R_User> rUsers = new ArrayList<>();
+        R_SearchDTO rSearchDTO = new R_SearchDTO();
+        if (isTag) {
+            contributions = contributionMapper.selectContributionsByTag(keyword);
+            for (Contribution contribution : contributions) {
                 User user = userMapper.selectUserById(contribution.getAuthorId());
                 R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
                 if (contribution.getType().equals(illustration))
@@ -71,27 +53,35 @@ public class SearchServiceImpl implements SearchService {
                 else if (contribution.getType().equals(manga))
                     mangas.add(rOverviewContribution);
             }
-            for(User user:users) {
-                R_User rUser = transformService.transformUserToRUser(user);
-                rUsers.add(rUser);
-            }
             rSearchDTO.setIllustrations(illustrations);
             rSearchDTO.setMangas(mangas);
-            rSearchDTO.setUsers(rUsers);
+            rSearchDTO.setUsers(null);
             return rSearchDTO;
-            }catch (Exception e) {
-              log.error("Error searching for keyword {}: {}", keyword, e.getMessage());
-            return null;
-            }
         }
+        contributions = contributionMapper.selectContributionsByTitle(maxSearchLimit,keyword);
+        contributions.add(contributionMapper.selectContributionById(keyword));
+        List<User> users = userMapper.selectUsersByName(maxSearchLimit,keyword);
+        users.add(userMapper.selectUserById(keyword));
+        for(Contribution contribution:contributions) {
+            User user = userMapper.selectUserById(contribution.getAuthorId());
+            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
+            if (contribution.getType().equals(illustration))
+                illustrations.add(rOverviewContribution);
+            else if (contribution.getType().equals(manga))
+                mangas.add(rOverviewContribution);
+        }
+        for(User user:users) {
+            R_User rUser = transformService.transformUserToRUser(user);
+            rUsers.add(rUser);
+        }
+        rSearchDTO.setIllustrations(illustrations);
+        rSearchDTO.setMangas(mangas);
+        rSearchDTO.setUsers(rUsers);
+        return rSearchDTO;
+    }
 
     @Override
-    public List<MultipartFile> imageSearch(String imagePath) {
-        try{
-            return fileFetchService.loadImages(imagePath);
-        } catch (IOException e) {
-            log.error("Error fetching images from path {}: {}", imagePath, e.getMessage());
-            return null;
-        }
+    public List<MultipartFile> imageSearch(String imagePath) throws IOException {
+        return fileFetchService.loadImages(imagePath);
     }
 }

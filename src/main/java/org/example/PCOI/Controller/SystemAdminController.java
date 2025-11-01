@@ -20,38 +20,26 @@ public class SystemAdminController {
             @RequestParam ("newUsername") String newUsername,
             @RequestParam("newGender") Integer newGender,
             @RequestPart(name = "newAvatar", required = false) MultipartFile newAvatar) {
-        try {
-            boolean ok = systemAdminService.updateUserInfo(userId, newUsername, newGender, newAvatar);
-            if (ok) {
-                return Result.success("更新用户信息成功");
-            }
-            return Result.error("更新用户信息失败");
-        } catch (Exception e) {
-            return Result.error("更新用户信息出错: " + e.getMessage());
+        boolean ok = systemAdminService.updateUserInfo(userId, newUsername, newGender, newAvatar);
+        if (ok) {
+            return Result.success("更新用户信息成功");
         }
+        return Result.error("更新用户信息失败");
     }
 
     @PostMapping("/systemAdmin/resetPassword")
     public Result<String> resetPassword(
             @RequestParam("userId") String userId) {
-        try {
-            boolean ok = systemAdminService.resetPassword(userId);
-            if (ok) {
-                return Result.success("重置密码成功");
-            }
-            return Result.error("重置密码失败");
-        } catch (Exception e) {
-            return Result.error("重置密码出错: " + e.getMessage());
+        boolean ok = systemAdminService.resetPassword(userId);
+        if (ok) {
+            return Result.success("重置密码成功");
         }
+        return Result.error("重置密码失败");
     }
 
     @GetMapping("/systemAdmin/logs")
     public Result<List<Log>> getLogs() {
-        try {
-            List<Log> logs = systemAdminService.getLogs();
-            return Result.success(logs);
-        } catch (Exception e) {
-            return Result.error("获取日志出错: " + e.getMessage());
-        }
+        List<Log> logs = systemAdminService.getLogs();
+        return Result.success(logs);
     }
 }

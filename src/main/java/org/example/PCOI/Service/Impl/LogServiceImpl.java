@@ -16,12 +16,7 @@ public class LogServiceImpl implements LogService {
 
     @Override
     public void logMethodExecution(String userId, String operation) {
-        try{
-            logMapper.insertLog(userId, operation);
-        }catch (Exception e){
-            log.error("Failed to log method execution for userId {}: {}", userId, e.getMessage());
-        }
-
+        logMapper.insertLog(userId, operation);
     }
 }
 

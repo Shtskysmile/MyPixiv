@@ -9,8 +9,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
-import java.util.Map;
+
 
 @RestController
 public class SearchController {
@@ -21,23 +22,15 @@ public class SearchController {
     public Result<R_SearchDTO> search(
             @RequestParam("keyword") String keyword,
             @RequestParam("isTag") Boolean isTag){
-        try {
-            R_SearchDTO data = searchService.search(keyword, isTag);
-            return Result.success(data);
-        } catch (Exception e) {
-            return Result.error("搜索出错: " + e.getMessage());
-        }
+        R_SearchDTO data = searchService.search(keyword, isTag);
+        return Result.success(data);
     }
 
     @PostMapping("/image")
     public Result<List<MultipartFile>> imageSearch(
-            @RequestParam("imagePath") String imagePath){
-        try {
-            List<MultipartFile> files = searchService.imageSearch(imagePath);
-            return Result.success(files);
-        } catch (Exception e) {
-            return Result.error("查找图片出错: " + e.getMessage());
-        }
+            @RequestParam("imagePath") String imagePath) throws IOException {
+        List<MultipartFile> files = searchService.imageSearch(imagePath);
+        return Result.success(files);
     }
 
 }
