@@ -22,19 +22,17 @@ public class UserController {
             @RequestParam("gender") Integer gender,
             @RequestPart(name = "SecurityIssues", required = false) List<R_SecurityIssue> SecurityIssues,
             @RequestPart(name = "avatar", required = false) MultipartFile avatar){
-        try {
+        //try {
             boolean success = userService.register(username, password, gender, SecurityIssues, avatar);
             if (success) {
                 return Result.success("注册成功");
             } else {
                 return Result.error("注册失败，用户名已存在");
             }
-        }
-        catch (Exception e) {
-                return Result.error("注册过程中出现错误: " + e.getMessage());
-            }
-
-
+        //}
+        //catch (Exception e) {
+                //return Result.error("注册过程中出现错误: " + e.getMessage());
+            //}
     }
 
     @PostMapping("/login")
