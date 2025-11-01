@@ -166,7 +166,7 @@ public class ContributionController {
             @RequestParam("title") String title,
             @RequestParam("type") Integer type,
             @RequestParam("description") String description,
-            @RequestParam("images") List<MultipartFile> images) {
+            @RequestPart(name = "images") List<MultipartFile> images) {
         try {
             String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
             boolean ok = contributionService.uploadContribution(userId, title, type, description, images);

@@ -20,8 +20,8 @@ public class UserController {
             @RequestParam("username") String username,
             @RequestParam("password") String password,
             @RequestParam("gender") Integer gender,
-            @RequestBody List<R_SecurityIssue> SecurityIssues,
-            @RequestParam(value = "avatar", required = false) MultipartFile avatar){
+            @RequestPart(name = "SecurityIssues", required = false) List<R_SecurityIssue> SecurityIssues,
+            @RequestPart(name = "avatar", required = false) MultipartFile avatar){
         try {
             boolean success = userService.register(username, password, gender, SecurityIssues, avatar);
             if (success) {
@@ -185,7 +185,7 @@ public class UserController {
     @PostMapping("/verifySecurityIssues")
     public Result<R_VerifySecurityIssuesDTO> verifySecurityIssues(
             @RequestParam("username") String username,
-            @RequestParam ("SecurityIssues") List<R_SecurityIssue> SecurityIssues){
+            @RequestPart(name = "SecurityIssues", required = false) List<R_SecurityIssue> SecurityIssues){
         try {
             R_VerifySecurityIssuesDTO data = userService.verifySecurityIssues(username, SecurityIssues);
             if(data.getVerified())
@@ -222,7 +222,7 @@ public class UserController {
             @RequestHeader("Authorization") String authHeader,
             @RequestParam ("newUsername") String newUsername,
             @RequestParam("newGender") Integer newGender,
-            @RequestParam(value = "newAvatar", required = false) MultipartFile newAvatar){
+            @RequestPart(name = "newAvatar", required = false) MultipartFile newAvatar){
         try {
             String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
             boolean ok = userService.updateUserInfo(userId, newUsername, newGender, newAvatar);
