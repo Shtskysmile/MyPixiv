@@ -1,22 +1,20 @@
 <template>
-  <div class="page-root">
+  <div class="page-root manga-theme">
     <div class="page-bg" :style="bgStyle"></div>
     <div class="page-overlay"></div>
     
-    <!-- 装饰性粒子效果 -->
+    <!-- 漫画主题装饰 -->
     <div class="particles">
-      <div class="particle" v-for="i in 20" :key="i" :style="getParticleStyle(i)"></div>
+      <div class="particle" v-for="i in 15" :key="i" :style="getParticleStyle(i)"></div>
     </div>
     
-    <!-- 浮动装饰元素 -->
     <div class="floating-decorations">
-      <div class="float-star star-1">✨</div>
-      <div class="float-star star-2">⭐</div>
-      <div class="float-star star-3">💫</div>
-      <div class="float-heart heart-1">💖</div>
-      <div class="float-heart heart-2">💗</div>
-      <div class="float-sparkle sparkle-1">✨</div>
-      <div class="float-sparkle sparkle-2">🌟</div>
+      <div class="float-book book-1">📚</div>
+      <div class="float-book book-2">📖</div>
+      <div class="float-bubble bubble-1">💬</div>
+      <div class="float-bubble bubble-2">💭</div>
+      <div class="float-star star-1">🌟</div>
+      <div class="float-star star-2">✨</div>
     </div>
     
     <div class="container">
@@ -28,49 +26,41 @@
         </div>
         <div class="column">
           <!-- 标题区域 -->
-          <div class="header-section anime-box">
+          <div class="header-section anime-box manga-header">
             <div class="title-wrapper">
               <div class="title-icon-wrapper">
-                <span class="title-icon">🎨</span>
-                <div class="icon-glow"></div>
+                <span class="title-icon">📚</span>
+                <div class="icon-glow manga-glow"></div>
               </div>
               <div class="title-content">
                 <h1 class="page-title">
-                  <span class="title-text">全部作品</span>
-                  <span class="title-badge">Gallery</span>
+                  <span class="title-text">精彩漫画</span>
+                  <span class="title-badge manga-badge">Manga</span>
                 </h1>
                 <p class="page-subtitle">
                   <span class="subtitle-icon">✨</span>
-                  发现精彩的插画与漫画作品
+                  沉浸在漫画的奇幻世界
                   <span class="subtitle-icon">✨</span>
                 </p>
               </div>
             </div>
             
-            <!-- 快速统计 -->
             <div class="quick-stats">
-              <div class="stat-item">
-                <span class="stat-icon">🖼️</span>
-                <div class="stat-info">
-                  <span class="stat-value">{{ illustrationCount }}</span>
-                  <span class="stat-label">插画</span>
-                </div>
-              </div>
-              <div class="stat-item">
+              <div class="stat-item manga-stat">
                 <span class="stat-icon">📚</span>
                 <div class="stat-info">
-                  <span class="stat-value">{{ mangaCount }}</span>
+                  <span class="stat-value">{{ images.length }}</span>
                   <span class="stat-label">漫画</span>
                 </div>
               </div>
-              <div class="stat-item">
+              <div class="stat-item manga-stat">
                 <span class="stat-icon">👁️</span>
                 <div class="stat-info">
                   <span class="stat-value">{{ totalViews }}</span>
                   <span class="stat-label">浏览</span>
                 </div>
               </div>
-              <div class="stat-item">
+              <div class="stat-item manga-stat">
                 <span class="stat-icon">❤️</span>
                 <div class="stat-info">
                   <span class="stat-value">{{ totalLikes }}</span>
@@ -83,10 +73,10 @@
           <!-- 加载状态 -->
           <div v-if="loading" class="loading-container anime-box">
             <div class="loading-spinner">
-              <div class="spinner-ring"></div>
-              <div class="spinner-ring"></div>
-              <div class="spinner-ring"></div>
-              <span class="loading-text">加载中...</span>
+              <div class="spinner-ring manga-ring"></div>
+              <div class="spinner-ring manga-ring"></div>
+              <div class="spinner-ring manga-ring"></div>
+              <span class="loading-text">加载漫画中...</span>
             </div>
           </div>
 
@@ -103,17 +93,16 @@
               </div>
             </div>
             
-            <!-- 空状态 -->
             <div v-if="images.length === 0" class="empty-state">
               <div class="empty-icon-wrapper">
-                <span class="empty-icon">🎨</span>
-                <div class="empty-icon-bg"></div>
+                <span class="empty-icon">📚</span>
+                <div class="empty-icon-bg manga-empty-bg"></div>
               </div>
-              <p class="empty-title">暂无作品</p>
-              <p class="empty-desc">快来上传你的第一幅作品吧！</p>
-              <router-link to="/user" class="empty-button">
+              <p class="empty-title">暂无漫画作品</p>
+              <p class="empty-desc">快来上传你的第一部漫画吧！</p>
+              <router-link to="/user" class="empty-button manga-button">
                 <span class="btn-icon">📤</span>
-                <span>上传作品</span>
+                <span>上传漫画</span>
               </router-link>
             </div>
           </div>
@@ -138,7 +127,7 @@ import Navbar from "./Navbar.vue";
 import ImageBlock from "./ImageBlock.vue";
 import Pagination from "./Pagination.vue";
 import Sidebar from "./Sidebar.vue";
-import bgImg from "@/assets/images/Myth_Crystalcastle.jpg";
+import bgImg from "@/assets/images/Moonshadow_CyberLeader.jpg";
 
 export default {
   components: {
@@ -157,7 +146,7 @@ export default {
   },
   created() {
     this.page = this.getPageFromUrl();
-    this.fetchIllustrations();
+    this.fetchMangas();
   },
   computed: {
     bgStyle() {
@@ -173,12 +162,6 @@ export default {
         zIndex: -2,
       };
     },
-    illustrationCount() {
-      return this.images.filter(img => img.type === 0).length; // 0-插画
-    },
-    mangaCount() {
-      return this.images.filter(img => img.type === 1).length; // 1-漫画
-    },
     totalViews() {
       return this.images.reduce((sum, img) => sum + (img.viewCount || 0), 0);
     },
@@ -187,33 +170,25 @@ export default {
     }
   },
   methods: {
-    async fetchIllustrations() {
+    fetchMangas() {
       this.loading = true;
-      try {
-        // 同时获取插画和漫画
-        const [illustrationsRes, mangasRes] = await Promise.all([
-          axios.get('/api/illustrations'),
-          axios.get('/api/mangas')
-        ]);
-        
-        const illustrations = (illustrationsRes.data?.code === 200) ? (illustrationsRes.data.data || []) : [];
-        const mangas = (mangasRes.data?.code === 200) ? (mangasRes.data.data || []) : [];
-        
-        // 合并数据（保持后端原有的type: 0-插画, 1-漫画）
-        const allImages = [
-          ...illustrations, // type已经是0
-          ...mangas         // type已经是1
-        ];
-        
-        // 可以按某种方式排序，例如按时间或随机
-        this.images = allImages;
-        this.totalPage = Math.ceil(this.images.length / 35) || 1;
-      } catch (err) {
-        console.error('请求失败:', err);
-        this.images = [];
-      } finally {
-        this.loading = false;
-      }
+      axios.get('/api/mangas')
+        .then((res) => {
+          if (res.data && res.data.code === 200) {
+            this.images = res.data.data || [];
+            this.totalPage = Math.ceil(this.images.length / 35) || 1;
+          } else {
+            console.error('获取漫画列表失败:', res.data?.message);
+            this.images = [];
+          }
+        })
+        .catch((err) => {
+          console.error('请求失败:', err);
+          this.images = [];
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
     getPageFromUrl() {
       const url = new URL(window.location.href);
@@ -225,9 +200,7 @@ export default {
       const url = new URL(window.location.href);
       url.searchParams.set("page", newPage);
       window.history.replaceState(null, "", url.toString());
-      // 重新加载数据
-      this.fetchIllustrations();
-      // 滚动到顶部
+      this.fetchMangas();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
     getParticleStyle(index) {
@@ -249,6 +222,13 @@ export default {
 </script>
 
 <style scoped>
+/* 漫画主题色 - 粉红紫色调 */
+.manga-theme {
+  --primary-color: #f093fb;
+  --secondary-color: #f5576c;
+  --accent-color: #e94057;
+}
+
 .page-root {
   position: relative;
   min-height: 100vh;
@@ -281,8 +261,8 @@ export default {
   bottom: 0;
   background: linear-gradient(
     135deg,
-    rgba(102, 126, 234, 0.3) 0%,
-    rgba(118, 75, 162, 0.4) 50%,
+    rgba(240, 147, 251, 0.4) 0%,
+    rgba(245, 87, 108, 0.5) 50%,
     rgba(0, 0, 0, 0.5) 100%
   );
   z-index: -1;
@@ -302,7 +282,7 @@ export default {
 
 .particle {
   position: absolute;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(240, 147, 251, 0.8) 0%, transparent 70%);
   border-radius: 50%;
   animation: particleFloat linear infinite;
   opacity: 0.6;
@@ -325,7 +305,7 @@ export default {
   }
 }
 
-/* 浮动装饰元素 */
+/* 浮动装饰 */
 .floating-decorations {
   position: fixed;
   top: 0;
@@ -336,70 +316,66 @@ export default {
   z-index: 0;
 }
 
-.float-star, .float-heart, .float-sparkle {
+.float-book, .float-bubble, .float-star {
   position: absolute;
-  font-size: 32px;
-  opacity: 0.4;
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+  font-size: 36px;
+  opacity: 0.5;
+  filter: drop-shadow(0 0 10px rgba(240, 147, 251, 0.5));
+}
+
+.book-1 {
+  top: 18%;
+  left: 10%;
+  animation: floatBook 8s ease-in-out infinite;
+}
+
+.book-2 {
+  bottom: 28%;
+  right: 10%;
+  animation: floatBook 9s ease-in-out infinite 1.5s;
+}
+
+.bubble-1 {
+  top: 45%;
+  right: 15%;
+  animation: floatBubble 6s ease-in-out infinite;
+}
+
+.bubble-2 {
+  bottom: 40%;
+  left: 12%;
+  animation: floatBubble 7s ease-in-out infinite 2s;
 }
 
 .star-1 {
-  top: 15%;
-  left: 10%;
-  animation: floatStar 6s ease-in-out infinite;
-}
-
-.star-2 {
-  top: 60%;
-  right: 15%;
-  animation: floatStar 8s ease-in-out infinite 1s;
-}
-
-.star-3 {
-  bottom: 20%;
-  left: 20%;
-  animation: floatStar 7s ease-in-out infinite 2s;
-}
-
-.heart-1 {
   top: 30%;
-  right: 25%;
-  animation: floatHeart 5s ease-in-out infinite;
-}
-
-.heart-2 {
-  bottom: 30%;
-  right: 10%;
-  animation: floatHeart 6s ease-in-out infinite 1.5s;
-}
-
-.sparkle-1 {
-  top: 45%;
-  left: 5%;
+  left: 18%;
   animation: sparkle 4s ease-in-out infinite;
 }
 
-.sparkle-2 {
-  top: 70%;
-  right: 5%;
-  animation: sparkle 5s ease-in-out infinite 2s;
+.star-2 {
+  top: 68%;
+  right: 18%;
+  animation: sparkle 5s ease-in-out infinite 1.5s;
 }
 
-@keyframes floatStar {
+@keyframes floatBook {
   0%, 100% {
-    transform: translateY(0) rotate(0deg);
+    transform: translateY(0) rotate(-5deg);
   }
   50% {
-    transform: translateY(-20px) rotate(180deg);
+    transform: translateY(-20px) rotate(5deg);
   }
 }
 
-@keyframes floatHeart {
+@keyframes floatBubble {
   0%, 100% {
     transform: translateY(0) scale(1);
+    opacity: 0.5;
   }
   50% {
-    transform: translateY(-15px) scale(1.1);
+    transform: translateY(-15px) scale(1.15);
+    opacity: 0.7;
   }
 }
 
@@ -414,19 +390,18 @@ export default {
   }
 }
 
-/* 确保容器内容在前景可读 */
 .container {
   position: relative;
   z-index: 1;
   padding-top: 80px;
 }
 
-/* 二次元风格样式 */
+/* 漫画主题卡片 */
 .anime-box {
   background: rgba(255, 255, 255, 0.98) !important;
   border: 3px solid transparent;
   border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 8px 32px rgba(240, 147, 251, 0.2);
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
   overflow: hidden;
@@ -442,7 +417,7 @@ export default {
   bottom: 0;
   border-radius: 20px;
   padding: 3px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #e94057 100%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -455,14 +430,17 @@ export default {
 }
 
 .anime-box:hover {
-  box-shadow: 0 16px 48px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 16px 48px rgba(240, 147, 251, 0.3);
   transform: translateY(-4px);
 }
 
-/* 标题区域 */
+/* 漫画主题标题 */
+.manga-header {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 240, 250, 0.98) 100%) !important;
+}
+
 .header-section {
   padding: 32px !important;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(250, 245, 255, 0.98) 100%) !important;
 }
 
 .title-wrapper {
@@ -483,20 +461,19 @@ export default {
   font-size: 64px;
   position: relative;
   z-index: 1;
-  animation: iconBounce 2s ease-in-out infinite;
+  animation: iconFlip 4s ease-in-out infinite;
 }
 
-@keyframes iconBounce {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-10px) rotate(-5deg); }
-  75% { transform: translateY(-10px) rotate(5deg); }
+@keyframes iconFlip {
+  0%, 100% { transform: rotateY(0deg); }
+  50% { transform: rotateY(180deg); }
 }
 
-.icon-glow {
+.manga-glow {
   position: absolute;
   width: 80px;
   height: 80px;
-  background: radial-gradient(circle, rgba(102, 126, 234, 0.3) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(240, 147, 251, 0.4) 0%, transparent 70%);
   border-radius: 50%;
   animation: glowPulse 2s ease-in-out infinite;
 }
@@ -520,14 +497,14 @@ export default {
 .title-text {
   font-size: 42px;
   font-weight: 800;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   letter-spacing: -1px;
 }
 
-.title-badge {
+.manga-badge {
   display: inline-block;
   padding: 6px 16px;
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
@@ -542,7 +519,7 @@ export default {
 
 .page-subtitle {
   font-size: 18px;
-  color: #9333ea;
+  color: #f093fb;
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -554,28 +531,30 @@ export default {
   animation: sparkle 2s ease-in-out infinite;
 }
 
-/* 快速统计 */
+/* 漫画主题统计 */
 .quick-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 16px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
 }
 
-.stat-item {
+.manga-stat {
+  flex: 1;
+  min-width: 150px;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  gap: 16px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(240, 147, 251, 0.1) 0%, rgba(245, 87, 108, 0.1) 100%);
   border-radius: 16px;
-  border: 2px solid rgba(102, 126, 234, 0.2);
+  border: 2px solid rgba(240, 147, 251, 0.2);
   transition: all 0.3s ease;
 }
 
-.stat-item:hover {
+.manga-stat:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
-  border-color: rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 20px rgba(240, 147, 251, 0.2);
+  border-color: rgba(240, 147, 251, 0.4);
 }
 
 .stat-icon {
@@ -592,7 +571,7 @@ export default {
 .stat-value {
   font-size: 24px;
   font-weight: 800;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -600,7 +579,7 @@ export default {
 
 .stat-label {
   font-size: 12px;
-  color: #9333ea;
+  color: #f093fb;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -622,28 +601,28 @@ export default {
   gap: 24px;
 }
 
-.spinner-ring {
+.manga-ring {
   position: absolute;
   width: 80px;
   height: 80px;
   border: 4px solid transparent;
-  border-top-color: #667eea;
+  border-top-color: #f093fb;
   border-radius: 50%;
   animation: spin 1.5s linear infinite;
 }
 
-.spinner-ring:nth-child(2) {
+.manga-ring:nth-child(2) {
   width: 60px;
   height: 60px;
-  border-top-color: #764ba2;
+  border-top-color: #f5576c;
   animation-duration: 1s;
   animation-direction: reverse;
 }
 
-.spinner-ring:nth-child(3) {
+.manga-ring:nth-child(3) {
   width: 40px;
   height: 40px;
-  border-top-color: #f093fb;
+  border-top-color: #e94057;
   animation-duration: 0.75s;
 }
 
@@ -655,7 +634,7 @@ export default {
   margin-top: 100px;
   font-size: 18px;
   font-weight: 600;
-  color: #667eea;
+  color: #f093fb;
   animation: pulse 1.5s ease-in-out infinite;
 }
 
@@ -707,17 +686,17 @@ export default {
   font-size: 100px;
   position: relative;
   z-index: 1;
-  animation: iconBounce 2s ease-in-out infinite;
+  animation: iconFlip 4s ease-in-out infinite;
 }
 
-.empty-icon-bg {
+.manga-empty-bg {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   width: 120px;
   height: 120px;
-  background: radial-gradient(circle, rgba(102, 126, 234, 0.2) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(240, 147, 251, 0.2) 0%, transparent 70%);
   border-radius: 50%;
   animation: glowPulse 2s ease-in-out infinite;
 }
@@ -725,34 +704,34 @@ export default {
 .empty-title {
   font-size: 28px;
   font-weight: 700;
-  color: #667eea;
+  color: #f093fb;
   margin-bottom: 12px;
 }
 
 .empty-desc {
   font-size: 16px;
-  color: #9333ea;
+  color: #f5576c;
   margin-bottom: 32px;
 }
 
-.empty-button {
+.manga-button {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   padding: 14px 32px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
   color: white;
   font-size: 16px;
   font-weight: 700;
   border-radius: 50px;
   text-decoration: none;
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 20px rgba(240, 147, 251, 0.3);
   transition: all 0.3s ease;
 }
 
-.empty-button:hover {
+.manga-button:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 28px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 12px 28px rgba(240, 147, 251, 0.4);
 }
 
 .btn-icon {
@@ -774,7 +753,11 @@ export default {
   }
   
   .quick-stats {
-    grid-template-columns: repeat(2, 1fr);
+    width: 100%;
+  }
+  
+  .manga-stat {
+    min-width: calc(50% - 10px);
   }
 }
 
@@ -795,7 +778,7 @@ export default {
     font-size: 32px;
   }
   
-  .title-badge {
+  .manga-badge {
     font-size: 12px;
     padding: 4px 12px;
   }
@@ -805,7 +788,11 @@ export default {
   }
   
   .quick-stats {
-    grid-template-columns: repeat(2, 1fr);
+    flex-direction: column;
+  }
+  
+  .manga-stat {
+    min-width: 100%;
   }
   
   .grid {
@@ -833,3 +820,4 @@ export default {
   }
 }
 </style>
+

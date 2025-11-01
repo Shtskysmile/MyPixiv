@@ -6,54 +6,68 @@
   >
     <!-- when used inside pages that already have a container (e.g. User), set noContainer to true to avoid nested containers -->
     <template v-if="noContainer">
-      <div class="navbar-brand">
-        <a class="navbar-item logo-item" href="/">
-          <img
-            class="site-logo"
-            src="@/assets/images/Pixiv_Icon.svg"
-            alt="logo"
-          />
-        </a>
+      <div class="navbar-inner">
+        <div class="navbar-brand">
+          <a class="navbar-item logo-item" href="/">
+            <img
+              class="site-logo"
+              src="@/assets/images/Pixiv_Icon.svg"
+              alt="logo"
+            />
+            <span class="logo-text">MyPixiv</span>
+          </a>
 
-        <a
-          role="button"
-          class="navbar-burger"
-          aria-label="menu"
-          aria-expanded="false"
-          data-target="navbarBasicExample"
-        >
-          <span aria-hidden="true"></span>
-          <span aria-hidden="true"></span>
-          <span aria-hidden="true"></span>
-          <span aria-hidden="true"></span>
-        </a>
-      </div>
-
-      <div id="navbarBasicExample" class="navbar-menu">
-        <div class="navbar-start"></div>
-
-        <div class="navbar-center">
-          <div class="navbar-item nav-search">
-            <form class="field has-addons" @submit.prevent="onSearch">
-              <div class="control is-expanded">
-                <input class="input" type="text" v-model="search" placeholder="搜索插画、作者..." @keyup.enter="onSearch">
-              </div>
-              <div class="control">
-                <button class="button is-info" type="submit">
-                  🔍
-                </button>
-              </div>
-            </form>
-          </div>
+          <a
+            role="button"
+            class="navbar-burger"
+            :class="{ 'is-active': isBurgerActive }"
+            aria-label="menu"
+            :aria-expanded="isBurgerActive"
+            data-target="navbarBasicExample"
+            @click="toggleBurger"
+          >
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+            <span aria-hidden="true"></span>
+          </a>
         </div>
 
-        <div class="navbar-end">
-          <div class="navbar-item">
-            <div class="buttons">
-              <router-link class="button is-primary" to="/register">
-                <strong>注册</strong>
-              </router-link>
-              <router-link class="button is-light" to="/login">登录</router-link>
+        <div id="navbarBasicExample" class="navbar-menu" :class="{ 'is-active': isBurgerActive }">
+          <div class="navbar-start"></div>
+
+          <div class="navbar-center">
+            <div class="navbar-item nav-search">
+              <form class="search-form" @submit.prevent="onSearch">
+                <div class="search-input-wrapper">
+                  <span class="search-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                  </span>
+                  <input 
+                    class="search-input" 
+                    type="text" 
+                    v-model="search" 
+                    placeholder="搜索插画、作者..." 
+                    @keyup.enter="onSearch"
+                  >
+                  <button class="search-button" type="submit">
+                    搜索
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="navbar-end">
+            <div class="navbar-item">
+              <div class="buttons">
+                <router-link class="button btn-register" to="/register">
+                  <strong>注册</strong>
+                </router-link>
+                <router-link class="button btn-login" to="/login">登录</router-link>
+              </div>
             </div>
           </div>
         </div>
@@ -69,34 +83,46 @@
               src="@/assets/images/Pixiv_Icon.svg"
               alt="logo"
             />
+            <span class="logo-text">MyPixiv</span>
           </a>
 
           <a
             role="button"
             class="navbar-burger"
+            :class="{ 'is-active': isBurgerActive }"
             aria-label="menu"
-            aria-expanded="false"
+            :aria-expanded="isBurgerActive"
             data-target="navbarBasicExample"
+            @click="toggleBurger"
           >
-            <span aria-hidden="true"></span>
             <span aria-hidden="true"></span>
             <span aria-hidden="true"></span>
             <span aria-hidden="true"></span>
           </a>
         </div>
 
-        <div id="navbarBasicExample" class="navbar-menu">
+        <div id="navbarBasicExample" class="navbar-menu" :class="{ 'is-active': isBurgerActive }">
           <div class="navbar-start"></div>
 
           <div class="navbar-center">
             <div class="navbar-item nav-search">
-              <form class="field has-addons" @submit.prevent="onSearch">
-                <div class="control is-expanded">
-                  <input class="input" type="text" v-model="search" placeholder="搜索插画、作者..." @keyup.enter="onSearch">
-                </div>
-                <div class="control">
-                  <button class="button is-info" type="submit">
-                    🔍
+              <form class="search-form" @submit.prevent="onSearch">
+                <div class="search-input-wrapper">
+                  <span class="search-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                  </span>
+                  <input 
+                    class="search-input" 
+                    type="text" 
+                    v-model="search" 
+                    placeholder="搜索插画、作者..." 
+                    @keyup.enter="onSearch"
+                  >
+                  <button class="search-button" type="submit">
+                    搜索
                   </button>
                 </div>
               </form>
@@ -106,10 +132,10 @@
           <div class="navbar-end">
             <div class="navbar-item">
               <div class="buttons">
-                <router-link class="button is-primary" to="/register">
+                <router-link class="button btn-register" to="/register">
                   <strong>注册</strong>
                 </router-link>
-                <router-link class="button is-light" to="/login">登录</router-link>
+                <router-link class="button btn-login" to="/login">登录</router-link>
               </div>
             </div>
           </div>
@@ -127,10 +153,14 @@ export default {
   },
   data() {
     return {
-      search: ''
+      search: '',
+      isBurgerActive: false
     };
   },
   methods: {
+    toggleBurger() {
+      this.isBurgerActive = !this.isBurgerActive;
+    },
     onSearch() {
       const q = (this.search || '').trim();
 
@@ -167,6 +197,9 @@ export default {
         // 其他错误可以选择记录或上报；目前无需中断用户操作
         return err;
       });
+      
+      // 关闭移动端菜单
+      this.isBurgerActive = false;
     }
   }
 };
@@ -176,8 +209,14 @@ export default {
 @import "../assets/css/sticky-navbar.css";
 
 .sticky-navbar {
-  background-color: #1e6fff;
+  background: linear-gradient(135deg, #0096ff 0%, #1e6fff 50%, #0052d4 100%);
   color: #ffffff;
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.sticky-navbar:hover {
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.15);
 }
 
 .sticky-navbar .navbar-item,
@@ -186,20 +225,87 @@ export default {
   color: #ffffff;
 }
 
+/* navbar-inner 用于 noContainer 模式，提供与 container 相同的边距 */
+.navbar-inner {
+  max-width: 1344px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: stretch;
+  min-height: 3.25rem;
+  width: 100%;
+}
+
+@media screen and (min-width: 1024px) {
+  .navbar-inner {
+    padding: 0 32px;
+  }
+}
+
+@media screen and (min-width: 1216px) {
+  .navbar-inner {
+    max-width: 1152px;
+  }
+}
+
+@media screen and (min-width: 1408px) {
+  .navbar-inner {
+    max-width: 1344px;
+  }
+}
+
+/* Logo 样式 */
+.logo-item { 
+  padding: 8px 14px; 
+  display: flex; 
+  align-items: center; 
+  gap: 12px;
+  transition: transform 0.3s ease;
+}
+
+.logo-item:hover {
+  transform: scale(1.05);
+}
+
+.logo-item .site-logo { 
+  height: 48px; 
+  width: auto; 
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.logo-text {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #ffffff 0%, #e0f0ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 汉堡菜单 */
+.navbar-burger {
+  color: #ffffff;
+  transition: transform 0.3s ease;
+}
+
+.navbar-burger:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: rotate(90deg);
+}
+
+.navbar-burger span {
+  height: 2px;
+  width: 20px;
+}
+
 /* 居中搜索框布局 */
 .sticky-navbar .navbar-menu {
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-/* Logo spacing tweaks */
-.logo-item { padding: 8px 14px; display: flex; align-items: center; }
-.logo-item .site-logo { height: 48px; width: auto; display: block; }
-
-@media (max-width: 768px) {
-  .logo-item { padding: 6px 10px; }
-  .logo-item .site-logo { height: 36px; }
+  background-color: transparent;
 }
 
 .sticky-navbar .navbar-center {
@@ -212,47 +318,164 @@ export default {
   flex: 0 1 720px;
 }
 
-.nav-search .field.has-addons {
-  max-width: 880px;
-  width: 720px;
-}
-
-.nav-search .input {
-  font-size: 16px;
-  padding: 10px 12px;
+/* 搜索框样式 */
+.search-form {
   width: 100%;
-  box-sizing: border-box;
 }
 
-/* 移动端样式 */
-@media (max-width: 768px) {
-  .nav-search .field.has-addons {
-    max-width: 100%;
-  }
-  .sticky-navbar .navbar-menu {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .sticky-navbar .navbar-center {
-    order: 2;
-    padding: 8px 12px;
-  }
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 50px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  max-width: 720px;
+  width: 100%;
 }
 
-.sticky-navbar .button.is-primary {
+.search-input-wrapper:hover {
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
   background-color: #ffffff;
-  color: #1e6fff;
-  border: none;
 }
 
-.sticky-navbar .button.is-light {
-  background-color: transparent;
+.search-input-wrapper:focus-within {
+  box-shadow: 0 8px 24px rgba(30, 110, 255, 0.3);
+  background-color: #ffffff;
+}
+
+.search-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+  color: #666;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 14px 8px;
+  font-size: 16px;
+  background: transparent;
+  color: #333;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.search-button {
+  background: linear-gradient(135deg, #0096ff 0%, #1e6fff 100%);
   color: #ffffff;
-  border: 1px solid rgba(255,255,255,0.2);
+  border: none;
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.search-button:hover {
+  background: linear-gradient(135deg, #0080e6 0%, #1a5ce6 100%);
+  transform: translateX(-2px);
+}
+
+.search-button:active {
+  transform: translateX(-2px) scale(0.98);
+}
+
+/* 按钮样式 */
+.buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-register {
+  background-color: #ffffff !important;
+  color: #1e6fff !important;
+  border: none !important;
+  border-radius: 50px !important;
+  padding: 10px 24px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-register:hover {
+  background-color: #f0f8ff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-login {
+  background-color: transparent !important;
+  color: #ffffff !important;
+  border: 2px solid rgba(255, 255, 255, 0.8) !important;
+  border-radius: 50px !important;
+  padding: 10px 24px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+}
+
+.btn-login:hover {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: #ffffff !important;
+  transform: translateY(-2px);
 }
 
 /* 给右侧按钮组增加一些右侧留白，避免贴边 */
 .sticky-navbar .navbar-end {
   margin-right: 12px;
+}
+
+/* 移动端样式 */
+@media (max-width: 1024px) {
+  .logo-item { padding: 6px 10px; }
+  .logo-item .site-logo { height: 40px; }
+  .logo-text { font-size: 20px; }
+  
+  .sticky-navbar .navbar-menu {
+    background: linear-gradient(135deg, #0096ff 0%, #1e6fff 50%, #0052d4 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .sticky-navbar .navbar-center {
+    order: 2;
+    padding: 12px 16px;
+  }
+  
+  .search-input-wrapper {
+    max-width: 100%;
+  }
+  
+  .navbar-end {
+    padding: 12px 16px;
+  }
+  
+  .buttons {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .btn-register,
+  .btn-login {
+    flex: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .logo-item .site-logo { height: 36px; }
+  .logo-text { font-size: 18px; }
+  
+  .search-button {
+    padding: 14px 20px;
+    font-size: 14px;
+  }
 }
 </style>

@@ -15,15 +15,28 @@ export default {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
 }
 
 /* reset default page margins so layout can use full viewport */
 html, body {
   margin: 0;
   padding: 0;
-  height: 100%;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* 确保只有一个滚动条 */
+html {
+  overflow-y: scroll;
+}
+
+body {
+  overflow-y: auto;
+}
+
+#app {
+  width: 100%;
+  overflow-x: hidden;
 }
 </style>
