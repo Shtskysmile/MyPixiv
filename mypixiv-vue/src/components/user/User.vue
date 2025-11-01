@@ -425,6 +425,7 @@ export default {
   z-index: 1;
   min-height: 100vh;
   padding: 24px;
+  padding-top: 84px; /* 60px navbar高度 + 24px间距 */
 }
 
 /* 二次元风格菜单 */

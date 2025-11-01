@@ -40,7 +40,7 @@
                   </label>
                   <div class="control">
                     <div class="select is-fullwidth anime-select">
-                      <select v-model="gender" required>
+                      <select v-model="gender" required class="gender-select">
                         <option value="" disabled>请选择性别</option>
                         <option :value="1">男</option>
                         <option :value="0">女</option>
@@ -278,8 +278,9 @@ export default {
         formData.append('gender', this.gender);
         
         // 构造密保问题列表（对齐 List<R_SecurityIssue>）
+        // 后端期望格式：RSecurityIssues[0].description, RSecurityIssues[0].answer
         this.securityQuestions.forEach((q, idx) => {
-          formData.append(`RSecurityIssues[${idx}].question`, q.question);
+          formData.append(`RSecurityIssues[${idx}].description`, q.question);
           formData.append(`RSecurityIssues[${idx}].answer`, this.securityAnswers[idx]);
         });
         
@@ -288,13 +289,13 @@ export default {
           formData.append('avatar', this.avatarFile);
         }
 
-        const res = await axios.post('/register', formData, {
+        const res = await axios.post('/api/register', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
         });
         
-        if (res.data && res.data.code === 0) {
+        if (res.data && res.data.code === 200) {
           // 注册成功
           this.success = '注册成功！3秒后跳转到登录页...';
           
@@ -414,22 +415,90 @@ export default {
   margin-bottom: 6px;
 }
 
-.anime-input, .anime-select select {
+.anime-input {
   border: 2px solid rgba(147, 51, 234, 0.2);
   border-radius: 12px;
   padding: 12px 16px;
   transition: all 0.3s ease;
   font-size: 15px;
+  width: 100%;
 }
 
-.anime-input:focus, .anime-select select:focus {
+.anime-input:focus {
   border-color: #a78bfa;
   box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.1);
+  outline: none;
 }
 
 .anime-select {
   border-radius: 12px;
-  overflow: hidden;
+  overflow: visible !important;
+  width: 100%;
+  position: relative;
+  display: block;
+}
+
+/* 覆盖Bulma的select样式 */
+.field .control .select.anime-select {
+  width: 100%;
+  display: block;
+}
+
+.field .control .select.anime-select::after {
+  display: none !important;
+}
+
+.anime-select select,
+.gender-select {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  min-height: 48px !important;
+  height: auto !important;
+  border: 2px solid rgba(147, 51, 234, 0.2) !important;
+  border-radius: 12px !important;
+  padding: 14px 40px 14px 16px !important;
+  margin: 0 !important;
+  background-color: white !important;
+  font-size: 15px !important;
+  line-height: 1.5 !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236366f1' d='M6 9L1 4h10z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 16px center !important;
+  background-size: 12px 12px !important;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: block !important;
+  box-sizing: border-box !important;
+  white-space: nowrap;
+  overflow: visible;
+}
+
+.anime-select select option,
+.gender-select option {
+  padding: 12px 16px !important;
+  line-height: 1.5 !important;
+  min-height: 44px !important;
+  height: auto !important;
+  font-size: 15px !important;
+  display: block;
+  white-space: normal;
+  overflow: visible;
+}
+
+.anime-select select:focus,
+.gender-select:focus {
+  border-color: #a78bfa;
+  box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.1);
+  outline: none;
+}
+
+.anime-select select:hover,
+.gender-select:hover {
+  border-color: #a78bfa;
 }
 
 .security-section {

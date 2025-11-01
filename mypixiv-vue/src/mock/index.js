@@ -99,12 +99,33 @@ const generateComment = () => ({
 
 // ==================== UserController 接口 ====================
 
-// POST /register - 用户注册
-Mock.mock(/\/register$/, 'post', (options) => {
+// POST /api/register - 用户注册
+Mock.mock(/\/api\/register$/, 'post', (options) => {
   try {
-    const params = new URLSearchParams(options.body)
-    const username = params.get('username')
-    if (username === 'existinguser') {
+    // 注册接口使用FormData，需要解析FormData格式
+    const body = options.body
+    let username = ''
+    
+    // 尝试从FormData中提取username
+    // FormData格式通常是字符串，包含boundary等信息
+    if (body && typeof body === 'string') {
+      const usernameMatch = body.match(/name="username"\r?\n\r?\n([^\r\n]+)/)
+      if (usernameMatch) {
+        username = usernameMatch[1]
+      }
+    }
+    
+    // 如果是URLSearchParams格式（向后兼容）
+    if (!username && body) {
+      try {
+        const params = new URLSearchParams(body)
+        username = params.get('username')
+      } catch (e) {
+        // 忽略解析错误
+      }
+    }
+    
+    if (username === 'existinguser' || username === '') {
       return errorResult('注册失败，用户名已存在')
     }
     return successResult('注册成功')
