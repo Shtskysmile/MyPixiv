@@ -121,17 +121,14 @@ public class ContributionServiceImpl implements ContributionService {
         try{
             int limit = maxSearchLimit;
             List<Contribution> contributions = switch (key) {
-                case viewCount -> contributionMapper.selectContributionsByViewCount(limit);
-                case favoriteCount -> contributionMapper.selectContributionsByFavoriteCount(limit);
-                case likeCount -> contributionMapper.selectContributionsByLikeCount(limit);
-                case commentCount -> contributionMapper.selectContributionsByCommentCount(limit);
+                case viewCount -> contributionMapper.selectContributionsByTypeAndViewCount(limit, type);
+                case favoriteCount -> contributionMapper.selectContributionsByTypeAndFavoriteCount(limit, type);
+                case likeCount -> contributionMapper.selectContributionsByTypeAndLikeCount(limit, type);
+                case commentCount -> contributionMapper.selectContributionsByTypeAndCommentCount(limit, type);
                 default -> List.of();
             };
             List<R_OverviewContribution> result = new ArrayList<>();
             for (Contribution c : contributions) {
-                if (type != null && (type.equals(illustration) || type.equals(manga))) {
-                    if (!type.equals(c.getType())) continue;
-                }
                 User author = userMapper.selectUserById(c.getAuthorId());
                 String avatar = author == null ? null : author.getAvatar();
                 result.add(transformService.transformContributionToROverviewContribution(c, avatar));

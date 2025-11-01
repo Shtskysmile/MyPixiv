@@ -19,6 +19,7 @@ public interface ContributionMapper {
     @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1")
     List<Contribution> selectAllContributions();
 
+
     @Select("SELECT * FROM contribution WHERE auditStatus = #{auditStatus}")
     List<Contribution> selectContributionsByAuditStatus(int auditStatus);
 
@@ -34,18 +35,22 @@ public interface ContributionMapper {
     @Select("SELECT * FROM contribution WHERE type = #{type} AND status = 0 AND auditStatus = 1")
     List<Contribution> selectContributionsByType(int type);
 
-    @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 ORDER BY viewCount DESC LIMIT #{limit}")
-    List<Contribution> selectContributionsByViewCount(@Param("limit") int limit);
+    // 按类型并按浏览量排序
+    @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 AND type = #{type} ORDER BY viewCount DESC LIMIT #{limit}")
+    List<Contribution> selectContributionsByTypeAndViewCount(@Param("type") int type, @Param("limit") int limit);
 
-    @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 ORDER BY favoriteCount DESC LIMIT #{limit}")
-    List<Contribution> selectContributionsByFavoriteCount(@Param("limit") int limit);
+    // 按类型并按收藏量排序
+    @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 AND type = #{type} ORDER BY favoriteCount DESC LIMIT #{limit}")
+    List<Contribution> selectContributionsByTypeAndFavoriteCount(@Param("type") int type, @Param("limit") int limit);
 
-    @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 ORDER BY likeCount DESC LIMIT #{limit}")
-    List<Contribution> selectContributionsByLikeCount(@Param("limit") int limit);
+    // 按类型并按点赞量排序
+    @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 AND type = #{type} ORDER BY likeCount DESC LIMIT #{limit}")
+    List<Contribution> selectContributionsByTypeAndLikeCount(@Param("type") int type, @Param("limit") int limit);
 
-    @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 ORDER BY commentCount DESC LIMIT #{limit}")
-    List<Contribution> selectContributionsByCommentCount(@Param("limit") int limit);
-
+    // 按类型并按评论量排序
+    @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 AND type = #{type} ORDER BY commentCount DESC LIMIT #{limit}")
+    List<Contribution> selectContributionsByTypeAndCommentCount(@Param("type") int type, @Param("limit") int limit);
+    
     @Update("UPDATE contribution SET type = #{type}, title = #{title}, image = #{image}, description = #{description}, status = #{status}, auditStatus = #{auditStatus}, publishTime = #{publishTime}, authorId = #{authorId}, viewCount = #{viewCount}, favoriteCount = #{favoriteCount}, likeCount = #{likeCount}, commentCount = #{commentCount}, dismissalReason = #{dismissalReason} WHERE contributionId = #{contributionId}")
     void updateContribution(Contribution contribution);
 

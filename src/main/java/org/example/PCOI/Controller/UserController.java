@@ -44,7 +44,6 @@ public class UserController {
         try {
             R_LoginDTO result = userService.login(username, password);
             if (result != null) {
-                System.out.println("生成的Token: " + result.getToken());
                 return Result.success(result);
             } else {
                 return Result.error("用户名或密码错误");

@@ -10,10 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.Map;
 
-// 补充Jwt工具导入
-import org.example.PCOI.Utils.JwtUtil;
 
 @RestController
 public class ContributionController {
