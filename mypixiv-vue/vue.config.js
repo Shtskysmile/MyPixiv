@@ -11,14 +11,45 @@ module.exports = defineConfig({
     
     // 只在非Mock模式下启用代理
     proxy: useMock ? {} : {
+      // 代理 /api 开头的请求
       '/api': {
-        // 后端接口代理配置
-        target: process.env.VUE_APP_API_BASE_URL || 'http://frp-bus.com:20771',
+        target: process.env.VUE_APP_API_BASE_URL || 'http://www.pcoi.top',
         changeOrigin: true,
         pathRewrite: {
-          // 保持 /api 前缀
           '^/api': '/api'
         },
+        logLevel: 'debug',
+        onProxyReq: (proxyReq, req, res) => {
+          console.log(`🔄 代理请求: ${req.method} ${req.url} -> ${proxyReq.path}`)
+        },
+        onProxyRes: (proxyRes, req, res) => {
+          console.log(`✅ 代理响应: ${proxyRes.statusCode} ${req.url}`)
+        },
+        onError: (err, req, res) => {
+          console.error('❌ 代理错误:', err.message)
+          console.error('💡 提示: 请确保后端服务已启动')
+        }
+      },
+      // 代理用户认证相关的请求
+      '^/(login|register|mySecurityIssues|verifySecurityIssue|updatePassword)': {
+        target: process.env.VUE_APP_API_BASE_URL || 'http://www.pcoi.top',
+        changeOrigin: true,
+        logLevel: 'debug',
+        onProxyReq: (proxyReq, req, res) => {
+          console.log(`🔄 代理请求: ${req.method} ${req.url} -> ${proxyReq.path}`)
+        },
+        onProxyRes: (proxyRes, req, res) => {
+          console.log(`✅ 代理响应: ${proxyRes.statusCode} ${req.url}`)
+        },
+        onError: (err, req, res) => {
+          console.error('❌ 代理错误:', err.message)
+          console.error('💡 提示: 请确保后端服务已启动')
+        }
+      },
+      // 代理其他不带 /api 前缀的后端接口
+      '^/(illustrations|mangas|contribution|search|userInfo|contributionList|user)': {
+        target: process.env.VUE_APP_API_BASE_URL || 'http://www.pcoi.top',
+        changeOrigin: true,
         logLevel: 'debug',
         onProxyReq: (proxyReq, req, res) => {
           console.log(`🔄 代理请求: ${req.method} ${req.url} -> ${proxyReq.path}`)
@@ -42,7 +73,7 @@ module.exports = defineConfig({
         console.log('📡 所有API请求将被Mock拦截')
       } else {
         console.log('🔌 Mock模式已关闭')
-        console.log(`📡 API请求将代理到: ${process.env.VUE_APP_API_BASE_URL || 'http://frp-bus.com:20771'}`)
+        console.log(`📡 API请求将代理到: ${process.env.VUE_APP_API_BASE_URL || 'http://www.pcoi.top'}`)
         console.log('💡 请确保后端服务已启动')
       }
       console.log(`🌐 前端服务运行在: http://localhost:${port}`)

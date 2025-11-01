@@ -362,7 +362,7 @@ export default {
     // 加载系统日志
     async loadLogs() {
       try {
-        const response = await axios.get('/api/systemAdmin/logs');
+        const response = await axios.get('/systemAdmin/logs');
         if (response.data.code === 200) {
           this.logs = response.data.data || [];
           // 按时间倒序排列
@@ -429,7 +429,7 @@ export default {
           formData.append('newAvatar', this.editAvatarFile);
         }
         
-        const response = await axios.post('/api/systemAdmin/updateUserInfo', formData, {
+        const response = await axios.post('/systemAdmin/updateUserInfo', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -471,7 +471,7 @@ export default {
       }
       
       try {
-        const response = await axios.post('/api/systemAdmin/resetPassword', null, {
+        const response = await axios.post('/systemAdmin/resetPassword', null, {
           params: { userId: this.resetUserId }
         });
         

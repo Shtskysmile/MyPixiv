@@ -3,135 +3,162 @@
     <div class="overlay">
       <div class="container">
         <div class="columns is-centered">
-          <div class="column is-5">
-            <div class="box anime-register-box">
-              <div class="logo-section">
-                <h1 class="title has-text-centered anime-title">
-                  <span class="icon is-large">🎨</span>
+          <div class="column is-10-desktop is-12-tablet">
+            <div class="box anime-register-box compact-layout">
+              <div class="logo-section compact-header">
+                <h1 class="title is-4 has-text-centered anime-title">
+                  <span class="icon">🎨</span>
                   <span>加入 MyPixiv</span>
                 </h1>
-                <p class="subtitle has-text-centered anime-subtitle">开始你的创作之旅！</p>
               </div>
               
               <form @submit.prevent="handleRegister">
-                <!-- 用户名 -->
-                <div class="field">
-                  <label class="label anime-label">
-                    <span class="icon">👤</span> 用户名
-                  </label>
-                  <div class="control has-icons-left">
-                    <input 
-                      class="input anime-input" 
-                      type="text" 
-                      v-model="username" 
-                      placeholder="设置你的用户名" 
-                      required 
-                    />
-                    <span class="icon is-small is-left">
-                      <i>👤</i>
-                    </span>
-                  </div>
-                </div>
-
-                <!-- 性别 -->
-                <div class="field">
-                  <label class="label anime-label">
-                    <span class="icon">⚧️</span> 性别
-                  </label>
-                  <div class="control">
-                    <div class="select is-fullwidth anime-select">
-                      <select v-model="gender" required class="gender-select">
-                        <option value="" disabled>请选择性别</option>
-                        <option :value="1">男</option>
-                        <option :value="0">女</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 密码 -->
-                <div class="field">
-                  <label class="label anime-label">
-                    <span class="icon">🔒</span> 密码
-                  </label>
-                  <div class="control has-icons-left">
-                    <input 
-                      class="input anime-input" 
-                      type="password" 
-                      v-model="password" 
-                      placeholder="设置密码（至少6位）" 
-                      required 
-                    />
-                    <span class="icon is-small is-left">
-                      <i>🔒</i>
-                    </span>
-                  </div>
-                </div>
-
-                <!-- 确认密码 -->
-                <div class="field">
-                  <label class="label anime-label">
-                    <span class="icon">✅</span> 确认密码
-                  </label>
-                  <div class="control has-icons-left">
-                    <input 
-                      class="input anime-input" 
-                      type="password" 
-                      v-model="confirmPassword" 
-                      placeholder="再次输入密码" 
-                      required 
-                    />
-                    <span class="icon is-small is-left">
-                      <i>✅</i>
-                    </span>
-                  </div>
-                </div>
-
-                <!-- 密保问题 -->
-                <div class="security-section">
-                  <p class="anime-label">
-                    <span class="icon">🛡️</span> 设置密保问题（用于找回密码）
-                  </p>
-                  <div v-for="(q, idx) in securityQuestions" :key="idx" class="field">
-                    <label class="label is-small">问题 {{ idx + 1 }}: {{ q.question }}</label>
-                    <div class="control">
-                      <input 
-                        class="input is-small anime-input" 
-                        type="text" 
-                        v-model="securityAnswers[idx]" 
-                        :placeholder="`请输入答案 ${idx + 1}`" 
-                        required 
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <!-- 头像（可选） -->
-                <div class="field">
-                  <label class="label anime-label">
-                    <span class="icon">📸</span> 头像（可选）
-                  </label>
-                  <div class="file has-name is-fullwidth anime-file">
-                    <label class="file-label">
-                      <input 
-                        class="file-input" 
-                        type="file" 
-                        accept="image/*" 
-                        @change="onFileChange"
-                      >
-                      <span class="file-cta">
-                        <span class="file-icon">
-                          <i>📁</i>
+                <!-- 分栏布局：基本信息 + 密保问题 -->
+                <div class="columns is-variable is-4">
+                  <!-- 左栏：基本信息 -->
+                  <div class="column is-half">
+                    <h2 class="subtitle is-6 anime-label section-title">
+                      <span class="icon">📝</span> 基本信息
+                    </h2>
+                    
+                    <!-- 用户名 -->
+                    <div class="field">
+                      <label class="label anime-label">
+                        <span class="icon">👤</span> 用户名
+                      </label>
+                      <div class="control has-icons-left">
+                        <input 
+                          class="input anime-input" 
+                          type="text" 
+                          v-model="username" 
+                          placeholder="设置你的用户名" 
+                          autocomplete="username"
+                          required 
+                        />
+                        <span class="icon is-small is-left">
+                          <i>👤</i>
                         </span>
-                        <span class="file-label">选择图片</span>
-                      </span>
-                      <span class="file-name">
-                        {{ avatarFileName || '未选择文件' }}
-                      </span>
-                    </label>
+                      </div>
+                    </div>
+
+                    <!-- 性别 -->
+                    <div class="field">
+                      <label class="label anime-label">
+                        <span class="icon">⚧️</span> 性别
+                      </label>
+                      <div class="control">
+                        <div class="select is-fullwidth anime-select">
+                          <select v-model="gender" required class="gender-select">
+                            <option value="" disabled>请选择性别</option>
+                            <option :value="1">男</option>
+                            <option :value="0">女</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 密码 -->
+                    <div class="field">
+                      <label class="label anime-label">
+                        <span class="icon">🔒</span> 密码
+                      </label>
+                      <div class="control has-icons-left">
+                        <input 
+                          class="input anime-input" 
+                          type="password" 
+                          v-model="password" 
+                          placeholder="设置密码（至少6位）" 
+                          autocomplete="new-password"
+                          required 
+                        />
+                        <span class="icon is-small is-left">
+                          <i>🔒</i>
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- 确认密码 -->
+                    <div class="field">
+                      <label class="label anime-label">
+                        <span class="icon">✅</span> 确认密码
+                      </label>
+                      <div class="control has-icons-left">
+                        <input 
+                          class="input anime-input" 
+                          type="password" 
+                          v-model="confirmPassword" 
+                          placeholder="再次输入密码" 
+                          autocomplete="new-password"
+                          required 
+                        />
+                        <span class="icon is-small is-left">
+                          <i>✅</i>
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- 头像（可选） -->
+                    <div class="field">
+                      <label class="label anime-label">
+                        <span class="icon">📸</span> 头像（可选）
+                      </label>
+                      <div class="file has-name is-fullwidth anime-file">
+                        <label class="file-label">
+                          <input 
+                            class="file-input" 
+                            type="file" 
+                            accept="image/*" 
+                            @change="onFileChange"
+                          >
+                          <span class="file-cta">
+                            <span class="file-icon">
+                              <i>📁</i>
+                            </span>
+                            <span class="file-label">选择图片</span>
+                          </span>
+                          <span class="file-name">
+                            {{ avatarFileName || '未选择文件' }}
+                          </span>
+                        </label>
+                      </div>
+                      <div v-if="avatarPreview" class="avatar-preview">
+                        <img :src="avatarPreview" alt="头像预览" />
+                      </div>
+                    </div>
                   </div>
-                  <div v-if="avatarPreview" class="avatar-preview">
-                    <img :src="avatarPreview" alt="头像预览" />
+
+                  <!-- 右栏：密保问题 -->
+                  <div class="column is-half">
+                    <h2 class="subtitle is-6 anime-label section-title">
+                      <span class="icon">🛡️</span> 密保问题
+                    </h2>
+                    
+                    <div class="security-section">
+                      <div v-for="(item, idx) in securityQuestions" :key="idx" class="field security-question-item">
+                        <label class="label is-small">密保问题 {{ idx + 1 }}</label>
+                        <div class="control">
+                          <input 
+                            class="input is-small anime-input" 
+                            type="text" 
+                            v-model="item.question" 
+                            :placeholder="`请输入问题 ${idx + 1}（例如：你最喜欢的颜色是什么？）`" 
+                            :autocomplete="`security-question-${idx + 1}`"
+                            required 
+                          />
+                        </div>
+                        <label class="label is-small" style="margin-top: 8px;">答案 {{ idx + 1 }}</label>
+                        <div class="control">
+                          <input 
+                            class="input is-small anime-input" 
+                            type="text" 
+                            v-model="item.answer" 
+                            :placeholder="`请输入答案 ${idx + 1}`" 
+                            :autocomplete="`security-answer-${idx + 1}`"
+                            required 
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -183,7 +210,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import request from '@/utils/request';
 import bg from '@/assets/images/Lincy_swimsuit_Background.jpg';
 
 export default {
@@ -195,11 +222,10 @@ export default {
       confirmPassword: '',
       gender: '',
       securityQuestions: [
-        { question: '你最喜欢的颜色是什么？' },
-        { question: '你的出生地是哪里？' },
-        { question: '你母亲的姓名是什么？' }
+        { question: '', answer: '' },
+        { question: '', answer: '' },
+        { question: '', answer: '' }
       ],
-      securityAnswers: ['', '', ''],
       avatarFile: null,
       avatarFileName: '',
       avatarPreview: '',
@@ -261,7 +287,11 @@ export default {
       
       // 验证密保问题
       for (let i = 0; i < 3; i++) {
-        if (!this.securityAnswers[i].trim()) {
+        if (!this.securityQuestions[i].question.trim()) {
+          this.error = `请填写密保问题 ${i + 1}`;
+          return;
+        }
+        if (!this.securityQuestions[i].answer.trim()) {
           this.error = `请填写密保问题 ${i + 1} 的答案`;
           return;
         }
@@ -271,32 +301,38 @@ export default {
       
       try {
         // 对齐后端接口：POST /register
-        // 参数：username, password, gender, RSecurityIssues, avatar (可选)
+        // 参数：username, password, gender, SecurityIssues (List<R_SecurityIssue>), avatar (可选)
         const formData = new FormData();
         formData.append('username', this.username);
         formData.append('password', this.password);
         formData.append('gender', this.gender);
         
         // 构造密保问题列表（对齐 List<R_SecurityIssue>）
-        // 后端期望格式：RSecurityIssues[0].description, RSecurityIssues[0].answer
-        this.securityQuestions.forEach((q, idx) => {
-          formData.append(`RSecurityIssues[${idx}].description`, q.question);
-          formData.append(`RSecurityIssues[${idx}].answer`, this.securityAnswers[idx]);
-        });
+        // 后端参数名：SecurityIssues
+        // R_SecurityIssue字段：description（问题）, answer（答案）
+        const securityIssuesJson = this.securityQuestions.map(q => ({
+          description: q.question,
+          answer: q.answer
+        }));
+        
+        // 使用Blob发送JSON数组
+        formData.append('SecurityIssues', new Blob([JSON.stringify(securityIssuesJson)], {
+          type: 'application/json'
+        }));
         
         // 添加头像（可选）
         if (this.avatarFile) {
           formData.append('avatar', this.avatarFile);
         }
 
-        const res = await axios.post('/api/register', formData, {
+        const res = await request.post('/register', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
         });
         
-        if (res.data && res.data.code === 200) {
-          // 注册成功
+        if (res.data && res.data.code === 0) {
+          // 注册成功（后端返回code: 0表示成功）
           this.success = '注册成功！3秒后跳转到登录页...';
           
           // 清空表单
@@ -304,7 +340,11 @@ export default {
           this.password = '';
           this.confirmPassword = '';
           this.gender = '';
-          this.securityAnswers = ['', '', ''];
+          this.securityQuestions = [
+            { question: '', answer: '' },
+            { question: '', answer: '' },
+            { question: '', answer: '' }
+          ];
           this.avatarFile = null;
           this.avatarFileName = '';
           this.avatarPreview = '';
@@ -356,12 +396,16 @@ export default {
 .anime-register-box {
   background: rgba(255, 255, 255, 0.98) !important;
   border: 3px solid rgba(255, 105, 180, 0.3);
-  border-radius: 24px;
-  padding: 40px;
+  border-radius: 20px;
+  padding: 24px 32px;
   box-shadow: 0 12px 48px rgba(147, 51, 234, 0.2);
   opacity: 0;
   transform: translateY(20px);
   animation: panelIn 600ms cubic-bezier(.22,.98,.28,1) 200ms forwards;
+}
+
+.compact-layout {
+  max-width: 100%;
 }
 
 @keyframes panelIn {
@@ -372,8 +416,12 @@ export default {
 }
 
 .logo-section {
-  margin-bottom: 30px;
+  margin-bottom: 16px;
   text-align: center;
+}
+
+.compact-header {
+  margin-bottom: 12px !important;
 }
 
 .anime-title {
@@ -382,46 +430,53 @@ export default {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   font-weight: 900;
-  font-size: 2.2rem;
+  font-size: 1.6rem !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  margin-bottom: 8px;
+  gap: 8px;
+  margin-bottom: 0 !important;
 }
 
 .anime-title .icon {
-  font-size: 2rem;
+  font-size: 1.5rem;
   animation: float 3s ease-in-out infinite;
 }
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
 }
 
-.anime-subtitle {
-  color: #9333ea;
-  font-weight: 600;
-  font-size: 1.1rem;
+.section-title {
+  font-size: 1rem !important;
+  margin-bottom: 12px !important;
+  font-weight: 700;
+  color: #6366f1;
 }
 
 .anime-label {
   color: #6366f1;
-  font-weight: 700;
+  font-weight: 600;
+  font-size: 0.9rem;
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 6px;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.field {
+  margin-bottom: 12px !important;
 }
 
 .anime-input {
   border: 2px solid rgba(147, 51, 234, 0.2);
-  border-radius: 12px;
-  padding: 12px 16px;
+  border-radius: 10px;
+  padding: 8px 12px;
   transition: all 0.3s ease;
-  font-size: 15px;
+  font-size: 14px;
   width: 100%;
+  height: 38px;
 }
 
 .anime-input:focus {
@@ -453,21 +508,21 @@ export default {
   width: 100% !important;
   min-width: 100% !important;
   max-width: 100% !important;
-  min-height: 48px !important;
-  height: auto !important;
+  min-height: 38px !important;
+  height: 38px !important;
   border: 2px solid rgba(147, 51, 234, 0.2) !important;
-  border-radius: 12px !important;
-  padding: 14px 40px 14px 16px !important;
+  border-radius: 10px !important;
+  padding: 8px 40px 8px 12px !important;
   margin: 0 !important;
   background-color: white !important;
-  font-size: 15px !important;
+  font-size: 14px !important;
   line-height: 1.5 !important;
   appearance: none !important;
   -webkit-appearance: none !important;
   -moz-appearance: none !important;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236366f1' d='M6 9L1 4h10z'/%3E%3C/svg%3E") !important;
   background-repeat: no-repeat !important;
-  background-position: right 16px center !important;
+  background-position: right 12px center !important;
   background-size: 12px 12px !important;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -502,16 +557,45 @@ export default {
 }
 
 .security-section {
-  padding: 20px;
-  background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
-  border-radius: 16px;
-  margin: 20px 0;
-  border: 2px solid rgba(147, 51, 234, 0.1);
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  margin: 0;
+  border: none;
 }
 
-.security-section .anime-label {
-  font-size: 16px;
-  margin-bottom: 16px;
+.security-question-item {
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(147, 51, 234, 0.15);
+  transition: all 0.3s ease;
+}
+
+.security-question-item:hover {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(147, 51, 234, 0.25);
+  box-shadow: 0 2px 8px rgba(147, 51, 234, 0.1);
+}
+
+.security-question-item:last-child {
+  margin-bottom: 0;
+}
+
+.security-question-item .label.is-small {
+  color: #6366f1;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
+.security-question-item .field {
+  margin-bottom: 8px !important;
+}
+
+.security-question-item .field:last-child {
+  margin-bottom: 0 !important;
 }
 
 .anime-file .file-cta {
@@ -529,24 +613,24 @@ export default {
 }
 
 .avatar-preview {
-  margin-top: 12px;
+  margin-top: 10px;
   text-align: center;
 }
 
 .avatar-preview img {
-  width: 128px;
-  height: 128px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
   object-fit: cover;
-  border: 4px solid #a78bfa;
+  border: 3px solid #a78bfa;
   box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
 }
 
 .anime-button {
-  border-radius: 12px;
-  padding: 14px 28px;
+  border-radius: 10px;
+  padding: 10px 24px;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 15px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
   transition: all 0.3s ease;
@@ -563,21 +647,24 @@ export default {
 }
 
 .anime-notification {
-  border-radius: 12px;
+  border-radius: 10px;
   border-left: 4px solid;
   display: flex;
   align-items: center;
   gap: 8px;
+  font-size: 14px;
+  padding: 10px 12px;
 }
 
 .links-section {
-  margin-top: 24px;
-  padding-top: 20px;
+  margin-top: 16px;
+  padding-top: 16px;
   border-top: 2px solid rgba(147, 51, 234, 0.1);
 }
 
 .links-section p {
   color: #6b7280;
+  font-size: 14px;
 }
 
 .anime-link {
@@ -588,6 +675,7 @@ export default {
   align-items: center;
   gap: 4px;
   margin: 0 6px;
+  font-size: 14px;
 }
 
 .anime-link:hover {
@@ -600,19 +688,29 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 0.9rem;
 }
 
 @media (max-width: 768px) {
   .anime-register-box {
-    padding: 28px;
+    padding: 20px;
   }
   
   .anime-title {
-    font-size: 1.8rem;
+    font-size: 1.4rem !important;
   }
   
-  .security-section {
-    padding: 16px;
+  .columns {
+    display: block !important;
+  }
+  
+  .column {
+    width: 100% !important;
+    padding: 0 !important;
+  }
+  
+  .column.is-half:first-child {
+    margin-bottom: 16px;
   }
 }
 </style>

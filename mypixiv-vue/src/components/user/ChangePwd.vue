@@ -250,16 +250,26 @@ export default {
         // 对齐后端接口：POST /verifySecurityIssues
         // 参数：username, SecurityIssues (List<R_SecurityIssue>)
         // 返回：Result<R_VerifySecurityIssuesDTO>
-        const params = new URLSearchParams();
-        params.append('username', this.username);
+        const formData = new FormData();
+        formData.append('username', this.username);
         
-        // 构造密保问题列表
-        this.questions.forEach((q, idx) => {
-          params.append(`SecurityIssues[${idx}].question`, q);
-          params.append(`SecurityIssues[${idx}].answer`, this.answers[idx]);
-        });
+        // 构造密保问题列表（对齐 List<R_SecurityIssue>）
+        // R_SecurityIssue字段：description（问题）, answer（答案）
+        const securityIssuesJson = this.questions.map((q, idx) => ({
+          description: q,
+          answer: this.answers[idx]
+        }));
+        
+        // 使用Blob发送JSON数组
+        formData.append('SecurityIssues', new Blob([JSON.stringify(securityIssuesJson)], {
+          type: 'application/json'
+        }));
 
-        const res = await axios.post('/verifySecurityIssues', params);
+        const res = await axios.post('/verifySecurityIssues', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
         
         if (res.data && res.data.code === 0) {
           const data = res.data.data; // R_VerifySecurityIssuesDTO

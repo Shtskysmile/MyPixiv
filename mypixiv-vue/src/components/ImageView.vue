@@ -67,7 +67,7 @@
                 <div class="media-left">
                   <figure class="image is-64x64">
                     <img 
-                      :src="contribution.uploaderAvatarPath" 
+                      :src="loadedAvatar || contribution.uploaderAvatarPath || defaultAvatar" 
                       alt="author" 
                       class="is-rounded anime-avatar"
                       @error="onAvatarError"
@@ -238,6 +238,7 @@
 <script>
 import axios from 'axios';
 import Navbar from './Navbar.vue';
+import { loadImage, loadImages, loadAvatar } from '@/utils/imageLoader';
 
 export default {
   name: 'ImageView',
@@ -277,11 +278,20 @@ export default {
       modalImageSrc: '',
       loading: false,
       currentImageIndex: 0, // 当前显示的图片索引（漫画多图翻页）
+      loadedImages: {}, // 缓存已加载的图片 URL { imagePath: loadedUrl }
+      loadedAvatar: null, // 缓存已加载的头像 URL
+      currentLoadedImage: null, // 当前显示的已加载图片 URL
+      defaultAvatar: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64"%3E%3Crect fill="%23ddd" width="64" height="64"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="32"%3EU%3C/text%3E%3C/svg%3E'
     };
   },
   computed: {
     // 当前显示的图片URL
     currentImage() {
+      // 优先返回已加载的图片 URL
+      if (this.currentLoadedImage) {
+        return this.currentLoadedImage;
+      }
+
       if (this.contribution.type === 1 && this.contribution.images && this.contribution.images.length > 0) {
         // 漫画：返回当前索引的图片
         return this.contribution.images[this.currentImageIndex] || '';
@@ -318,8 +328,8 @@ export default {
       const params = new URLSearchParams();
       params.append('contributionId', id);
 
-      // 使用后端接口 POST /api/contribution，返回 Result<R_ContributionDTO>
-      axios.post('/api/contribution', params, {
+      // 使用后端接口 POST /contribution，返回 Result<R_ContributionDTO>
+      axios.post('/contribution', params, {
         headers: {
           'Authorization': 'Bearer ' + token
         }
@@ -337,6 +347,10 @@ export default {
             if (this.contribution.type === 1 && this.contribution.images && this.contribution.images.length > 0) {
               this.currentImageIndex = 0;
             }
+
+            // 加载图片和头像
+            this.loadAllImages();
+            this.loadAvatarImage();
           } else {
             console.error('获取作品详情失败:', res.data?.message);
           }
@@ -347,6 +361,53 @@ export default {
         .finally(() => {
           this.loading = false;
         });
+    },
+
+    // 加载所有图片
+    async loadAllImages() {
+      if (this.contribution.type === 1 && this.contribution.images && this.contribution.images.length > 0) {
+        // 漫画：加载所有图片
+        const imagePaths = this.contribution.images;
+        for (let i = 0; i < imagePaths.length; i++) {
+          const path = imagePaths[i];
+          if (!this.loadedImages[path]) {
+            const url = await loadImage(path);
+            this.$set(this.loadedImages, path, url || path);
+          }
+        }
+        // 更新当前显示的图片
+        this.updateCurrentLoadedImage();
+      } else if (this.contribution.image) {
+        // 插画：加载单张图片
+        const path = this.contribution.image;
+        if (!this.loadedImages[path]) {
+          const url = await loadImage(path);
+          this.$set(this.loadedImages, path, url || path);
+        }
+        this.updateCurrentLoadedImage();
+      }
+    },
+
+    // 更新当前显示的已加载图片
+    updateCurrentLoadedImage() {
+      let currentPath;
+      if (this.contribution.type === 1 && this.contribution.images && this.contribution.images.length > 0) {
+        currentPath = this.contribution.images[this.currentImageIndex];
+      } else {
+        currentPath = this.contribution.image;
+      }
+
+      if (currentPath && this.loadedImages[currentPath]) {
+        this.currentLoadedImage = this.loadedImages[currentPath];
+      }
+    },
+
+    // 加载头像
+    async loadAvatarImage() {
+      if (this.contribution.uploaderAvatarPath && !this.loadedAvatar) {
+        const url = await loadAvatar(this.contribution.uploaderAvatarPath);
+        this.loadedAvatar = url || this.contribution.uploaderAvatarPath;
+      }
     },
     
     toggleLike() {
@@ -401,18 +462,21 @@ export default {
     prevPage() {
       if (this.canPrevPage) {
         this.currentImageIndex--;
+        this.updateCurrentLoadedImage();
       }
     },
     
     nextPage() {
       if (this.canNextPage) {
         this.currentImageIndex++;
+        this.updateCurrentLoadedImage();
       }
     },
     
     goToPage(index) {
       if (index >= 0 && index < this.totalPages) {
         this.currentImageIndex = index;
+        this.updateCurrentLoadedImage();
       }
     },
     

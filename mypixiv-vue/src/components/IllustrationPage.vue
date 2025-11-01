@@ -172,7 +172,7 @@ export default {
   methods: {
     fetchIllustrations() {
       this.loading = true;
-      axios.get('/api/illustrations')
+      axios.get('/illustrations')
         .then((res) => {
           if (res.data && res.data.code === 200) {
             this.images = res.data.data || [];

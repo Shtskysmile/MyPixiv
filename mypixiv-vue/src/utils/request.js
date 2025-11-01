@@ -4,7 +4,13 @@ import mockConfig from '@/config/mock.config'
 
 // 创建axios实例
 const service = axios.create({
-  baseURL: mockConfig.enabled ? '' : mockConfig.apiBaseUrl,
+  // Mock模式：空baseURL（使用mock拦截）
+  // 非Mock模式：
+  //   - 开发环境：空baseURL（使用Vue代理）
+  //   - 生产环境：完整API地址
+  baseURL: mockConfig.enabled 
+    ? '' 
+    : (process.env.NODE_ENV === 'production' ? mockConfig.apiBaseUrl : ''),
   timeout: 15000,
   headers: {
     'Content-Type': 'application/x-www-form-urlencoded'

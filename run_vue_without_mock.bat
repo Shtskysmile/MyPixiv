@@ -12,7 +12,7 @@ echo Switching to project directory...
 cd mypixiv-vue
 echo.
 echo Starting development server with Real Backend API...
-echo Backend URL: http://frp-bus.com:20771
+echo Backend URL: http://www.pcoi.top
 echo.
 call npm run serve:dev
 if errorlevel 1 (

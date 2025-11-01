@@ -398,7 +398,7 @@ export default {
     // 加载审核作品
     async loadAuditContributions() {
       try {
-        const response = await axios.get('/api/communityAdmin/auditContributions');
+        const response = await axios.get('/communityAdmin/auditContributions');
         if (response.data.code === 200) {
           const data = response.data.data;
           this.pendingContributions = data.pendingContributions || [];
@@ -414,7 +414,7 @@ export default {
     // 加载封禁用户
     async loadBlockedUsers() {
       try {
-        const response = await axios.get('/api/communityAdmin/blockedUsers');
+        const response = await axios.get('/communityAdmin/blockedUsers');
         if (response.data.code === 200) {
           this.blockedUsers = response.data.data || [];
         }
@@ -426,7 +426,7 @@ export default {
     // 加载封禁作品
     async loadBlockedContributions() {
       try {
-        const response = await axios.get('/api/communityAdmin/blockedContributions');
+        const response = await axios.get('/communityAdmin/blockedContributions');
         if (response.data.code === 200) {
           this.blockedContributions = response.data.data || [];
         }
@@ -438,7 +438,7 @@ export default {
     // 通过审核
     async approveContribution(contributionId) {
       try {
-        const response = await axios.post('/api/communityAdmin/approveContribution', null, {
+        const response = await axios.post('/communityAdmin/approveContribution', null, {
           params: { contributionId }
         });
         if (response.data.code === 200) {
@@ -475,7 +475,7 @@ export default {
       }
       
       try {
-        const response = await axios.post('/api/communityAdmin/dismissContribution', null, {
+        const response = await axios.post('/communityAdmin/dismissContribution', null, {
           params: {
             contributionId: this.selectedContribution.contributionId,
             dismissalReason: this.dismissalReason
@@ -499,7 +499,7 @@ export default {
       if (!confirm('确定要解封此用户吗？')) return;
       
       try {
-        const response = await axios.post('/api/communityAdmin/unblockUser', null, {
+        const response = await axios.post('/communityAdmin/unblockUser', null, {
           params: { userId }
         });
         if (response.data.code === 200) {
@@ -519,7 +519,7 @@ export default {
       if (!confirm('确定要解封此作品吗？')) return;
       
       try {
-        const response = await axios.post('/api/communityAdmin/unblockContribution', null, {
+        const response = await axios.post('/communityAdmin/unblockContribution', null, {
           params: { contributionId }
         });
         if (response.data.code === 200) {

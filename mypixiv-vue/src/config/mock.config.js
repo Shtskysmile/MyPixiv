@@ -12,7 +12,7 @@ const mockConfig = {
   logging: true,
   
   // API基础路径
-  apiBaseUrl: process.env.VUE_APP_API_BASE_URL || 'http://frp-bus.com:20771'
+  apiBaseUrl: process.env.VUE_APP_API_BASE_URL || 'http://www.pcoi.top'
 }
 
 export default mockConfig

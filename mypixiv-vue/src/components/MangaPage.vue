@@ -172,7 +172,7 @@ export default {
   methods: {
     fetchMangas() {
       this.loading = true;
-      axios.get('/api/mangas')
+      axios.get('/mangas')
         .then((res) => {
           if (res.data && res.data.code === 200) {
             this.images = res.data.data || [];
