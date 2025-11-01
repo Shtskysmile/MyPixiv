@@ -1,7 +1,6 @@
 package org.example.PCOI.Controller;
 
 import org.example.PCOI.Entity.Log;
-import org.example.PCOI.ResponseDTO.R_Log;
 import org.example.PCOI.ResponseDTO.Result;
 import org.example.PCOI.Service.Inter.SystemAdminService;
 import org.springframework.beans.factory.annotation.Autowired;
