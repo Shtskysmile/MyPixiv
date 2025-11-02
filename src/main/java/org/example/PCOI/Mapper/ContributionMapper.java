@@ -9,14 +9,28 @@ import java.util.List;
 @Mapper
 public interface ContributionMapper {
 
-    // 先注册通用 ResultMap，避免解析顺序导致找不到
+    // 统一的 ResultMap，显式映射所有列，避免自动映射错配
     @Results(id = "ContributionMap", value = {
-            @Result(column = "image", property = "image", typeHandler = JacksonTypeHandler.class)
+            @Result(column = "contributionId", property = "contributionId"),
+            @Result(column = "type", property = "type"),
+            @Result(column = "title", property = "title"),
+            @Result(column = "image", property = "image", typeHandler = JacksonTypeHandler.class),
+            @Result(column = "description", property = "description"),
+            @Result(column = "status", property = "status"),
+            @Result(column = "auditStatus", property = "auditStatus"),
+            @Result(column = "publishTime", property = "publishTime"),
+            @Result(column = "authorId", property = "authorId"),
+            @Result(column = "viewCount", property = "viewCount"),
+            @Result(column = "favoriteCount", property = "favoriteCount"),
+            @Result(column = "likeCount", property = "likeCount"),
+            @Result(column = "commentCount", property = "commentCount"),
+            @Result(column = "dismissalReason", property = "dismissalReason")
     })
     @Select("SELECT 1")
     Integer _registerContributionMap();
 
     @Insert("INSERT INTO contribution(type,title,image,description,authorId) VALUES(#{type},#{title},#{image, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},#{description},#{authorId})")
+    @SelectKey(statement = "SELECT contributionId FROM contribution WHERE id = LAST_INSERT_ID()", keyProperty = "contributionId", before = false, resultType = String.class)
     void insertContribution(Contribution contribution);
 
     @ResultMap("ContributionMap")

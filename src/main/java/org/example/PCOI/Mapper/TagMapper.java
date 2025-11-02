@@ -7,7 +7,6 @@ import java.util.List;
 @Mapper
 public interface TagMapper {
     @Insert("INSERT INTO tag (tagName) VALUES (#{tagName})")
-    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
     void insertTag(String tagName);
 
     @Delete("DELETE FROM tag WHERE tagName = #{tagName}")

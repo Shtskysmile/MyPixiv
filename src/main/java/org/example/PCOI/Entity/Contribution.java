@@ -1,16 +1,23 @@
 package org.example.PCOI.Entity;
 
 import lombok.Data;
+// 新增: MyBatis-Plus 注解
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
+// 启用自动生成带 TypeHandler 的 ResultMap
+@TableName(value = "contribution", autoResultMap = true)
 public class Contribution {
     private String contributionId;              // 作品ID
     private Integer type;            // 作品类型0-插画，1-漫画
     private String title;         // 作品标题
     // 将原来的 String image 改为 List<String>，用于存储多张图片的 URL 列表
+    @TableField(value = "image", typeHandler = JacksonTypeHandler.class)
     private List<String> image;         // 作品图片路径（JSON 数组）
     private String description;  // 描述信息
     private Integer status;        // 状态(正常状态,封禁状态）0-正常，1-封禁
