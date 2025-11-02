@@ -3,6 +3,7 @@ package org.example.PCOI.Service.Impl;
 import lombok.extern.slf4j.Slf4j;
 import org.example.PCOI.Entity.Comment;
 import org.example.PCOI.Entity.Contribution;
+import org.example.PCOI.Entity.Tag;
 import org.example.PCOI.Entity.User;
 import org.example.PCOI.Mapper.*;
 import org.example.PCOI.ResponseDTO.*;
@@ -35,6 +36,10 @@ public class ContributionServiceImpl implements ContributionService {
     private FavoriteMapper favoriteMapper;
     @Autowired
     private FileStorageService fileStorageService;
+    @Autowired
+    private TagRelationMapper tagRelationMapper;
+    @Autowired
+    private TagMapper tagMapper;
 
     @Override
     public List<R_OverviewContribution> getIllustrations() {
@@ -186,7 +191,7 @@ public class ContributionServiceImpl implements ContributionService {
     }
 
     @Override
-    public boolean uploadContribution(String userId, String title, Integer type, String description, List<MultipartFile> images) {
+    public boolean uploadContribution(String userId, String title, Integer type, String description,List<String>tags, List<MultipartFile> images) {
         if(userMapper.selectUserById(userId)==null)
             return false;
         Contribution newContribution = new Contribution();
@@ -203,6 +208,15 @@ public class ContributionServiceImpl implements ContributionService {
         List<String> imagePath = fileStorageService.saveWorkImages(images,type,userId);
         newContribution.setImage(imagePath);
         contributionMapper.insertContribution(newContribution);
+        if(tags!=null){
+            for(String tagName:tags){
+                if(!tagMapper.isTagExist(tagName)){
+                    tagMapper.insertTag(tagName);
+                }
+                Integer tagId = tagMapper.selectTagByName(tagName).getId();
+                tagRelationMapper.insertTagRelation(newContribution.getContributionId(),tagId);
+            }
+        }
         return true;
     }
 }

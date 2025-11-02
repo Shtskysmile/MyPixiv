@@ -9,6 +9,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+
+    @Value("${pcoi.upload.base-dir}")
+    private String uploadBaseDir;
+    @Value("${pcoi.upload.url-prefix:/files/}")
+    private String uploadUrlPrefix;
+
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
 //
@@ -53,8 +59,19 @@ public class WebConfig implements WebMvcConfigurer {
 //        // 社区管理员接口
 //        registry.addInterceptor(new JwtCommunityAdminInterceptor())
 //                .addPathPatterns("/communityAdmin/**");
-  }
+    }
 
-
-
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 统一将 /files/** 映射到本地上传目录，供前端直接访问
+        String prefix = uploadUrlPrefix;
+        if (prefix == null || prefix.isBlank()) prefix = "/files/";
+        if (!prefix.startsWith("/")) prefix = "/" + prefix;
+        if (!prefix.endsWith("/")) prefix = prefix + "/";
+        String base = uploadBaseDir == null ? "uploads/" : uploadBaseDir;
+        base = base.replace('\\', '/');
+        if (!base.endsWith("/")) base = base + "/";
+        registry.addResourceHandler(prefix + "**")
+                .addResourceLocations("file:" + base);
+    }
 }

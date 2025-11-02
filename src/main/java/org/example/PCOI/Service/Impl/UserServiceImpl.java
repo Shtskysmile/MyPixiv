@@ -217,12 +217,24 @@ public class UserServiceImpl implements UserService {
         return userInfoDTO;
     }
 
+    /**
+     * 更新用户基础信息（用户名、性别、头像）。
+     * 处理流程：
+     * 1) 根据 userId 查询用户，未找到则返回 false。
+     * 2) 若传入 newUsername 且非空：
+     *    - 校验是否被其他用户占用，若占用返回 false；否则更新用户名。
+     * 3) 若传入 newGender：更新性别。
+     * 4) 若传入 newAvatar 且文件非空：调用文件存储服务保存，并用返回的 URL 覆盖头像。
+     * 5) 持久化变更并返回 true。
+     */
     @Override
     public boolean updateUserInfo(String userId, String newUsername, Integer newGender, MultipartFile newAvatar) {
+        // 1) 查询用户是否存在
         User user = usermapper.selectUserById(userId);
         if(user == null) {
             return false; // 用户不存在
         }
+        // 2) 处理用户名变更：非空则校验唯一性
         if(newUsername!=null && !newUsername.isEmpty()) {
             User existingUser = usermapper.selectUserByName(newUsername);
             if (existingUser != null && !existingUser.getUserId().equals(userId)) {
@@ -230,13 +242,16 @@ public class UserServiceImpl implements UserService {
             }
             user.setUsername(newUsername);
         }
+        // 3) 处理性别变更：入参不为空则覆盖
         if(newGender != null) {
             user.setSex(newGender);
         }
+        // 4) 处理头像变更：仅当上传了新头像时才保存并覆盖为新 URL
         if(newAvatar != null && !newAvatar.isEmpty()) {
             String avatarUrl = fileStorageService.saveAvatar(newAvatar,userId);
             user.setAvatar(avatarUrl);
         }
+        // 5) 落库更新
         usermapper.updateUser(user);
         return true;
     }

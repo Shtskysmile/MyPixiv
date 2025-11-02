@@ -20,7 +20,7 @@ public interface ContributionService {
     boolean favoriteContribution(String userId, String contributionId);
     boolean unfavoriteContribution(String userId, String contributionId);
     boolean commentContribution(String userId, String contributionId, String comment);
-    boolean uploadContribution(String userId, String title, Integer type, String description, List<MultipartFile> images);
+    boolean uploadContribution(String userId, String title, Integer type, String description,List<String> tags, List<MultipartFile> images);
 }
 
 

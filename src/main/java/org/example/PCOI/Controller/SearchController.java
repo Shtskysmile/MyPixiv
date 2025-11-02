@@ -26,11 +26,6 @@ public class SearchController {
         return Result.success(data);
     }
 
-    @PostMapping("/image")
-    public Result<List<MultipartFile>> imageSearch(
-            @RequestParam("imagePath") String imagePath) throws IOException {
-        List<MultipartFile> files = searchService.imageSearch(imagePath);
-        return Result.success(files);
-    }
 
 }
+

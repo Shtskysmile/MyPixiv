@@ -22,10 +22,18 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) throws Exception {
+        String userId = DEFAULT_GUEST;
         String authHeader = request.getHeader("Authorization");
-        String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
-        if (isBlank(userId)) {
-            userId = DEFAULT_GUEST;
+        if (!isBlank(authHeader)) {
+            try {
+                Object uid = TokenProcess.getAttributeFromToken(authHeader, "userId");
+                if (uid instanceof String s && !isBlank(s)) {
+                    userId = s;
+                }
+            } catch (Exception e) {
+                // 仅记录调试信息，不中断请求
+                log.debug("RequestLoggingInterceptor token parse skipped: {}", e.getMessage());
+            }
         }
         String operation = request.getRequestURI();
         if (handler instanceof HandlerMethod hm) {

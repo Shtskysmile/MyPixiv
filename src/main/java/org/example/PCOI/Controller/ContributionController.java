@@ -1,8 +1,5 @@
 package org.example.PCOI.Controller;
-import org.example.PCOI.ResponseDTO.R_ContributionDTO;
-import org.example.PCOI.ResponseDTO.R_OverviewContribution;
-import org.example.PCOI.ResponseDTO.Result;
-import org.example.PCOI.ResponseDTO.R_Contribution;
+import org.example.PCOI.ResponseDTO.*;
 import org.example.PCOI.Service.Inter.ContributionService;
 import org.example.PCOI.Utils.TokenProcess;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -123,9 +120,10 @@ public class ContributionController {
             @RequestParam("title") String title,
             @RequestParam("type") Integer type,
             @RequestParam("description") String description,
+            @RequestPart(name = "tags", required = false) List<String> tags,
             @RequestPart(name = "images") List<MultipartFile> images) throws Exception {
         String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
-        boolean ok = contributionService.uploadContribution(userId, title, type, description, images);
+        boolean ok = contributionService.uploadContribution(userId, title, type, description, tags,images);
         if (ok) {
             return Result.success("上传成功");
         }

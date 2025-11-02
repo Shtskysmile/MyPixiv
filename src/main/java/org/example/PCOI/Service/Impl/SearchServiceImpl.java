@@ -9,14 +9,11 @@ import org.example.PCOI.ResponseDTO.R_OverviewContribution;
 import org.example.PCOI.ResponseDTO.R_SearchDTO;
 import org.example.PCOI.ResponseDTO.R_User;
 import org.example.PCOI.Service.Inter.SearchService;
-import org.example.PCOI.Service.Support.FileFetchService;
 
 import org.example.PCOI.Service.Support.TransformService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,8 +29,6 @@ public class SearchServiceImpl implements SearchService {
     private UserMapper userMapper;
     @Autowired
     private TransformService transformService;
-    @Autowired
-    private FileFetchService fileFetchService;
 
 
     @Override
@@ -80,8 +75,4 @@ public class SearchServiceImpl implements SearchService {
         return rSearchDTO;
     }
 
-    @Override
-    public List<MultipartFile> imageSearch(String imagePath) throws IOException {
-        return fileFetchService.loadImages(imagePath);
-    }
 }

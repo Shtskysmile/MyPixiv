@@ -13,7 +13,7 @@ public interface TagMapper {
     @Delete("DELETE FROM tag WHERE tagName = #{tagName}")
     void deleteTag(String tagName);
 
-    @Select("SELECT 1 FROM tag WHERE tagName = #{tagName} LIMIT 1")
+    @Select("SELECT EXISTS(SELECT 1 FROM tag WHERE tagName = #{tagName})")
     boolean isTagExist(String tagName);
 
     @Select("SELECT * FROM tag WHERE tagName = #{tagName}")

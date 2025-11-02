@@ -13,6 +13,6 @@ public interface LikeMapper {
     @Delete("DELETE FROM likes WHERE userId = #{userId} AND contributionId = #{contributionId}")
     void deleteLike(@Param("userId") String userId, @Param("contributionId") String contributionId);
 
-    @Select("SELECT 1 FROM likes WHERE userId = #{userId} AND contributionId = #{contributionId} LIMIT 1")
+    @Select("SELECT EXISTS(SELECT 1 FROM likes WHERE userId = #{userId} AND contributionId = #{contributionId})")
     boolean isLike(@Param("userId") String userId, @Param("contributionId") String contributionId);
 }
