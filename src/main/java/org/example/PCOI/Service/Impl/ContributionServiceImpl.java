@@ -65,6 +65,18 @@ public class ContributionServiceImpl implements ContributionService {
     }
 
     @Override
+    public List<R_OverviewContribution> getAllContributions() {
+        List<Contribution> contributions = contributionMapper.selectAllContributions();
+        List<R_OverviewContribution> rOverviewContributions = new ArrayList<>();
+        for (Contribution contribution : contributions) {
+            User contributionUser = userMapper.selectUserById(contribution.getAuthorId());
+            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar());
+            rOverviewContributions.add(rOverviewContribution);
+        }
+        return rOverviewContributions;
+    }
+
+    @Override
     public R_ContributionDTO getContribution(String userId, String contributionId) {
         Contribution contribution = contributionMapper.selectContributionById(contributionId);
         User contributionUser = userMapper.selectUserById(contribution.getAuthorId());

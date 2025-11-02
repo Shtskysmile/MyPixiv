@@ -26,6 +26,12 @@ public class ContributionController {
         return Result.success(list);
     }
 
+    @GetMapping("/allContributions")
+    public Result<List<R_OverviewContribution>> getAllContributions() {
+        List<R_OverviewContribution> list = contributionService.getAllContributions();
+        return Result.success(list);
+    }
+
     @PostMapping("/contribution")
     public Result<R_ContributionDTO> getContribution(
             @RequestHeader("Authorization") String authHeader,

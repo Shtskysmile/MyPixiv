@@ -9,11 +9,12 @@ import java.util.List;
 @Mapper
 public interface ContributionMapper {
 
-    // 定义通用结果映射，使用 JacksonTypeHandler 将 image 列(JSON/LONGTEXT) 与 List<String> 互转
+    // 先注册通用 ResultMap，避免解析顺序导致找不到
     @Results(id = "ContributionMap", value = {
             @Result(column = "image", property = "image", typeHandler = JacksonTypeHandler.class)
     })
-
+    @Select("SELECT 1")
+    Integer _registerContributionMap();
 
     @Insert("INSERT INTO contribution(type,title,image,description,authorId) VALUES(#{type},#{title},#{image, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},#{description},#{authorId})")
     void insertContribution(Contribution contribution);
@@ -116,4 +117,9 @@ public interface ContributionMapper {
     ORDER BY  c.publishTime DESC
     """)
     List<Contribution> selectLikeContributionsByUserId(String userId);
+
+    // 获取所有审核通过且未封禁的作品
+    @ResultMap("ContributionMap")
+    @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 ORDER BY publishTime DESC")
+    List<Contribution> selectAllContributions();
 }

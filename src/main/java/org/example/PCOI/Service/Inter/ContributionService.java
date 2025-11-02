@@ -11,6 +11,7 @@ import java.util.List;
 public interface ContributionService {
     List<R_OverviewContribution> getIllustrations();
     List<R_OverviewContribution> getMangas();
+    List<R_OverviewContribution> getAllContributions();
     R_ContributionDTO getContribution(String userId,String contributionId);
     R_Contribution getPendingContribution(String userId,Integer role,String contributionId);
     List<R_OverviewContribution> getContributionsRanking(Integer type, Integer key);

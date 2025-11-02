@@ -169,7 +169,6 @@ public class UserController {
             return Result.success("更新成功");
         }
         return Result.error("更新失败");
-
     }
 
     @PostMapping("/user/concernUser")
