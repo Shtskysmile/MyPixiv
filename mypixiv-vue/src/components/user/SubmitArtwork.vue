@@ -124,6 +124,61 @@
             <p class="help">{{ description.length }} / 500 字</p>
           </div>
 
+          <!-- 作品标签 -->
+          <div class="field">
+            <label class="label anime-label">
+              <span class="icon">🏷️</span> 作品标签
+              <span class="tag-count">({{ tags.length }}/10)</span>
+            </label>
+            
+            <!-- 标签显示区域 -->
+            <div class="tags-container" v-if="tags.length > 0">
+              <span 
+                v-for="(tag, idx) in tags" 
+                :key="idx" 
+                class="tag-item anime-tag"
+              >
+                <span class="tag-text">{{ tag }}</span>
+                <button 
+                  type="button" 
+                  class="tag-delete" 
+                  @click="removeTag(idx)"
+                  :title="`删除标签: ${tag}`"
+                >
+                  ✕
+                </button>
+              </span>
+            </div>
+
+            <!-- 标签输入 -->
+            <div class="control">
+              <div class="tag-input-wrapper">
+                <input 
+                  class="input anime-input tag-input" 
+                  type="text" 
+                  v-model="currentTag" 
+                  @keydown.enter.prevent="addTag"
+                  @keydown.space.prevent="addTag"
+                  @keydown.comma.prevent="addTag"
+                  placeholder="输入标签后按回车、空格或逗号添加"
+                  :disabled="tags.length >= 10"
+                />
+                <button 
+                  type="button" 
+                  class="button add-tag-btn" 
+                  @click="addTag"
+                  :disabled="!currentTag.trim() || tags.length >= 10"
+                >
+                  <span class="icon">➕</span>
+                </button>
+              </div>
+            </div>
+            <p class="help tag-help">
+              <span class="icon">💡</span>
+              提示：标签有助于其他用户发现你的作品，最多可添加 10 个标签
+            </p>
+          </div>
+
           <!-- 提示信息 -->
           <div class="info-box">
             <p class="info-title">📌 提交须知</p>
@@ -165,7 +220,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import request from '@/utils/request';
 
 export default {
   name: 'SubmitArtwork',
@@ -180,6 +235,8 @@ export default {
       title: '',
       artType: 0, // 0-插画 1-漫画
       description: '',
+      tags: [], // 标签数组
+      currentTag: '', // 当前输入的标签
       imageFiles: [],
       imagePreviews: [],
       imageIndex: 0,
@@ -250,6 +307,40 @@ export default {
       }
     },
     
+    addTag() {
+      const tag = this.currentTag.trim();
+      
+      // 验证标签
+      if (!tag) {
+        return;
+      }
+      if (this.tags.length >= 10) {
+        this.error = '最多只能添加 10 个标签';
+        setTimeout(() => { this.error = ''; }, 2000);
+        return;
+      }
+      if (tag.length > 20) {
+        this.error = '单个标签不能超过 20 个字符';
+        setTimeout(() => { this.error = ''; }, 2000);
+        return;
+      }
+      if (this.tags.includes(tag)) {
+        this.error = '标签已存在';
+        setTimeout(() => { this.error = ''; }, 2000);
+        return;
+      }
+      
+      // 添加标签
+      this.tags.push(tag);
+      this.currentTag = '';
+    },
+    
+    removeTag(index) {
+      if (index >= 0 && index < this.tags.length) {
+        this.tags.splice(index, 1);
+      }
+    },
+    
     async handleSubmit() {
       this.error = '';
       this.success = '';
@@ -272,25 +363,26 @@ export default {
 
       try {
         // 对齐后端接口：POST /user/uploadContribution
-        // 参数：title, type, description, images (List<MultipartFile>)
-        const token = localStorage.getItem('token') || 'mock-token-123';
+        // 参数：title, type, description, tags (List<String>, 可选), images (List<MultipartFile>)
         const formData = new FormData();
         
         formData.append('title', this.title.trim());
         formData.append('type', this.artType);
         formData.append('description', this.description.trim());
         
+        // 添加标签（对齐后端 @RequestPart List<String>）
+        // 后端使用 @RequestPart 接收，需要作为 JSON Blob
+        if (this.tags.length > 0) {
+          const tagsBlob = new Blob([JSON.stringify(this.tags)], { type: 'application/json' });
+          formData.append('tags', tagsBlob);
+        }
+        
         // 添加多个图片（对齐后端 List<MultipartFile>）
         this.imageFiles.forEach(file => {
           formData.append('images', file);
         });
 
-        const res = await axios.post('/user/uploadContribution', formData, {
-          headers: {
-            'Authorization': 'Bearer ' + token,
-            'Content-Type': 'multipart/form-data'
-          }
-        });
+        const res = await request.post('/user/uploadContribution', formData);
         
         if (res.data && res.data.code === 0) {
           // 上传成功
@@ -301,6 +393,8 @@ export default {
           this.title = '';
           this.artType = 0;
           this.description = '';
+          this.tags = [];
+          this.currentTag = '';
           this.imageFiles = [];
           this.imagePreviews = [];
           this.imageIndex = 0;
@@ -596,6 +690,133 @@ export default {
   color: white;
   border-color: transparent;
   box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
+}
+
+/* 标签样式 */
+.tag-count {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  background: linear-gradient(135deg, #667eea05 0%, #764ba205 100%);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  border: 2px solid rgba(147, 51, 234, 0.1);
+  min-height: 50px;
+}
+
+.anime-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(147, 51, 234, 0.2);
+  transition: all 0.3s ease;
+  animation: tagSlideIn 0.3s ease;
+}
+
+@keyframes tagSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.anime-tag:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
+}
+
+.tag-text {
+  user-select: none;
+}
+
+.tag-delete {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  transition: all 0.2s ease;
+  padding: 0;
+  line-height: 1;
+}
+
+.tag-delete:hover {
+  background: rgba(239, 68, 68, 0.9);
+  transform: scale(1.2);
+}
+
+.tag-input-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.tag-input {
+  flex: 1;
+}
+
+.add-tag-btn {
+  border-radius: 10px;
+  padding: 12px 16px;
+  border: 2px solid rgba(147, 51, 234, 0.2);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+}
+
+.add-tag-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
+}
+
+.add-tag-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #e5e7eb;
+}
+
+.tag-help {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #6b7280;
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.tag-help .icon {
+  font-size: 14px;
 }
 
 .info-box {

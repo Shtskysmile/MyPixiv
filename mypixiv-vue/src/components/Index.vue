@@ -192,8 +192,8 @@ export default {
       try {
         // 同时获取插画和漫画
         const [illustrationsRes, mangasRes] = await Promise.all([
-          axios.get('/illustrations'),
-          axios.get('/mangas')
+          axios.get('/api/illustrations'),
+          axios.get('/api/mangas')
         ]);
         
         const illustrations = (illustrationsRes.data?.code === 200) ? (illustrationsRes.data.data || []) : [];

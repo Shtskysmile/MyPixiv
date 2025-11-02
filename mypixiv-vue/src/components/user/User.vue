@@ -36,7 +36,14 @@
         
         <div class="column">
           <div v-if="view === 'info'">
-            <Profile :user="user" :isOwnProfile="isOwnProfile" @edit="openEdit" @back="$router.push('/index')" />
+            <Profile 
+              :user="user" 
+              :isOwnProfile="isOwnProfile" 
+              :isConcerned="isConcerned"
+              :stats="userStats"
+              @edit="openEdit" 
+              @back="$router.push('/index')" 
+            />
           </div>
 
           <div v-if="view === 'favorites'">
@@ -157,8 +164,15 @@ export default {
         username: '加载中...',
         role: 0,
         sex: 0,
-        bio: '这里是个人简介，写一些关于自己的信息。',
+        status: 0,
         avatar: avatar,
+      },
+      isConcerned: false, // 是否已关注该用户
+      userStats: {
+        following: 0,
+        followers: 0,
+        works: 0,
+        favorites: 0
       },
       favorites: [],
       likes: [],
@@ -233,24 +247,74 @@ export default {
       params.append('userId', userId);
 
       // 使用后端接口 POST /userInfo，返回 Result<R_UserInfoDTO>
+      // 使用相对路径，由 Vue devServer 代理转发到后端
       request.post('/userInfo', params)
         .then((res) => {
           if (res.data && res.data.code === 0) {
             // R_UserInfoDTO { user: R_User, isConcerned: boolean }
             const data = res.data.data;
             if (data && data.user) {
+              // 后端 R_User 结构: userId, username, role, status, sex, avatar
               this.user = {
                 userId: data.user.userId,
                 username: data.user.username,
                 role: data.user.role,
+                status: data.user.status,
                 sex: data.user.sex,
-                avatar: data.user.avatar,
-                bio: data.user.bio || '这里是个人简介'
+                avatar: data.user.avatar
               };
+              // 设置是否已关注
+              this.isConcerned = data.isConcerned || false;
             }
           }
         })
         .catch(() => {});
+      
+      // 获取统计数据
+      this.fetchUserStats(userId);
+    },
+    
+    fetchUserStats(userId) {
+      // 重置统计数据
+      this.userStats = {
+        following: 0,
+        followers: 0,
+        works: 0,
+        favorites: 0
+      };
+      
+      const params = new URLSearchParams();
+      params.append('userId', userId);
+      
+      // 获取关注数（关注的人数）
+      request.post('/concernedList', params)
+        .then((res) => {
+          if (res.data && res.data.code === 0) {
+            this.userStats.following = (res.data.data || []).length;
+          }
+        })
+        .catch(() => {});
+      
+      // 获取作品数
+      request.post('/contributionList', params)
+        .then((res) => {
+          if (res.data && res.data.code === 0) {
+            this.userStats.works = (res.data.data || []).length;
+          }
+        })
+        .catch(() => {});
+      
+      // 获取收藏数
+      request.post('/favouriteList', params)
+        .then((res) => {
+          if (res.data && res.data.code === 0) {
+            this.userStats.favorites = (res.data.data || []).length;
+          }
+        })
+        .catch(() => {});
+      
+      // 注意：后端没有提供"粉丝数"（有多少人关注我）的接口
+      // 如果需要，需要后端添加新接口
     },
     
     openEdit() {
@@ -313,10 +377,24 @@ export default {
             this.user.username = this.editName;
             this.user.sex = this.editGender;
             
-            // 如果上传了新头像，刷新页面以显示新头像
+            // 更新 localStorage 中的用户信息
+            localStorage.setItem('username', this.editName);
+            
+            // 如果后端返回了新的头像路径，更新它
+            if (res.data.data && res.data.data.avatar) {
+              this.user.avatar = res.data.data.avatar;
+              localStorage.setItem('userAvatar', res.data.data.avatar);
+            }
+            
+            // 触发自定义事件通知其他组件更新（例如 Navbar）
+            window.dispatchEvent(new Event('userInfoUpdated'));
+            
+            // 如果上传了新头像，需要重新获取用户信息以确保头像路径正确
             if (this.editAvatar) {
-              alert('更新成功！页面将刷新以显示新头像。');
-              location.reload();
+              alert('更新成功！');
+              this.closeEdit();
+              // 重新获取用户信息以更新头像
+              this.fetchUser();
             } else {
               alert('更新成功！');
               this.closeEdit();

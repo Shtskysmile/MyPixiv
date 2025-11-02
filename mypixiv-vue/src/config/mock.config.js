@@ -11,8 +11,8 @@ const mockConfig = {
   // 是否打印Mock日志
   logging: true,
   
-  // API基础路径
-  apiBaseUrl: process.env.VUE_APP_API_BASE_URL || 'http://www.pcoi.top'
+  // API基础路径（生产环境使用）
+  apiBaseUrl: process.env.VUE_APP_API_BASE_URL
 }
 
 export default mockConfig

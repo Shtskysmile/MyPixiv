@@ -329,7 +329,7 @@ export default {
       params.append('contributionId', id);
 
       // 使用后端接口 POST /contribution，返回 Result<R_ContributionDTO>
-      axios.post('/contribution', params, {
+      axios.post('/api/contribution', params, {
         headers: {
           'Authorization': 'Bearer ' + token
         }

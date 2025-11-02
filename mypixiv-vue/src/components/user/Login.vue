@@ -144,7 +144,7 @@ export default {
         params.append('username', this.username);
         params.append('password', this.password);
 
-        const res = await axios.post('/login', params);
+        const res = await axios.post('/api/login', params);
         
         if (res.data && res.data.code === 0) {
           // 登录成功

@@ -202,6 +202,12 @@ export default {
   },
   mounted() {
     this.checkLoginStatus();
+    // 监听用户信息更新事件
+    window.addEventListener('userInfoUpdated', this.handleUserInfoUpdated);
+  },
+  beforeDestroy() {
+    // 移除事件监听器，避免内存泄漏
+    window.removeEventListener('userInfoUpdated', this.handleUserInfoUpdated);
   },
   methods: {
     async checkLoginStatus() {
@@ -229,6 +235,11 @@ export default {
       } else {
         this.isLoggedIn = false;
       }
+    },
+    handleUserInfoUpdated() {
+      // 当用户信息更新时，重新检查登录状态并刷新头像
+      console.log('🔄 收到用户信息更新事件，刷新 Navbar...');
+      this.checkLoginStatus();
     },
     handleLogout() {
       // 清除本地存储

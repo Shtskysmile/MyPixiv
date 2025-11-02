@@ -211,7 +211,7 @@ export default {
         const params = new URLSearchParams();
         params.append('username', this.username);
 
-        const res = await axios.post('/mySecurityIssues', params);
+        const res = await axios.post('/api/mySecurityIssues', params);
         
         if (res.data && res.data.code === 0) {
           this.questions = res.data.data || [];
@@ -265,7 +265,7 @@ export default {
           type: 'application/json'
         }));
 
-        const res = await axios.post('/verifySecurityIssues', formData, {
+        const res = await axios.post('/api/verifySecurityIssues', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -321,7 +321,7 @@ export default {
         params.append('username', this.username);
         params.append('newPassword', this.newPassword);
 
-        const res = await axios.post('/updatePassword', params, {
+        const res = await axios.post('/api/updatePassword', params, {
           headers: {
             'Authorization': this.tempToken // 使用临时token
           }

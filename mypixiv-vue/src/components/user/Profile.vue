@@ -28,15 +28,6 @@
           <span class="icon">🆔</span>
           <span class="id-text">ID: {{ formatUserId(userData.userId) }}</span>
         </div>
-
-        <div class="bio-section" v-if="userData.bio">
-          <p class="bio-text">{{ userData.bio }}</p>
-        </div>
-        <div class="bio-section empty-bio" v-else>
-          <p class="has-text-grey-light">
-            <span class="icon">💭</span> 这个人很懒，还没有填写简介～
-          </p>
-        </div>
       </div>
 
       <div class="actions-section">
@@ -111,17 +102,19 @@ export default {
     isOwnProfile: {
       type: Boolean,
       default: true
+    },
+    stats: {
+      type: Object,
+      default: () => ({
+        following: 0,
+        followers: 0,
+        works: 0,
+        favorites: 0
+      })
     }
   },
   data() {
-    return {
-      stats: {
-        following: 128,
-        followers: 54,
-        works: 23,
-        favorites: 89
-      }
-    };
+    return {};
   },
   computed: {
     defaultAvatar() {
@@ -135,12 +128,19 @@ export default {
         role: this.user.role !== undefined ? this.user.role : 0,
         status: this.user.status !== undefined ? this.user.status : 0,
         sex: this.user.sex !== undefined ? this.user.sex : 0,
-        avatar: this.user.avatar || '',
-        bio: this.user.bio || ''
+        avatar: this.user.avatar || ''
       };
     },
     userAvatar() {
-      return this.userData.avatar || this.defaultAvatar;
+      // 参考 Navbar.vue 的实现：拼接完整的头像 URL
+      const avatar = this.userData.avatar;
+      if (avatar) {
+        // avatar 格式如: /files/userId/avatar/xxx.jpg
+        // 直接拼接基础 URL 即可访问
+        const baseURL = process.env.VUE_APP_API_BASE_URL;
+        return `${baseURL}${avatar}`;
+      }
+      return this.defaultAvatar;
     }
   },
   methods: {
@@ -317,24 +317,6 @@ export default {
 .id-text {
   font-family: 'Courier New', monospace;
   font-weight: 600;
-}
-
-.bio-section {
-  padding: 16px;
-  background: linear-gradient(135deg, #667eea08 0%, #764ba208 100%);
-  border-radius: 12px;
-  border-left: 4px solid #a78bfa;
-}
-
-.bio-text {
-  color: #374151;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.empty-bio {
-  text-align: center;
-  border-left-color: #d1d5db;
 }
 
 .actions-section {

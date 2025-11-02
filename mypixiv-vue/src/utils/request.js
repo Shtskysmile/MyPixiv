@@ -6,11 +6,11 @@ import mockConfig from '@/config/mock.config'
 const service = axios.create({
   // Mock模式：空baseURL（使用mock拦截）
   // 非Mock模式：
-  //   - 开发环境：空baseURL（使用Vue代理）
+  //   - 开发环境：使用 /api 前缀（通过Vue代理转发到后端，避免CORS和路由冲突）
   //   - 生产环境：完整API地址
   baseURL: mockConfig.enabled 
     ? '' 
-    : (process.env.NODE_ENV === 'production' ? mockConfig.apiBaseUrl : ''),
+    : (process.env.NODE_ENV === 'production' ? mockConfig.apiBaseUrl : '/api'),
   timeout: 15000,
   headers: {
     'Content-Type': 'application/x-www-form-urlencoded'

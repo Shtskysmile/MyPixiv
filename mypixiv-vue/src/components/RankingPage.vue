@@ -203,7 +203,7 @@ export default {
         params.append('type', -1); // -1表示所有类型（插画+漫画）
         params.append('key', this.sortKey);
         
-        const response = await axios.post('/contributionsRanking', params);
+        const response = await axios.post('/api/contributionsRanking', params);
         
         if (response.data && response.data.code === 200) {
           this.rankings = response.data.data || [];
