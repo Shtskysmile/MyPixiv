@@ -46,6 +46,9 @@ public class UserController {
     public Result<List<R_OverviewContribution>> getContributionList(
             @RequestParam ("userId") String userId){
         List<R_OverviewContribution> list = userService.getContributionList(userId);
+        for(R_OverviewContribution c : list){
+            System.out.println(c.getTitle());
+        }
         return Result.success(list);
     }
 
@@ -56,6 +59,7 @@ public class UserController {
         R_Audit_My_ContributionsDTO data = userService.getMyContributions(userId);
         return Result.success(data);
     }
+
     @PostMapping("/concernedList")
     public Result<List<R_User>> getConcernedList(
             @RequestParam ("userId") String userId){

@@ -33,41 +33,69 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
     @Autowired
     private CommentMapper commentMapper;
 
+    /**
+     * 封禁指定用户。
+     * @param userId 目标用户ID
+     * @return true 封禁成功；false 用户不存在
+     */
     @Override
     public boolean blockUser(String userId) {
+        // 查询用户是否存在
         User user = userMapper.selectUserById(userId);
         if(user==null)
             return false;
+        // 设置用户状态为封禁
         user.setStatus(banned);
         userMapper.updateUser(user);
         return true;
     }
 
+    /**
+     * 解封指定用户。
+     * @param userId 目标用户ID
+     * @return true 解封成功；false 用户不存在
+     */
     @Override
     public boolean unblockUser(String userId) {
+        // 查询用户是否存在
         User user = userMapper.selectUserById(userId);
         if(user==null)
             return false;
+        // 恢复用户为正常状态
         user.setStatus(normal);
         userMapper.updateUser(user);
         return true;
     }
 
+    /**
+     * 封禁指定作品。
+     * @param contributionId 目标作品ID
+     * @return true 封禁成功；false 作品不存在
+     */
     @Override
     public boolean blockContribution(String contributionId) {
+        // 查询作品是否存在
         Contribution contribution = contributionMapper.selectContributionById(contributionId);
         if(contribution==null)
             return false;
+        // 设置作品状态为封禁
         contribution.setStatus(banned);
         contributionMapper.updateContribution(contribution);
         return true;
     }
 
+    /**
+     * 解封指定作品。
+     * @param contributionId 目标作品ID
+     * @return true 解封成功；false 作品不存在
+     */
     @Override
     public boolean unblockContribution(String contributionId) {
+        // 查询作品是否存在
         Contribution contribution = contributionMapper.selectContributionById(contributionId);
         if(contribution==null)
             return false;
+        // 恢复作品为正常状态
         contribution.setStatus(normal);
         contributionMapper.updateContribution(contribution);
         return true;

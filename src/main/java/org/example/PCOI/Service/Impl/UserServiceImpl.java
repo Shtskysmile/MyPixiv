@@ -1,5 +1,6 @@
 package org.example.PCOI.Service.Impl;
 
+import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.example.PCOI.Entity.*;
 import org.example.PCOI.Mapper.*;
@@ -95,8 +96,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<R_OverviewContribution> getContributionList(String userId) {
+        // 防御性：清理可能残留的分页上下文
+        PageHelper.clearPage();
         User user = usermapper.selectUserById(userId);
         List<Contribution> contributions = contributionmapper.selectContributionsByAuthorId(userId);
+        for(Contribution c : contributions){
+            System.out.println(c.getImage());
+        }
         List<R_OverviewContribution> rOverviewContributions = new ArrayList<>();
         for(Contribution contribution : contributions) {
             R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());

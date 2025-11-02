@@ -37,6 +37,7 @@ public class ContributionController {
             @RequestHeader("Authorization") String authHeader,
             @RequestParam("contributionId") String contributionId) throws Exception {
         String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
+        System.out.println("contributionId: " + contributionId);
         R_ContributionDTO data = contributionService.getContribution(userId,contributionId);
         return Result.success(data);
     }
