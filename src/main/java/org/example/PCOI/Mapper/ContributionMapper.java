@@ -5,6 +5,9 @@ import org.example.PCOI.Entity.Contribution;
 
 import java.util.List;
 
+// 新增 type handler 引用
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+
 @Mapper
 public interface ContributionMapper {
 
@@ -12,40 +15,51 @@ public interface ContributionMapper {
     @SelectKey(statement = "SELECT contributionId FROM contribution WHERE id = LAST_INSERT_ID()", keyProperty = "contributionId", before = false, resultType = String.class)
     void insertContribution(Contribution contribution);
 
+    // 映射 image 列为 List<String>，使用 JacksonTypeHandler
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
     @Select("SELECT * FROM contribution WHERE contributionId = #{contributionId} AND status = 0 AND auditStatus = 1")
     Contribution selectContributionById(String contributionId);
 
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
     @Select("SELECT * FROM contribution WHERE authorId = #{authorId}")
     List<Contribution> selectContributionsByAuthorId(String authorId);
 
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
     @Select("SELECT * FROM contribution WHERE auditStatus = #{auditStatus}")
     List<Contribution> selectContributionsByAuditStatus(int auditStatus);
 
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
     @Select("SELECT * FROM contribution WHERE authorId = #{authorId} AND auditStatus = #{auditStatus}")
     List<Contribution> selectContributionsByAuthorIdAndAuditStatus(@Param("authorId") String authorId, @Param("auditStatus") int auditStatus);
 
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
     @Select("SELECT * FROM contribution WHERE status = #{status} ")
     List<Contribution> selectContributionsByStatus(int status);
 
     @Delete("DELETE FROM contribution WHERE contributionId = #{contributionId} AND status = 0 AND auditStatus = 1")
     void deleteContributionById(String contributionId);
 
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
     @Select("SELECT * FROM contribution WHERE type = #{type} AND status = 0 AND auditStatus = 1")
     List<Contribution> selectContributionsByType(int type);
 
     // 按类型并按浏览量排序
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
     @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 AND type = #{type} ORDER BY viewCount DESC LIMIT #{limit}")
     List<Contribution> selectContributionsByTypeAndViewCount(@Param("type") int type, @Param("limit") int limit);
 
     // 按类型并按收藏量排序
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
     @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 AND type = #{type} ORDER BY favoriteCount DESC LIMIT #{limit}")
     List<Contribution> selectContributionsByTypeAndFavoriteCount(@Param("type") int type, @Param("limit") int limit);
 
     // 按类型并按点赞量排序
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
     @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 AND type = #{type} ORDER BY likeCount DESC LIMIT #{limit}")
     List<Contribution> selectContributionsByTypeAndLikeCount(@Param("type") int type, @Param("limit") int limit);
 
     // 按类型并按评论量排序
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
     @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 AND type = #{type} ORDER BY commentCount DESC LIMIT #{limit}")
     List<Contribution> selectContributionsByTypeAndCommentCount(@Param("type") int type, @Param("limit") int limit);
 
@@ -53,6 +67,7 @@ public interface ContributionMapper {
     void updateContribution(Contribution contribution);
 
 
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
     @Select("""
             SELECT * FROM contribution
             WHERE MATCH(title) AGAINST(#{titleKeyword} IN NATURAL LANGUAGE MODE)
@@ -65,6 +80,7 @@ public interface ContributionMapper {
             @Param("titleKeyword") String titleKeyword
     );
 
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
     @Select("""
     SELECT c.*
     FROM contribution c
@@ -77,6 +93,7 @@ public interface ContributionMapper {
     List<Contribution> selectContributionsByTag(String tagName);
 
 
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
     @Select("""
     SELECT c.*
     FROM contribution c
@@ -87,6 +104,7 @@ public interface ContributionMapper {
 """)
     List<Contribution> selectFavoriteContributionsByUserId(String userId);
 
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
     @Select("""
     SELECT c.*
     FROM contribution c
@@ -98,6 +116,7 @@ public interface ContributionMapper {
     List<Contribution> selectLikeContributionsByUserId(String userId);
 
     // 获取所有审核通过且未封禁的作品
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
     @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 ORDER BY publishTime DESC")
     List<Contribution> selectAllContributions();
 }
