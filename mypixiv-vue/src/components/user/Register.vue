@@ -325,11 +325,8 @@ export default {
           formData.append('avatar', this.avatarFile);
         }
 
-        const res = await request.post('/register', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
+        // 发送FormData时，不设置任何headers，让axios自动处理（包括boundary）
+        const res = await request.post('/register', formData);
         
         if (res.data && res.data.code === 0) {
           // 注册成功（后端返回code: 0表示成功）

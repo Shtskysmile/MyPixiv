@@ -26,6 +26,11 @@ service.interceptors.request.use(
       config.headers['Authorization'] = `Bearer ${token}`
     }
     
+    // 如果是FormData，删除默认的Content-Type，让浏览器自动设置（包括boundary）
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type']
+    }
+    
     // 打印请求信息（开发模式）
     if (process.env.NODE_ENV === 'development' && mockConfig.logging) {
       console.log(`📤 [${config.method.toUpperCase()}] ${config.url}`, config.data || config.params)
