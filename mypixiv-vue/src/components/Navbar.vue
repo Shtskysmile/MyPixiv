@@ -66,8 +66,8 @@
               <div v-if="isLoggedIn" class="user-menu">
                 <router-link :to="`/user/${userId}`" class="user-profile-link">
                   <img 
-                    v-if="userAvatar" 
-                    :src="userAvatar" 
+                    v-if="avatarUrl" 
+                    :src="avatarUrl" 
                     :alt="username"
                     class="user-avatar"
                   />
@@ -154,8 +154,8 @@
               <div v-if="isLoggedIn" class="user-menu">
                 <router-link :to="`/user/${userId}`" class="user-profile-link">
                   <img 
-                    v-if="userAvatar" 
-                    :src="userAvatar" 
+                    v-if="avatarUrl" 
+                    :src="avatarUrl" 
                     :alt="username"
                     class="user-avatar"
                   />
@@ -198,6 +198,19 @@ export default {
       userId: '',
       userAvatar: ''
     };
+  },
+  computed: {
+    avatarUrl() {
+      if (!this.userAvatar) {
+        return ''; // 没有头像
+      }
+      // 如果是完整URL，直接返回
+      if (this.userAvatar.startsWith('http')) {
+        return this.userAvatar;
+      }
+      // 否则拼接 /files/ 前缀
+      return `/files/${this.userAvatar}`;
+    }
   },
   mounted() {
     this.checkLoginStatus();

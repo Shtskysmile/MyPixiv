@@ -9,7 +9,7 @@
         <div class="column is-one-quarter">
           <aside class="menu user-menu anime-menu">
             <p class="menu-label anime-label">
-              <span class="icon">👤</span> 个人中心
+              <span class="icon">👤</span> {{ isOwnProfile ? '个人中心' : '用户主页' }}
             </p>
             <ul class="menu-list">
               <li><a :class="{ 'is-active': view === 'info' }" @click.prevent="view = 'info'">
@@ -22,12 +22,12 @@
                 <span class="icon">❤️</span> 点赞的画作
               </a></li>
               <li><a :class="{ 'is-active': view === 'works' }" @click.prevent="openWorks">
-                <span class="icon">🎨</span> 我的画作
+                <span class="icon">🎨</span> {{ isOwnProfile ? '我的' : 'TA的' }}画作
               </a></li>
               <li><a :class="{ 'is-active': view === 'followers' }" @click.prevent="openFollowers">
-                <span class="icon">👥</span> 我的关注
+                <span class="icon">👥</span> {{ isOwnProfile ? '我的' : 'TA的' }}关注
               </a></li>
-              <li><a :class="{ 'is-active': view === 'submit' }" @click.prevent="view = 'submit'">
+              <li v-if="isOwnProfile"><a :class="{ 'is-active': view === 'submit' }" @click.prevent="view = 'submit'">
                 <span class="icon">📤</span> 提交作品
               </a></li>
             </ul>
@@ -36,7 +36,7 @@
         
         <div class="column">
           <div v-if="view === 'info'">
-            <Profile :user="user" @edit="openEdit" @back="$router.push('/index')" />
+            <Profile :user="user" :isOwnProfile="isOwnProfile" @edit="openEdit" @back="$router.push('/index')" />
           </div>
 
           <div v-if="view === 'favorites'">
@@ -79,10 +79,24 @@
           </div>
 
           <div class="field">
-            <label class="label">简介</label>
+            <label class="label">性别</label>
             <div class="control">
-              <textarea class="textarea anime-input" v-model="editBio" placeholder="个人简介" rows="4"></textarea>
+              <div class="select is-fullwidth anime-input">
+                <select v-model="editGender">
+                  <option :value="0">未设置</option>
+                  <option :value="1">男</option>
+                  <option :value="2">女</option>
+                </select>
+              </div>
             </div>
+          </div>
+
+          <div class="field">
+            <label class="label">头像（可选）</label>
+            <div class="control">
+              <input class="input anime-input" type="file" @change="onAvatarChange" accept="image/*" />
+            </div>
+            <p class="help">不上传则保持原头像不变</p>
           </div>
         </section>
         <footer class="modal-card-foot">
@@ -95,7 +109,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import request from '@/utils/request';
 import Navbar from '../Navbar.vue';
 import SubmitArtwork from './SubmitArtwork.vue';
 import FavoritesList from './FavoritesList.vue';
@@ -109,11 +123,17 @@ import bgImg from '@/assets/images/Alice_Damage.jpg';
 export default {
   name: 'UserPage',
   components: { Navbar, SubmitArtwork, FavoritesList, LikesList, FollowersList, Profile, WorksList },
+  props: {
+    id: {
+      type: String,
+      default: null
+    }
+  },
   data() {
     return {
       user: {
-        userId: '1',
-        username: 'Alice',
+        userId: '',
+        username: '加载中...',
         role: 0,
         sex: 0,
         bio: '这里是个人简介，写一些关于自己的信息。',
@@ -130,13 +150,26 @@ export default {
       view: 'info',
       editModalVisible: false,
       editName: '',
-      editBio: '',
+      editGender: 0,
+      editAvatar: null,
       bgImg,
     };
   },
   computed: {
     avatarSrc() {
-      return this.user.avatar || avatar;
+      if (!this.user.avatar) {
+        return avatar; // 默认头像
+      }
+      // 如果是完整URL，直接返回
+      if (this.user.avatar.startsWith('http')) {
+        return this.user.avatar;
+      }
+      // 如果已经包含 /files/ 前缀，直接返回
+      if (this.user.avatar.startsWith('/files/')) {
+        return this.user.avatar;
+      }
+      // 否则拼接 /files/ 前缀
+      return `/files/${this.user.avatar}`;
     },
     bgStyle() {
       return {
@@ -145,22 +178,40 @@ export default {
         backgroundPosition: 'center center',
       };
     },
+    // 当前查看的用户ID：优先使用路由参数，否则使用当前登录用户ID
+    currentUserId() {
+      return this.id || localStorage.getItem('userId');
+    },
+    // 是否是当前登录用户自己的主页
+    isOwnProfile() {
+      const loggedInUserId = localStorage.getItem('userId');
+      return this.currentUserId === loggedInUserId;
+    }
   },
   created() {
     this.fetchUser();
   },
+  watch: {
+    // 监听路由参数变化，重新加载用户信息
+    id(newId) {
+      this.fetchUser();
+    }
+  },
   methods: {
     fetchUser() {
-      const token = localStorage.getItem('token') || 'mock-token-123';
+      const userId = this.currentUserId;
+      
+      if (!userId) {
+        alert('未登录，请先登录');
+        this.$router.push('/login');
+        return;
+      }
+      
       const params = new URLSearchParams();
-      params.append('userId', this.user.userId);
+      params.append('userId', userId);
 
       // 使用后端接口 POST /userInfo，返回 Result<R_UserInfoDTO>
-      axios.post('/userInfo', params, {
-        headers: {
-          'Authorization': 'Bearer ' + token
-        }
-      })
+      request.post('/userInfo', params)
         .then((res) => {
           if (res.data && res.data.code === 0) {
             // R_UserInfoDTO { user: R_User, isConcerned: boolean }
@@ -182,8 +233,14 @@ export default {
     
     openEdit() {
       this.editName = this.user.username;
-      this.editBio = this.user.bio;
+      this.editGender = this.user.sex || 0;
+      this.editAvatar = null;
       this.editModalVisible = true;
+    },
+    
+    onAvatarChange(event) {
+      const file = event.target.files[0];
+      this.editAvatar = file || null;
     },
     
     closeEdit() {
@@ -191,40 +248,58 @@ export default {
     },
     
     submitEdit() {
-      // TODO: 使用后端接口 POST /user/updateUserInfo
-      const token = localStorage.getItem('token') || 'mock-token-123';
-      const formData = new FormData();
-      formData.append('newUsername', this.editName);
-      formData.append('newGender', this.user.sex);
+      // 验证输入
+      if (!this.editName || this.editName.trim() === '') {
+        alert('用户名不能为空');
+        return;
+      }
 
-      axios.post('/user/updateUserInfo', formData, {
+      // 准备表单数据
+      const formData = new FormData();
+      formData.append('newUsername', this.editName.trim());
+      formData.append('newGender', this.editGender);
+      
+      // 只有选择了新头像才添加到表单
+      if (this.editAvatar) {
+        formData.append('newAvatar', this.editAvatar);
+      }
+
+      request.post('/user/updateUserInfo', formData, {
         headers: {
-          'Authorization': 'Bearer ' + token
+          'Content-Type': 'multipart/form-data'
         }
       })
         .then((res) => {
           if (res.data && res.data.code === 0) {
+            // 更新本地数据
             this.user.username = this.editName;
-            this.user.bio = this.editBio;
-            alert('更新成功！');
+            this.user.sex = this.editGender;
+            
+            // 如果上传了新头像，刷新页面以显示新头像
+            if (this.editAvatar) {
+              alert('更新成功！页面将刷新以显示新头像。');
+              location.reload();
+            } else {
+              alert('更新成功！');
+              this.closeEdit();
+            }
           } else {
             alert('更新失败: ' + (res.data?.message || '未知错误'));
           }
-          this.closeEdit();
         })
-        .catch(() => {
-          alert('更新失败');
-          this.closeEdit();
+        .catch((error) => {
+          console.error('更新失败:', error);
+          alert('更新失败，请稍后重试');
         });
     },
     
     openFavorites() {
       this.view = 'favorites';
       const params = new URLSearchParams();
-      params.append('userId', this.user.userId);
+      params.append('userId', this.currentUserId);
 
       // 使用后端接口 POST /favouriteList，返回 Result<List<R_OverviewContribution>>
-      axios.post('/favouriteList', params)
+      request.post('/favouriteList', params)
         .then((res) => {
           if (res.data && res.data.code === 0) {
             this.favorites = res.data.data || [];
@@ -238,10 +313,10 @@ export default {
     openLikes() {
       this.view = 'likes';
       const params = new URLSearchParams();
-      params.append('userId', this.user.userId);
+      params.append('userId', this.currentUserId);
 
       // 使用后端接口 POST /likedList，返回 Result<List<R_OverviewContribution>>
-      axios.post('/likedList', params)
+      request.post('/likedList', params)
         .then((res) => {
           if (res.data && res.data.code === 0) {
             this.likes = res.data.data || [];
@@ -256,10 +331,10 @@ export default {
       this.view = 'works';
       const p = typeof page === 'number' ? page : (page && page.detail) || 1;
       const params = new URLSearchParams();
-      params.append('userId', this.user.userId);
+      params.append('userId', this.currentUserId);
 
       // 使用后端接口 POST /contributionList，返回 Result<List<R_OverviewContribution>>
-      axios.post('/contributionList', params)
+      request.post('/contributionList', params)
         .then((res) => {
           if (res.data && res.data.code === 0) {
             const list = res.data.data || [];
@@ -284,15 +359,10 @@ export default {
       if (!ok) return;
       
       // TODO: 调用后端接口 POST /user/unlikeContribution
-      const token = localStorage.getItem('token') || 'mock-token-123';
       const params = new URLSearchParams();
       params.append('contributionId', item.contributionId || item.id);
 
-      axios.post('/user/unlikeContribution', params, {
-        headers: {
-          'Authorization': 'Bearer ' + token
-        }
-      })
+      request.post('/user/unlikeContribution', params)
         .then((res) => {
           if (res.data && res.data.code === 0) {
             this.likes = this.likes.filter((l) => (l.contributionId || l.id) !== (item.contributionId || item.id));
@@ -309,15 +379,10 @@ export default {
       if (!ok) return;
       
       // TODO: 调用后端接口 POST /user/unfavoriteContribution
-      const token = localStorage.getItem('token') || 'mock-token-123';
       const params = new URLSearchParams();
       params.append('contributionId', fav.contributionId || fav.id);
 
-      axios.post('/user/unfavoriteContribution', params, {
-        headers: {
-          'Authorization': 'Bearer ' + token
-        }
-      })
+      request.post('/user/unfavoriteContribution', params)
         .then((res) => {
           if (res.data && res.data.code === 0) {
             this.favorites = this.favorites.filter((f) => (f.contributionId || f.id) !== (fav.contributionId || fav.id));
@@ -333,10 +398,10 @@ export default {
       this.view = 'followers';
       const p = typeof page === 'number' ? page : (page && page.detail) || 1;
       const params = new URLSearchParams();
-      params.append('userId', this.user.userId);
+      params.append('userId', this.currentUserId);
 
       // 使用后端接口 POST /concernedList，返回 Result<List<R_User>>
-      axios.post('/concernedList', params)
+      request.post('/concernedList', params)
         .then((res) => {
           if (res.data && res.data.code === 0) {
             const list = res.data.data || [];
@@ -361,15 +426,10 @@ export default {
       if (!ok) return;
       
       // TODO: 调用后端接口 POST /user/unconcernUser
-      const token = localStorage.getItem('token') || 'mock-token-123';
       const params = new URLSearchParams();
       params.append('concernedUserId', f.userId || f.id);
 
-      axios.post('/user/unconcernUser', params, {
-        headers: {
-          'Authorization': 'Bearer ' + token
-        }
-      })
+      request.post('/user/unconcernUser', params)
         .then((res) => {
           if (res.data && res.data.code === 0) {
             this.followers = this.followers.filter(x => (x.userId || x.id) !== (f.userId || f.id));

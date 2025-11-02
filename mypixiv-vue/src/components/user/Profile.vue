@@ -40,7 +40,7 @@
       </div>
 
       <div class="actions-section">
-        <button class="anime-button is-primary" @click="$emit('edit')">
+        <button v-if="isOwnProfile" class="anime-button is-primary" @click="$emit('edit')">
           <span class="icon">✏️</span>
           <span>编辑资料</span>
         </button>
@@ -49,7 +49,7 @@
           <span>返回首页</span>
         </button>
         
-        <div class="concern-badge" v-if="isConcerned !== undefined">
+        <div class="concern-badge" v-if="!isOwnProfile && isConcerned !== undefined">
           <span v-if="isConcerned" class="tag is-success is-light">
             <span class="icon">✅</span> 已关注此用户
           </span>
@@ -107,6 +107,10 @@ export default {
     isConcerned: {
       type: Boolean,
       default: undefined
+    },
+    isOwnProfile: {
+      type: Boolean,
+      default: true
     }
   },
   data() {
