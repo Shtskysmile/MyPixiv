@@ -12,7 +12,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static org.example.PCOI.Service.Support.Enum.illustration;
 

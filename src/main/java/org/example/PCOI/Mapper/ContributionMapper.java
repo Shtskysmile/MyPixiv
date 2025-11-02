@@ -27,11 +27,6 @@ public interface ContributionMapper {
     List<Contribution> selectContributionsByAuthorId(String authorId);
 
     @ResultMap("ContributionMap")
-    @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1")
-    List<Contribution> selectAllContributions();
-
-
-    @ResultMap("ContributionMap")
     @Select("SELECT * FROM contribution WHERE auditStatus = #{auditStatus}")
     List<Contribution> selectContributionsByAuditStatus(int auditStatus);
 
