@@ -7,8 +7,8 @@ import request from './request';
 
 /**
  * 从后端获取图片数据
- * @param {string} imagePath - 后端返回的图片路径（如 /files/1/avatar/）
- * @returns {Promise<string|null>} - 返回图片的 blob URL 或 null
+ * @param {string} imagePath - 后端返回的图片路径（如 /files/userId/avatar/xxx.jpg）
+ * @returns {Promise<string|null>} - 返回图片的 URL
  */
 export async function loadImage(imagePath) {
   if (!imagePath) {
@@ -22,61 +22,17 @@ export async function loadImage(imagePath) {
   }
 
   try {
-    // 方法1: 尝试使用 /image 接口获取二进制图片数据
-    const params = new URLSearchParams();
-    params.append('imagePath', imagePath);
-
-    const res = await request.post('/image', params, {
-      responseType: 'blob' // 直接请求二进制数据
-    });
-
-    // 如果返回的是 Blob 对象
-    if (res.data instanceof Blob && res.data.size > 0) {
-      const blobUrl = URL.createObjectURL(res.data);
-      console.log('✅ 图片加载成功 (blob):', imagePath);
-      return blobUrl;
-    }
-
-    console.warn('⚠️  /image 接口返回空数据，尝试备用方法...');
-
-    // 方法2: 如果方法1失败，尝试使用 JSON 响应格式
-    const res2 = await request.post('/image', params, {
-      responseType: 'json'
-    });
-
-    if (res2.data && res2.data.code === 0 && res2.data.data && res2.data.data.length > 0) {
-      const imageFile = res2.data.data[0];
-      
-      // 如果后端返回的是 base64 编码的图片数据
-      if (imageFile.base64) {
-        console.log('✅ 图片加载成功 (base64):', imagePath);
-        return `data:${imageFile.contentType || 'image/jpeg'};base64,${imageFile.base64}`;
-      }
-      
-      // 如果后端返回的是二进制数据数组
-      if (imageFile.bytes && Array.isArray(imageFile.bytes)) {
-        const blob = new Blob([new Uint8Array(imageFile.bytes)], { 
-          type: imageFile.contentType || 'image/jpeg' 
-        });
-        console.log('✅ 图片加载成功 (bytes array):', imagePath);
-        return URL.createObjectURL(blob);
-      }
-
-      // 如果返回的是文件名，构造直接访问 URL
-      if (imageFile.name || imageFile.originalFilename) {
-        // 假设可以直接通过路径访问图片
-        const directUrl = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
-        console.log('✅ 使用直接路径访问图片:', directUrl);
-        return directUrl;
-      }
-    }
-
-    // 方法3: 最后尝试直接使用路径作为 URL
-    console.warn('⚠️  尝试直接使用路径作为 URL:', imagePath);
-    return imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+    // 后端已配置静态资源映射 /files/** -> uploads/
+    // imagePath 格式如: /files/userId/avatar/xxx.jpg 或 /files/userId/illustration/workId/xxx.jpg
+    // 直接拼接基础 URL 即可访问
+    const baseURL = process.env.VUE_APP_API_BASE_URL;
+    const imageUrl = imagePath.startsWith('/') ? `${baseURL}${imagePath}` : `${baseURL}/${imagePath}`;
+    
+    console.log('✅ 图片 URL 已生成:', imageUrl);
+    return imageUrl;
 
   } catch (error) {
-    console.error('❌ 加载图片失败:', imagePath, error);
+    console.error('❌ 生成图片 URL 失败:', imagePath, error);
     
     // 发生错误时，尝试直接返回路径
     return imagePath.startsWith('/') ? imagePath : `/${imagePath}`;

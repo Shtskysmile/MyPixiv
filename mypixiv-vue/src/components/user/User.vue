@@ -92,9 +92,30 @@
           </div>
 
           <div class="field">
-            <label class="label">头像（可选）</label>
-            <div class="control">
-              <input class="input anime-input" type="file" @change="onAvatarChange" accept="image/*" />
+            <label class="label anime-label">
+              <span class="icon">📸</span> 头像（可选）
+            </label>
+            <div class="file has-name is-fullwidth anime-file">
+              <label class="file-label">
+                <input 
+                  class="file-input" 
+                  type="file" 
+                  accept="image/*" 
+                  @change="onAvatarChange"
+                >
+                <span class="file-cta">
+                  <span class="file-icon">
+                    <i>📁</i>
+                  </span>
+                  <span class="file-label">选择图片</span>
+                </span>
+                <span class="file-name">
+                  {{ editAvatarFileName || '未选择文件' }}
+                </span>
+              </label>
+            </div>
+            <div v-if="editAvatarPreview" class="avatar-preview">
+              <img :src="editAvatarPreview" alt="头像预览" />
             </div>
             <p class="help">不上传则保持原头像不变</p>
           </div>
@@ -152,6 +173,8 @@ export default {
       editName: '',
       editGender: 0,
       editAvatar: null,
+      editAvatarFileName: '',
+      editAvatarPreview: '',
       bgImg,
     };
   },
@@ -164,12 +187,11 @@ export default {
       if (this.user.avatar.startsWith('http')) {
         return this.user.avatar;
       }
-      // 如果已经包含 /files/ 前缀，直接返回
-      if (this.user.avatar.startsWith('/files/')) {
-        return this.user.avatar;
-      }
-      // 否则拼接 /files/ 前缀
-      return `/files/${this.user.avatar}`;
+      // 后端返回的路径格式: /files/userId/avatar/xxx.jpg
+      // 需要拼接基础 URL
+      const baseURL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:8080';
+      const avatarPath = this.user.avatar.startsWith('/') ? this.user.avatar : `/${this.user.avatar}`;
+      return `${baseURL}${avatarPath}`;
     },
     bgStyle() {
       return {
@@ -235,12 +257,28 @@ export default {
       this.editName = this.user.username;
       this.editGender = this.user.sex || 0;
       this.editAvatar = null;
+      this.editAvatarFileName = '';
+      this.editAvatarPreview = '';
       this.editModalVisible = true;
     },
     
     onAvatarChange(event) {
       const file = event.target.files[0];
-      this.editAvatar = file || null;
+      if (file) {
+        this.editAvatar = file;
+        this.editAvatarFileName = file.name;
+        
+        // 创建预览
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          this.editAvatarPreview = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+      } else {
+        this.editAvatar = null;
+        this.editAvatarFileName = '';
+        this.editAvatarPreview = '';
+      }
     },
     
     closeEdit() {
@@ -572,6 +610,61 @@ export default {
 .anime-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(147, 51, 234, 0.2);
+}
+
+/* 文件上传样式 */
+.anime-file .file-cta {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 12px 0 0 12px;
+  color: white;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.anime-file .file-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
+}
+
+.anime-file .file-name {
+  border: 2px solid rgba(147, 51, 234, 0.2);
+  border-left: none;
+  border-radius: 0 12px 12px 0;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.avatar-preview {
+  margin-top: 16px;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.avatar-preview img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #a78bfa;
+  box-shadow: 0 8px 24px rgba(147, 51, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.avatar-preview img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 32px rgba(147, 51, 234, 0.4);
 }
 
 @media (max-width: 768px) {

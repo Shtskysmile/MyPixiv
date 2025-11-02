@@ -329,18 +329,8 @@ export default {
         const res = await request.post('/register', formData);
         
         if (res.data && res.data.code === 0) {
-          // 注册成功（后端返回 R_LoginDTO，包含 user 和 token）
-          const data = res.data.data;
-          const { user, token } = data;
-          
-          // 保存用户信息和 token 到 localStorage
-          localStorage.setItem('token', token);
-          localStorage.setItem('userId', user.userId);
-          localStorage.setItem('username', user.username);
-          localStorage.setItem('userAvatar', user.avatar || '');
-          localStorage.setItem('userRole', user.role);
-          
-          this.success = `注册成功！欢迎加入 MyPixiv，${user.username}！2秒后跳转到首页...`;
+          // 注册成功，跳转到登录页面让用户重新登录
+          this.success = `注册成功！欢迎加入 MyPixiv，${this.username}！2秒后跳转到登录页...`;
           
           // 清空表单
           this.username = '';
@@ -356,9 +346,9 @@ export default {
           this.avatarFileName = '';
           this.avatarPreview = '';
           
-          // 2秒后跳转到首页
+          // 2秒后跳转到登录页
           setTimeout(() => {
-            this.$router.push('/index');
+            this.$router.push('/login');
           }, 2000);
         } else {
           // 注册失败

@@ -12,7 +12,6 @@ echo Switching to project directory...
 cd mypixiv-vue
 echo.
 echo Starting development server with Real Backend API...
-echo Backend URL: http://localhost:8081
 echo.
 call npm run serve:dev
 if errorlevel 1 (
