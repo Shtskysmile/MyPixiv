@@ -101,29 +101,48 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
         return true;
     }
 
+    /**
+     * 获取全站作品的审核概览数据。
+     * 将作品按审核状态分为：待审核、已通过、已驳回三组，
+     * 并补充作者头像后转换为概览 DTO 列表返回。
+     *
+     * @return 汇总后的审核视图数据传输对象
+     */
     @Override
     public R_Audit_My_ContributionsDTO auditContributions() {
+        // 为三种审核状态分别准备承载概览结果的列表
         List<R_OverviewContribution> pendingContributions = new ArrayList<>();
         List<R_OverviewContribution> approvedContributions = new ArrayList<>();
         List<R_OverviewContribution> dismissalContributions = new ArrayList<>();
+
+        // 按审核状态查询原始作品列表
         List<Contribution> pendingList = contributionMapper.selectContributionsByAuditStatus(pending);
         List<Contribution> approvedList = contributionMapper.selectContributionsByAuditStatus(approved);
         List<Contribution> dismissalList = contributionMapper.selectContributionsByAuditStatus(dismissal);
+
+        // 组装待审核作品概览：补充作者头像并做模型转换
         for(Contribution contribution : pendingList){
             User user = userMapper.selectUserById(contribution.getAuthorId());
-            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution,user.getAvatar());
+            R_OverviewContribution rOverviewContribution =
+                    transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
             pendingContributions.add(rOverviewContribution);
         }
+        // 组装已通过作品概览
         for(Contribution contribution : approvedList){
             User user = userMapper.selectUserById(contribution.getAuthorId());
-            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution,user.getAvatar());
+            R_OverviewContribution rOverviewContribution =
+                    transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
             approvedContributions.add(rOverviewContribution);
         }
+        // 组装已驳回作品概览
         for(Contribution contribution : dismissalList){
             User user = userMapper.selectUserById(contribution.getAuthorId());
-            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution,user.getAvatar());
+            R_OverviewContribution rOverviewContribution =
+                    transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
             dismissalContributions.add(rOverviewContribution);
         }
+
+        // 汇总返回 DTO
         R_Audit_My_ContributionsDTO rAuditContributionsDTO = new R_Audit_My_ContributionsDTO();
         rAuditContributionsDTO.setPendingContributions(pendingContributions);
         rAuditContributionsDTO.setApprovedContributions(approvedContributions);
@@ -131,22 +150,41 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
         return rAuditContributionsDTO;
     }
 
+    /**
+     * 驳回指定作品。
+     * 若作品存在，则更新状态并记录驳回原因。
+     *
+     * @param contributionId 作品ID
+     * @param dismissalReason 驳回理由
+     * @return true 表示操作成功；false 表示作品不存在
+     */
     @Override
     public boolean dismissContribution(String contributionId, String dismissalReason) {
+        // 查询目标作品是否存在
         Contribution contribution = contributionMapper.selectContributionById(contributionId);
         if (contribution == null)
             return false;
+        // 更新状态与驳回原因并持久化
         contribution.setStatus(dismissal);
         contribution.setDismissalReason(dismissalReason);
         contributionMapper.updateContribution(contribution);
         return true;
     }
 
+    /**
+     * 审核通过指定作品。
+     * 若作品存在，则更新状态为通过并清空驳回原因。
+     *
+     * @param contributionId 作品ID
+     * @return true 表示操作成功；false 表示作品不存在
+     */
     @Override
     public boolean approveContribution(String contributionId) {
+        // 查询目标作品是否存在
         Contribution contribution = contributionMapper.selectContributionById(contributionId);
         if (contribution == null)
             return false;
+        // 更新状态为通过并清空驳回原因，随后持久化
         contribution.setStatus(approved);
         contribution.setDismissalReason(null);
         contributionMapper.updateContribution(contribution);

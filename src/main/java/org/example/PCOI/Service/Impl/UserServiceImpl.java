@@ -118,6 +118,9 @@ public class UserServiceImpl implements UserService {
         List<R_OverviewContribution> approvedContributions = new ArrayList<>();
         List<R_OverviewContribution> dismissalContributions = new ArrayList<>();
         List<Contribution> pendingList = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId,pending);
+        for(Contribution contribution : pendingList) {
+            System.out.println(contribution.getImage());
+        }
         List<Contribution> approvedList = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId,approved);
         List<Contribution> dismissalList = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId, dismissal);
         for(Contribution contribution : pendingList) {
