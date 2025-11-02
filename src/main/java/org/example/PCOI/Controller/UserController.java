@@ -46,9 +46,6 @@ public class UserController {
     public Result<List<R_OverviewContribution>> getContributionList(
             @RequestParam ("userId") String userId){
         List<R_OverviewContribution> list = userService.getContributionList(userId);
-        for(R_OverviewContribution c : list){
-            System.out.println(c.getTitle());
-        }
         return Result.success(list);
     }
 
