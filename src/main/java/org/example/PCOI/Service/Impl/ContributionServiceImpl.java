@@ -200,7 +200,7 @@ public class ContributionServiceImpl implements ContributionService {
         newContribution.setFavoriteCount(0);
         newContribution.setLikeCount(0);
         newContribution.setCommentCount(0);
-        String imagePath = fileStorageService.saveWorkImages(images,type,userId);
+        List<String> imagePath = fileStorageService.saveWorkImages(images,type,userId);
         newContribution.setImage(imagePath);
         contributionMapper.insertContribution(newContribution);
         return true;

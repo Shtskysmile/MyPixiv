@@ -2,59 +2,80 @@ package org.example.PCOI.Mapper;
 
 import org.apache.ibatis.annotations.*;
 import org.example.PCOI.Entity.Contribution;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 
 import java.util.List;
 
 @Mapper
 public interface ContributionMapper {
-    @Insert("INSERT INTO contribution(type,title,image,description,authorId) VALUES(#{type},#{title},#{image},#{description},#{authorId})")
+
+    // 定义通用结果映射，使用 JacksonTypeHandler 将 image 列(JSON/LONGTEXT) 与 List<String> 互转
+    @Results(id = "ContributionMap", value = {
+            @Result(column = "image", property = "image", typeHandler = JacksonTypeHandler.class)
+    })
+    @Select("SELECT 1")
+    Integer _init_();
+
+    @Insert("INSERT INTO contribution(type,title,image,description,authorId) VALUES(#{type},#{title},#{image, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},#{description},#{authorId})")
     void insertContribution(Contribution contribution);
 
+    @ResultMap("ContributionMap")
     @Select("SELECT * FROM contribution WHERE contributionId = #{contributionId} AND status = 0 AND auditStatus = 1")
     Contribution selectContributionById(String contributionId);
 
+    @ResultMap("ContributionMap")
     @Select("SELECT * FROM contribution WHERE authorId = #{authorId}")
     List<Contribution> selectContributionsByAuthorId(String authorId);
 
+    @ResultMap("ContributionMap")
     @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1")
     List<Contribution> selectAllContributions();
 
 
+    @ResultMap("ContributionMap")
     @Select("SELECT * FROM contribution WHERE auditStatus = #{auditStatus}")
     List<Contribution> selectContributionsByAuditStatus(int auditStatus);
 
+    @ResultMap("ContributionMap")
     @Select("SELECT * FROM contribution WHERE authorId = #{authorId} AND auditStatus = #{auditStatus}")
     List<Contribution> selectContributionsByAuthorIdAndAuditStatus(@Param("authorId") String authorId, @Param("auditStatus") int auditStatus);
 
+    @ResultMap("ContributionMap")
     @Select("SELECT * FROM contribution WHERE status = #{status} ")
     List<Contribution> selectContributionsByStatus(int status);
 
     @Delete("DELETE FROM contribution WHERE contributionId = #{contributionId} AND status = 0 AND auditStatus = 1")
     void deleteContributionById(String contributionId);
 
+    @ResultMap("ContributionMap")
     @Select("SELECT * FROM contribution WHERE type = #{type} AND status = 0 AND auditStatus = 1")
     List<Contribution> selectContributionsByType(int type);
 
     // 按类型并按浏览量排序
+    @ResultMap("ContributionMap")
     @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 AND type = #{type} ORDER BY viewCount DESC LIMIT #{limit}")
     List<Contribution> selectContributionsByTypeAndViewCount(@Param("type") int type, @Param("limit") int limit);
 
     // 按类型并按收藏量排序
+    @ResultMap("ContributionMap")
     @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 AND type = #{type} ORDER BY favoriteCount DESC LIMIT #{limit}")
     List<Contribution> selectContributionsByTypeAndFavoriteCount(@Param("type") int type, @Param("limit") int limit);
 
     // 按类型并按点赞量排序
+    @ResultMap("ContributionMap")
     @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 AND type = #{type} ORDER BY likeCount DESC LIMIT #{limit}")
     List<Contribution> selectContributionsByTypeAndLikeCount(@Param("type") int type, @Param("limit") int limit);
 
     // 按类型并按评论量排序
+    @ResultMap("ContributionMap")
     @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 AND type = #{type} ORDER BY commentCount DESC LIMIT #{limit}")
     List<Contribution> selectContributionsByTypeAndCommentCount(@Param("type") int type, @Param("limit") int limit);
     
-    @Update("UPDATE contribution SET type = #{type}, title = #{title}, image = #{image}, description = #{description}, status = #{status}, auditStatus = #{auditStatus}, publishTime = #{publishTime}, authorId = #{authorId}, viewCount = #{viewCount}, favoriteCount = #{favoriteCount}, likeCount = #{likeCount}, commentCount = #{commentCount}, dismissalReason = #{dismissalReason} WHERE contributionId = #{contributionId}")
+    @Update("UPDATE contribution SET type = #{type}, title = #{title}, image = #{image, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler}, description = #{description}, status = #{status}, auditStatus = #{auditStatus}, publishTime = #{publishTime}, authorId = #{authorId}, viewCount = #{viewCount}, favoriteCount = #{favoriteCount}, likeCount = #{likeCount}, commentCount = #{commentCount}, dismissalReason = #{dismissalReason} WHERE contributionId = #{contributionId}")
     void updateContribution(Contribution contribution);
 
 
+    @ResultMap("ContributionMap")
     @Select("""
             SELECT * FROM contribution
             WHERE MATCH(title) AGAINST(#{titleKeyword} IN NATURAL LANGUAGE MODE)
@@ -67,6 +88,7 @@ public interface ContributionMapper {
             @Param("titleKeyword") String titleKeyword
     );
 
+    @ResultMap("ContributionMap")
     @Select("""
     SELECT c.*
     FROM contribution c
@@ -79,6 +101,7 @@ public interface ContributionMapper {
     List<Contribution> selectContributionsByTag(String tagName);
 
 
+    @ResultMap("ContributionMap")
     @Select("""
     SELECT c.*
     FROM contribution c
@@ -89,6 +112,7 @@ public interface ContributionMapper {
 """)
     List<Contribution> selectFavoriteContributionsByUserId(String userId);
 
+    @ResultMap("ContributionMap")
     @Select("""
     SELECT c.*
     FROM contribution c
@@ -98,9 +122,4 @@ public interface ContributionMapper {
     ORDER BY  c.publishTime DESC
     """)
     List<Contribution> selectLikeContributionsByUserId(String userId);
-
-
-
-
-
 }

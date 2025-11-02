@@ -28,19 +28,25 @@ public class SystemAdminServiceImpl implements SystemAdminService {
     @Override
     public boolean updateUserInfo(String userId, String newUsername, Integer newGender, MultipartFile newAvatar) {
         User user = usermapper.selectUserById(userId);
-        User existingUser = usermapper.selectUserByName(newUsername);
-        if (user != null && (existingUser == null || existingUser.getUserId().equals(userId))
-                && newUsername != null && !newUsername.isEmpty()
-                && newGender != null && (newGender.equals(undefined) || newGender.equals(male) || newGender.equals(female))
-                && newAvatar != null ) {
-            user.setUsername(newUsername);
-            user.setSex(newGender);
-            String avatarUrl = fileStorageService.saveAvatar(newAvatar, userId);
-            user.setAvatar(avatarUrl);
-            usermapper.updateUser(user);
-            return true;
+        if(user == null) {
+            return false; // 用户不存在
         }
-        return false;
+        if(newUsername!=null && !newUsername.isEmpty()) {
+            User existingUser = usermapper.selectUserByName(newUsername);
+            if (existingUser != null && !existingUser.getUserId().equals(userId)) {
+                return false; // 新用户名已被其他用户使用
+            }
+            user.setUsername(newUsername);
+        }
+        if(newGender != null) {
+            user.setSex(newGender);
+        }
+        if(newAvatar != null && !newAvatar.isEmpty()) {
+            String avatarUrl = fileStorageService.saveAvatar(newAvatar,userId);
+            user.setAvatar(avatarUrl);
+        }
+        usermapper.updateUser(user);
+        return true;
     }
 
     @Override

@@ -1,6 +1,5 @@
 package org.example.PCOI.Service.Support;
 
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -32,47 +31,49 @@ public class FileStorageService {
     @Value("${pcoi.upload.manga-subdir:manga}")
     private String mangaSubdir;
 
-    // 头像：保存到 baseDir/{userId}/avatar/ 下，更新时清空旧头像；返回该文件夹 URL
+    // 头像：保存到 baseDir/{userId}/avatar/ 下，更新时清空旧头像；返回“实际文件 URL”
     public String saveAvatar(MultipartFile avatar, String userId) {
         if (avatar == null || avatar.isEmpty()) return null;
         String relFolder = Paths.get(sanitize(userId), avatarSubdir).toString();
         Path dir = Paths.get(uploadBaseDir, relFolder);
         try {
             Files.createDirectories(dir);
-            // 清空旧头像，保证唯一
-            clearDirectory(dir);
-            saveOneFile(avatar, dir);
+            String filename = saveOneFile(avatar, dir);
+            return buildFileUrl(relFolder, filename);
         } catch (IOException e) {
             throw new RuntimeException("保存头像失败", e);
         }
-        return buildFolderUrl(relFolder);
     }
 
-    // 作品：统一按 List 存至 baseDir/{userId}/{illustration|manga}/{workId}/，返回作品文件夹 URL
-    public String saveWorkImages(List<MultipartFile> files, Integer type, String userId) {
+    // 作品：统一按 List 存至 baseDir/{userId}/{illustration|manga}/{workId}/，返回每个文件的 URL 列表
+    public List<String> saveWorkImages(List<MultipartFile> files, Integer type, String userId) {
         if (files == null || files.isEmpty() || type == null) return null;
         String typeDir = type.equals(illustration) ? illustrationSubdir : mangaSubdir;
         String workId = UUID.randomUUID().toString().replace("-", "");
         String relFolder = Paths.get(sanitize(userId), typeDir, workId).toString();
         Path dir = Paths.get(uploadBaseDir, relFolder);
+
         List<MultipartFile> list = new ArrayList<>();
         for (MultipartFile f : files) {
             if (f != null && !f.isEmpty()) list.add(f);
         }
         if (list.isEmpty()) return null;
+
         try {
             Files.createDirectories(dir);
+            List<String> urls = new ArrayList<>(list.size());
             for (MultipartFile f : list) {
-                saveOneFile(f, dir);
+                String filename = saveOneFile(f, dir);
+                urls.add(buildFileUrl(relFolder, filename));
             }
+            return urls;
         } catch (IOException e) {
             throw new RuntimeException("保存作品失败", e);
         }
-        return buildFolderUrl(relFolder);
     }
 
-    // 保存单文件到指定目录（校验为图片类型；文件名使用 UUID+扩展名）
-    private void saveOneFile(MultipartFile file, Path targetDir) throws IOException {
+    // 保存单文件到指定目录（校验为图片类型；文件名使用 UUID+扩展名），返回最终文件名
+    private String saveOneFile(MultipartFile file, Path targetDir) throws IOException {
         String contentType = file.getContentType();
         if (contentType != null && !contentType.startsWith("image/")) {
             throw new IllegalArgumentException("仅支持图片类型文件");
@@ -85,17 +86,9 @@ public class FileStorageService {
         filename = (ext == null || ext.isEmpty()) ? filename : filename + "." + ext;
         Path dest = targetDir.resolve(filename);
         file.transferTo(dest.toFile());
+        return filename;
     }
 
-    // 清空目录内容（删除文件与子目录）
-    private static void clearDirectory(Path dir) throws IOException {
-        if (!Files.exists(dir)) return;
-        try (Stream<Path> paths = Files.list(dir)) {
-            for (Path p : (Iterable<Path>) paths::iterator) {
-                deleteRecursively(p);
-            }
-        }
-    }
 
     private static void deleteRecursively(Path path) throws IOException {
         if (!Files.exists(path)) return;
@@ -109,10 +102,16 @@ public class FileStorageService {
         Files.deleteIfExists(path);
     }
 
-    // 生成以 URL 前缀开头且以 / 结尾的文件夹 URL
+    // 生成“文件夹 URL”（以 / 结尾）
     private String buildFolderUrl(String relFolder) {
         String url = ensureTrailingSlash(uploadUrlPrefix) + (relFolder.startsWith("/") ? relFolder.substring(1) : relFolder);
         return ensureTrailingSlash(url);
+    }
+
+    // 生成“文件 URL”（不以 / 结尾）
+    private String buildFileUrl(String relFolder, String filename) {
+        String folderUrl = buildFolderUrl(relFolder); // 以 / 结尾
+        return folderUrl + filename;
     }
 
     private static String ensureTrailingSlash(String s) {

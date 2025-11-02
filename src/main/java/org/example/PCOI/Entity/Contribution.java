@@ -3,13 +3,15 @@ package org.example.PCOI.Entity;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class Contribution {
     private String contributionId;              // 作品ID
     private Integer type;            // 作品类型0-插画，1-漫画
     private String title;         // 作品标题
-    private String image;         // 作品图片路径
+    // 将原来的 String image 改为 List<String>，用于存储多张图片的 URL 列表
+    private List<String> image;         // 作品图片路径（JSON 数组）
     private String description;  // 描述信息
     private Integer status;        // 状态(正常状态,封禁状态）0-正常，1-封禁
     private Integer auditStatus;   // 审核状态（待审核，已通过，已驳回）0-待审核，1-已通过，2-已驳回
