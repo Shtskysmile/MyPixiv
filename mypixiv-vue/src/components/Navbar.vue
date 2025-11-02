@@ -62,7 +62,26 @@
 
           <div class="navbar-end">
             <div class="navbar-item">
-              <div class="buttons">
+              <!-- 已登录状态 -->
+              <div v-if="isLoggedIn" class="user-menu">
+                <router-link :to="`/user/${userId}`" class="user-profile-link">
+                  <img 
+                    v-if="userAvatar" 
+                    :src="userAvatar" 
+                    :alt="username"
+                    class="user-avatar"
+                  />
+                  <span v-else class="user-avatar-placeholder">
+                    {{ username ? username.charAt(0).toUpperCase() : 'U' }}
+                  </span>
+                  <span class="username">{{ username }}</span>
+                </router-link>
+                <button class="button btn-logout" @click="handleLogout">
+                  注销
+                </button>
+              </div>
+              <!-- 未登录状态 -->
+              <div v-else class="buttons">
                 <router-link class="button btn-register" to="/register">
                   <strong>注册</strong>
                 </router-link>
@@ -131,7 +150,26 @@
 
           <div class="navbar-end">
             <div class="navbar-item">
-              <div class="buttons">
+              <!-- 已登录状态 -->
+              <div v-if="isLoggedIn" class="user-menu">
+                <router-link :to="`/user/${userId}`" class="user-profile-link">
+                  <img 
+                    v-if="userAvatar" 
+                    :src="userAvatar" 
+                    :alt="username"
+                    class="user-avatar"
+                  />
+                  <span v-else class="user-avatar-placeholder">
+                    {{ username ? username.charAt(0).toUpperCase() : 'U' }}
+                  </span>
+                  <span class="username">{{ username }}</span>
+                </router-link>
+                <button class="button btn-logout" @click="handleLogout">
+                  注销
+                </button>
+              </div>
+              <!-- 未登录状态 -->
+              <div v-else class="buttons">
                 <router-link class="button btn-register" to="/register">
                   <strong>注册</strong>
                 </router-link>
@@ -154,10 +192,52 @@ export default {
   data() {
     return {
       search: '',
-      isBurgerActive: false
+      isBurgerActive: false,
+      isLoggedIn: false,
+      username: '',
+      userId: '',
+      userAvatar: ''
     };
   },
+  mounted() {
+    this.checkLoginStatus();
+  },
   methods: {
+    checkLoginStatus() {
+      // 从 localStorage 获取用户信息
+      const token = localStorage.getItem('token');
+      const username = localStorage.getItem('username');
+      const userId = localStorage.getItem('userId');
+      const userAvatar = localStorage.getItem('userAvatar');
+      
+      if (token && username && userId) {
+        this.isLoggedIn = true;
+        this.username = username;
+        this.userId = userId;
+        this.userAvatar = userAvatar || '';
+      } else {
+        this.isLoggedIn = false;
+      }
+    },
+    handleLogout() {
+      // 清除本地存储
+      localStorage.removeItem('token');
+      localStorage.removeItem('username');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('userAvatar');
+      
+      // 更新状态
+      this.isLoggedIn = false;
+      this.username = '';
+      this.userId = '';
+      this.userAvatar = '';
+      
+      // 跳转到首页
+      this.$router.push('/').catch(err => err);
+      
+      // 关闭移动端菜单
+      this.isBurgerActive = false;
+    },
     toggleBurger() {
       this.isBurgerActive = !this.isBurgerActive;
     },
@@ -434,6 +514,84 @@ export default {
   margin-right: 12px;
 }
 
+/* 用户菜单样式 */
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-profile-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-radius: 50px;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  color: #ffffff !important;
+  text-decoration: none;
+}
+
+.user-profile-link:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-avatar-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.username {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-logout {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  color: #ff4757 !important;
+  border: none !important;
+  border-radius: 50px !important;
+  padding: 10px 24px !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.btn-logout:hover {
+  background-color: #ffffff !important;
+  color: #ee2e3d !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3);
+}
+
 /* 移动端样式 */
 @media (max-width: 1024px) {
   .logo-item { padding: 6px 10px; }
@@ -466,6 +624,22 @@ export default {
   .btn-register,
   .btn-login {
     flex: 1;
+  }
+  
+  /* 移动端用户菜单 */
+  .user-menu {
+    width: 100%;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .user-profile-link {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .btn-logout {
+    width: 100% !important;
   }
 }
 

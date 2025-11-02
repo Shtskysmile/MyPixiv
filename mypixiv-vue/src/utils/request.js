@@ -22,7 +22,12 @@ service.interceptors.request.use(
   config => {
     // 从localStorage获取token
     const token = localStorage.getItem('token')
-    if (token) {
+    
+    // 注册和登录接口不需要token，其他接口才添加token
+    const noAuthUrls = ['/register', '/login']
+    const needsAuth = !noAuthUrls.some(url => config.url.includes(url))
+    
+    if (token && needsAuth) {
       config.headers['Authorization'] = `Bearer ${token}`
     }
     

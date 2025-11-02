@@ -13,7 +13,7 @@ module.exports = defineConfig({
     proxy: useMock ? {} : {
       // 代理 /api 开头的请求
       '/api': {
-        target: process.env.VUE_APP_API_BASE_URL || 'http://www.pcoi.top',
+        target: process.env.VUE_APP_API_BASE_URL || 'http://localhost:8081',
         changeOrigin: true,
         pathRewrite: {
           '^/api': '/api'
@@ -32,7 +32,7 @@ module.exports = defineConfig({
       },
       // 代理用户认证相关的请求
       '^/(login|register|mySecurityIssues|verifySecurityIssue|updatePassword)': {
-        target: process.env.VUE_APP_API_BASE_URL || 'http://www.pcoi.top',
+        target: process.env.VUE_APP_API_BASE_URL || 'http://localhost:8081',
         changeOrigin: true,
         logLevel: 'debug',
         onProxyReq: (proxyReq, req, res) => {
@@ -48,7 +48,7 @@ module.exports = defineConfig({
       },
       // 代理其他不带 /api 前缀的后端接口
       '^/(illustrations|mangas|contribution|search|userInfo|contributionList|user)': {
-        target: process.env.VUE_APP_API_BASE_URL || 'http://www.pcoi.top',
+        target: process.env.VUE_APP_API_BASE_URL || 'http://localhost:8081',
         changeOrigin: true,
         logLevel: 'debug',
         onProxyReq: (proxyReq, req, res) => {
@@ -73,7 +73,7 @@ module.exports = defineConfig({
         console.log('📡 所有API请求将被Mock拦截')
       } else {
         console.log('🔌 Mock模式已关闭')
-        console.log(`📡 API请求将代理到: ${process.env.VUE_APP_API_BASE_URL || 'http://www.pcoi.top'}`)
+        console.log(`📡 API请求将代理到: ${process.env.VUE_APP_API_BASE_URL || 'http://localhost:8081'}`)
         console.log('💡 请确保后端服务已启动')
       }
       console.log(`🌐 前端服务运行在: http://localhost:${port}`)
