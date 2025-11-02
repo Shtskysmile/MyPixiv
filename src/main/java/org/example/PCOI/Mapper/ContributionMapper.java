@@ -13,8 +13,7 @@ public interface ContributionMapper {
     @Results(id = "ContributionMap", value = {
             @Result(column = "image", property = "image", typeHandler = JacksonTypeHandler.class)
     })
-    @Select("SELECT 1")
-    Integer _init_();
+
 
     @Insert("INSERT INTO contribution(type,title,image,description,authorId) VALUES(#{type},#{title},#{image, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler},#{description},#{authorId})")
     void insertContribution(Contribution contribution);

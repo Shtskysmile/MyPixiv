@@ -21,7 +21,7 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
     private LogService logService;
 
     @Override
-    public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) throws Exception {
+    public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler){
         String userId = DEFAULT_GUEST;
         String authHeader = request.getHeader("Authorization");
         if (!isBlank(authHeader)) {

@@ -3,7 +3,6 @@ package org.example.PCOI.Service.Impl;
 import lombok.extern.slf4j.Slf4j;
 import org.example.PCOI.Entity.Comment;
 import org.example.PCOI.Entity.Contribution;
-import org.example.PCOI.Entity.Tag;
 import org.example.PCOI.Entity.User;
 import org.example.PCOI.Mapper.*;
 import org.example.PCOI.ResponseDTO.*;

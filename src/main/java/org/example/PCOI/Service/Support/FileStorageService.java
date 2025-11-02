@@ -89,19 +89,6 @@ public class FileStorageService {
         return filename;
     }
 
-
-    private static void deleteRecursively(Path path) throws IOException {
-        if (!Files.exists(path)) return;
-        if (Files.isDirectory(path)) {
-            try (Stream<Path> children = Files.list(path)) {
-                for (Path c : (Iterable<Path>) children::iterator) {
-                    deleteRecursively(c);
-                }
-            }
-        }
-        Files.deleteIfExists(path);
-    }
-
     // 生成“文件夹 URL”（以 / 结尾）
     private String buildFolderUrl(String relFolder) {
         String url = ensureTrailingSlash(uploadUrlPrefix) + (relFolder.startsWith("/") ? relFolder.substring(1) : relFolder);
