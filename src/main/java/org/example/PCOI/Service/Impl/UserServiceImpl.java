@@ -96,8 +96,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<R_OverviewContribution> getContributionList(String userId) {
-        // 防御性：清理可能残留的分页上下文
-        PageHelper.clearPage();
         User user = usermapper.selectUserById(userId);
         List<Contribution> contributions = contributionmapper.selectContributionsByAuthorId(userId);
         List<R_OverviewContribution> rOverviewContributions = new ArrayList<>();

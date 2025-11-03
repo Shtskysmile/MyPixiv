@@ -115,10 +115,10 @@ public class ContributionServiceImpl implements ContributionService {
     public List<R_OverviewContribution> getContributionsRanking(Integer type, Integer key) {
         int limit = maxSearchLimit;
         List<Contribution> contributions = switch (key) {
-            case viewCount -> contributionMapper.selectContributionsByTypeAndViewCount(limit, type);
-            case favoriteCount -> contributionMapper.selectContributionsByTypeAndFavoriteCount(limit, type);
-            case likeCount -> contributionMapper.selectContributionsByTypeAndLikeCount(limit, type);
-            case commentCount -> contributionMapper.selectContributionsByTypeAndCommentCount(limit, type);
+            case viewCount -> contributionMapper.selectContributionsByTypeAndViewCount(type, limit);
+            case favoriteCount -> contributionMapper.selectContributionsByTypeAndFavoriteCount(type, limit);
+            case likeCount -> contributionMapper.selectContributionsByTypeAndLikeCount(type, limit);
+            case commentCount -> contributionMapper.selectContributionsByTypeAndCommentCount(type, limit);
             default -> List.of();
         };
         List<R_OverviewContribution> result = new ArrayList<>();

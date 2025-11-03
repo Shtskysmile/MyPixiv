@@ -14,11 +14,24 @@ public class SearchController {
     @Autowired
     private SearchService searchService;
 
-    @PostMapping("/search")
-    public Result<R_SearchDTO> search(
-            @RequestParam("keyword") String keyword,
-            @RequestParam("isTag") Boolean isTag){
-        R_SearchDTO data = searchService.search(keyword, isTag);
+    @PostMapping("/searchById")
+    public Result<R_SearchDTO> searchById(
+            @RequestParam("keyword") String keyword){
+        R_SearchDTO data = searchService.searchById(keyword);
+        return Result.success(data);
+    }
+
+    @PostMapping("/searchByName")
+    public Result<R_SearchDTO> searchByName(
+            @RequestParam("keyword") String keyword){
+        R_SearchDTO data = searchService.searchByName(keyword);
+        return Result.success(data);
+    }
+
+    @PostMapping("/searchByTag")
+    public Result<R_SearchDTO> searchByTag(
+            @RequestParam("keyword") String keyword){
+        R_SearchDTO data = searchService.searchByTag(keyword);
         return Result.success(data);
     }
 
