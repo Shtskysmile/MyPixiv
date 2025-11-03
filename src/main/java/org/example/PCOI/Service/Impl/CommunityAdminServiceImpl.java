@@ -124,21 +124,21 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
         for(Contribution contribution : pendingList){
             User user = userMapper.selectUserById(contribution.getAuthorId());
             R_OverviewContribution rOverviewContribution =
-                    transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
+                    transformService.transformContributionToROverviewContribution(contribution, user.getAvatar(),user.getUsername());
             pendingContributions.add(rOverviewContribution);
         }
         // 组装已通过作品概览
         for(Contribution contribution : approvedList){
             User user = userMapper.selectUserById(contribution.getAuthorId());
             R_OverviewContribution rOverviewContribution =
-                    transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
+                    transformService.transformContributionToROverviewContribution(contribution, user.getAvatar(),user.getUsername());
             approvedContributions.add(rOverviewContribution);
         }
         // 组装已驳回作品概览
         for(Contribution contribution : dismissalList){
             User user = userMapper.selectUserById(contribution.getAuthorId());
             R_OverviewContribution rOverviewContribution =
-                    transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
+                    transformService.transformContributionToROverviewContribution(contribution, user.getAvatar(),user.getUsername());
             dismissalContributions.add(rOverviewContribution);
         }
 
@@ -208,7 +208,7 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
         List<Contribution> blockedContributions = contributionMapper.selectContributionsByStatus(banned);
         for(Contribution contribution : blockedContributions){
             User user = userMapper.selectUserById(contribution.getAuthorId());
-            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution,user.getAvatar());
+            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution,user.getAvatar(),user.getUsername());
             blockedRContributions.add(rOverviewContribution);
         }
         return blockedRContributions;

@@ -16,6 +16,7 @@ public class R_Contribution {
     private Integer auditStatus;   // 审核状态（待审核，已通过，已驳回）
     private LocalDateTime publishTime;         // 上传时间
     private String authorId;     // 上传者
+    private String authorName;   // 上传者名称
     private String uploaderAvatarPath; // 上传者头像路径
     private Integer viewCount;      // 浏览数
     private Integer favoriteCount;        // 收藏数

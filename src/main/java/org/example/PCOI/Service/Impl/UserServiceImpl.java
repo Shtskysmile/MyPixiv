@@ -102,7 +102,7 @@ public class UserServiceImpl implements UserService {
         List<Contribution> contributions = contributionmapper.selectContributionsByAuthorId(userId);
         List<R_OverviewContribution> rOverviewContributions = new ArrayList<>();
         for(Contribution contribution : contributions) {
-            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
+            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar(), user.getUsername());
             rOverviewContributions.add(rOverviewContribution);
         }
         return rOverviewContributions;
@@ -121,15 +121,15 @@ public class UserServiceImpl implements UserService {
         List<Contribution> approvedList = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId,approved);
         List<Contribution> dismissalList = contributionmapper.selectContributionsByAuthorIdAndAuditStatus(userId, dismissal);
         for(Contribution contribution : pendingList) {
-            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
+            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar(), user.getUsername());
             pendingContributions.add(rOverviewContribution);
         }
         for(Contribution contribution : approvedList) {
-            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
+            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar(), user.getUsername());
             approvedContributions.add(rOverviewContribution);
         }
         for(Contribution contribution : dismissalList) {
-            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
+            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar(), user.getUsername());
             dismissalContributions.add(rOverviewContribution);
         }
         R_Audit_My_ContributionsDTO myContributionsDTO = new R_Audit_My_ContributionsDTO();
@@ -156,7 +156,7 @@ public class UserServiceImpl implements UserService {
         List<R_OverviewContribution> rOverviewContributions = new ArrayList<>();
         for(Contribution contribution : likedContributions) {
             User user = usermapper.selectUserById(contribution.getAuthorId());
-            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
+            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar(), user.getUsername());
             rOverviewContributions.add(rOverviewContribution);
         }
         return rOverviewContributions;
@@ -168,7 +168,7 @@ public class UserServiceImpl implements UserService {
         List<R_OverviewContribution> rOverviewContributions = new ArrayList<>();
         for(Contribution contribution : favouriteContributions) {
             User user = usermapper.selectUserById(contribution.getAuthorId());
-            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
+            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar(), user.getUsername());
             rOverviewContributions.add(rOverviewContribution);
         }
         return rOverviewContributions;
@@ -182,8 +182,8 @@ public class UserServiceImpl implements UserService {
             Contribution contribution = contributionmapper.selectContributionById(comment.getContribution());
             User contributionUser = usermapper.selectUserById(contribution.getAuthorId());
             User commentUser = usermapper.selectUserById(comment.getAuthor());
-            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar());
-            R_UserComment rUserComment = transformService.transformCommentToRUserComment(comment, rOverviewContribution,commentUser.getAvatar());
+            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar(), contributionUser.getUsername());
+            R_UserComment rUserComment = transformService.transformCommentToRUserComment(comment, rOverviewContribution,commentUser.getAvatar(), commentUser.getUsername());
             rUserComments.add(rUserComment);
         }
         return rUserComments;

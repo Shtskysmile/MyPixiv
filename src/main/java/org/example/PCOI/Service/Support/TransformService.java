@@ -30,7 +30,7 @@ public class TransformService {
         return securityIssue;
     }
 
-    public R_OverviewContribution transformContributionToROverviewContribution(Contribution contribution,String avatar)
+    public R_OverviewContribution transformContributionToROverviewContribution(Contribution contribution,String avatar,String authorName)
     {
         R_OverviewContribution rOverviewContribution = new R_OverviewContribution();
         rOverviewContribution.setContributionId(contribution.getContributionId());
@@ -43,28 +43,30 @@ public class TransformService {
         rOverviewContribution.setCommentCount(contribution.getCommentCount());
         rOverviewContribution.setDismissalReason(contribution.getDismissalReason());
         rOverviewContribution.setAvatar(avatar);
+        rOverviewContribution.setAuthorName(authorName);
         return rOverviewContribution;
     }
 
-    public R_ContributionComment transformCommentToRContributionComment(Comment comment,String avatar)
+    public R_ContributionComment transformCommentToRContributionComment(Comment comment,String avatar,String authorName)
     {
         R_ContributionComment rContributionComment = new R_ContributionComment();
         rContributionComment.setAuthor(comment.getAuthor());
         rContributionComment.setDescription(comment.getDescription());
         rContributionComment.setAvatar(avatar);
         rContributionComment.setTime(comment.getTime());
+        rContributionComment.setAuthorName(authorName);
         return rContributionComment;
     }
 
-    public R_UserComment transformCommentToRUserComment(Comment comment, R_OverviewContribution contribution,String avatar)
+    public R_UserComment transformCommentToRUserComment(Comment comment, R_OverviewContribution contribution,String avatar,String authorName)
     {
         R_UserComment rUserComment = new R_UserComment();
-        rUserComment.setComment(transformCommentToRContributionComment(comment,avatar));
+        rUserComment.setComment(transformCommentToRContributionComment(comment,avatar,authorName));
         rUserComment.setContribution(contribution);
         return rUserComment;
     }
 
-    public R_Contribution transformContributionToRContribution(Contribution contribution,String avatar)
+    public R_Contribution transformContributionToRContribution(Contribution contribution,String avatar,String authorName)
     {
         R_Contribution rContribution = new R_Contribution();
         rContribution.setType(contribution.getType());
@@ -82,6 +84,7 @@ public class TransformService {
         rContribution.setPublishTime(contribution.getPublishTime());
         rContribution.setAuditStatus(contribution.getAuditStatus());
         rContribution.setUploaderAvatarPath(avatar);
+        rContribution.setAuthorName(authorName);
         return rContribution;
     }
 }

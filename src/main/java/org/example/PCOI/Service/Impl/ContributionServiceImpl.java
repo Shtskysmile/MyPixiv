@@ -46,7 +46,7 @@ public class ContributionServiceImpl implements ContributionService {
         List<R_OverviewContribution> rOverviewContributions = new ArrayList<>();
         for (Contribution contribution : contributions) {
             User contributionUser = userMapper.selectUserById(contribution.getAuthorId());
-            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar());
+            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar(), contributionUser.getUsername());
             rOverviewContributions.add(rOverviewContribution);
         }
         return rOverviewContributions;
@@ -58,7 +58,7 @@ public class ContributionServiceImpl implements ContributionService {
         List<R_OverviewContribution> rOverviewContributions = new ArrayList<>();
         for (Contribution contribution : contributions) {
             User contributionUser = userMapper.selectUserById(contribution.getAuthorId());
-            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar());
+            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar(), contributionUser.getUsername());
             rOverviewContributions.add(rOverviewContribution);
         }
         return rOverviewContributions;
@@ -70,7 +70,7 @@ public class ContributionServiceImpl implements ContributionService {
         List<R_OverviewContribution> rOverviewContributions = new ArrayList<>();
         for (Contribution contribution : contributions) {
             User contributionUser = userMapper.selectUserById(contribution.getAuthorId());
-            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar());
+            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar(), contributionUser.getUsername());
             rOverviewContributions.add(rOverviewContribution);
         }
         return rOverviewContributions;
@@ -83,11 +83,11 @@ public class ContributionServiceImpl implements ContributionService {
         List<Comment> comments = commentMapper.selectCommentsByContributionId(contributionId);
         boolean isLiked = likeMapper.isLike(userId, contributionId);
         boolean isFavorite = favoriteMapper.isFavorite(userId, contributionId);
-        R_Contribution rContribution = transformService.transformContributionToRContribution(contribution, contributionUser.getAvatar());
+        R_Contribution rContribution = transformService.transformContributionToRContribution(contribution, contributionUser.getAvatar(), contributionUser.getUsername());
         List<R_ContributionComment> rContributionComments = new ArrayList<>();
         for (Comment comment : comments) {
             User commentUser = userMapper.selectUserById(comment.getAuthor());
-            R_ContributionComment rContributionComment = transformService.transformCommentToRContributionComment(comment, commentUser.getAvatar());
+            R_ContributionComment rContributionComment = transformService.transformCommentToRContributionComment(comment, commentUser.getAvatar(), commentUser.getUsername());
             rContributionComments.add(rContributionComment);
         }
         R_ContributionDTO rContributionDTO = new R_ContributionDTO();
@@ -106,7 +106,7 @@ public class ContributionServiceImpl implements ContributionService {
         if(contribution!=null && (userId.equals(contribution.getAuthorId())||role.equals(communityAdmin)))
         {
             User contributionUser = userMapper.selectUserById(contribution.getAuthorId());
-            return transformService.transformContributionToRContribution(contribution, contributionUser.getAvatar());
+            return transformService.transformContributionToRContribution(contribution, contributionUser.getAvatar(), contributionUser.getUsername());
         }
         return null;
     }
@@ -125,7 +125,7 @@ public class ContributionServiceImpl implements ContributionService {
         for (Contribution c : contributions) {
             User author = userMapper.selectUserById(c.getAuthorId());
             String avatar = author == null ? null : author.getAvatar();
-            result.add(transformService.transformContributionToROverviewContribution(c, avatar));
+            result.add(transformService.transformContributionToROverviewContribution(c, avatar, author.getUsername()));
         }
         return result;
     }

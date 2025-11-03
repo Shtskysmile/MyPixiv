@@ -42,7 +42,7 @@ public class SearchServiceImpl implements SearchService {
             contributions = contributionMapper.selectContributionsByTag(keyword);
             for (Contribution contribution : contributions) {
                 User user = userMapper.selectUserById(contribution.getAuthorId());
-                R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
+                R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar(), user.getUsername());
                 if (contribution.getType().equals(illustration))
                     illustrations.add(rOverviewContribution);
                 else if (contribution.getType().equals(manga))
@@ -59,7 +59,7 @@ public class SearchServiceImpl implements SearchService {
         users.add(userMapper.selectUserById(keyword));
         for(Contribution contribution:contributions) {
             User user = userMapper.selectUserById(contribution.getAuthorId());
-            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
+            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar(), user.getUsername());
             if (contribution.getType().equals(illustration))
                 illustrations.add(rOverviewContribution);
             else if (contribution.getType().equals(manga))

@@ -9,6 +9,7 @@ public class R_OverviewContribution {
     private String contributionId; // 作品ID
     private String title;          // 作品标题
     private String authorId;       // 上传者
+    private String authorName;     // 上传者名称
     private List<String> image;      // 作品图片路径（多图）
     private Integer viewCount;      // 浏览数
     private Integer favoriteCount;        // 收藏数
