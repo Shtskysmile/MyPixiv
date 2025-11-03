@@ -21,6 +21,10 @@ public interface ContributionMapper {
     Contribution selectContributionById(String contributionId);
 
     @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
+    @Select("SELECT * FROM contribution WHERE contributionId = #{contributionId} AND status = 0 AND auditStatus = 0")
+    Contribution selectPendingContributionById(String contributionId);
+
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
     @Select("SELECT * FROM contribution WHERE authorId = #{authorId}")
     List<Contribution> selectContributionsByAuthorId(String authorId);
 

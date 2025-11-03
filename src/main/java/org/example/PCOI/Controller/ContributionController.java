@@ -46,9 +46,11 @@ public class ContributionController {
     public Result<R_Contribution> getPendingContribution(
             @RequestHeader("Authorization") String authHeader,
             @RequestParam("contributionId") String contributionId) throws Exception {
+        System.out.println("contributionId: " + contributionId);
         String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
         Integer role = (Integer) TokenProcess.getAttributeFromToken(authHeader, "role");
         R_Contribution c = contributionService.getPendingContribution(userId,role,contributionId);
+        System.out.println(c.getImage());
         return Result.success(c);
     }
 

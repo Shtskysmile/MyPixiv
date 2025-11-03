@@ -102,7 +102,7 @@ public class ContributionServiceImpl implements ContributionService {
 
     @Override
     public R_Contribution getPendingContribution(String userId, Integer role, String contributionId) {
-        Contribution contribution = contributionMapper.selectContributionById(contributionId);
+        Contribution contribution = contributionMapper.selectPendingContributionById(contributionId);
         if(contribution!=null && (userId.equals(contribution.getAuthorId())||role.equals(communityAdmin)))
         {
             User contributionUser = userMapper.selectUserById(contribution.getAuthorId());

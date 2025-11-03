@@ -100,9 +100,6 @@ public class UserServiceImpl implements UserService {
         PageHelper.clearPage();
         User user = usermapper.selectUserById(userId);
         List<Contribution> contributions = contributionmapper.selectContributionsByAuthorId(userId);
-        for(Contribution c : contributions){
-            System.out.println(c.getImage());
-        }
         List<R_OverviewContribution> rOverviewContributions = new ArrayList<>();
         for(Contribution contribution : contributions) {
             R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, user.getAvatar());
