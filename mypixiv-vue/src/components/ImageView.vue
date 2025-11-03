@@ -292,29 +292,37 @@ export default {
         return this.currentLoadedImage;
       }
 
-      if (this.contribution.type === 1 && this.contribution.images && this.contribution.images.length > 0) {
-        // 漫画：返回当前索引的图片
+      if (this.contribution.images && Array.isArray(this.contribution.images) && this.contribution.images.length > 0) {
+        // 多张图片：返回当前索引的图片
         return this.contribution.images[this.currentImageIndex] || '';
       } else {
-        // 插画：返回单张图片
-        return this.contribution.image || '';
+        // 单张图片
+        let image = this.contribution.image || '';
+        // 如果 image 是数组，取第一个元素
+        if (Array.isArray(image)) {
+          return image[0] || '';
+        }
+        return image;
       }
     },
     // 是否为漫画
     isManga() {
       return this.contribution.type === 1;
     },
-    // 漫画总页数
+    // 总页数（漫画或插画集）
     totalPages() {
-      return this.isManga ? (this.contribution.images?.length || 0) : 1;
+      if (this.contribution.images && Array.isArray(this.contribution.images) && this.contribution.images.length > 0) {
+        return this.contribution.images.length;
+      }
+      return 1;
     },
     // 是否可以上一页
     canPrevPage() {
-      return this.isManga && this.currentImageIndex > 0;
+      return this.totalPages > 1 && this.currentImageIndex > 0;
     },
     // 是否可以下一页
     canNextPage() {
-      return this.isManga && this.currentImageIndex < this.totalPages - 1;
+      return this.totalPages > 1 && this.currentImageIndex < this.totalPages - 1;
     }
   },
   created() {
@@ -328,23 +336,85 @@ export default {
       const params = new URLSearchParams();
       params.append('contributionId', id);
 
-      // 使用后端接口 POST /contribution，返回 Result<R_ContributionDTO>
-      axios.post('/api/contribution', params, {
+      // 检查 URL 参数中是否有 pending 标记
+      const isPending = this.$route.query.pending === 'true';
+      
+      // 根据是否为待审核作品选择不同的接口
+      const endpoint = isPending ? '/api/pendingContribution' : '/api/contribution';
+      console.log(endpoint);
+      console.log(params);
+
+      // 使用后端接口，返回 Result<R_ContributionDTO> 或 Result<R_Contribution>
+      axios.post(endpoint, params, {
         headers: {
           'Authorization': 'Bearer ' + token
         }
       })
         .then((res) => {
-          if (res.data && res.data.code === 200) {
+          if (res.data && res.data.code === 0) {
             const data = res.data.data;
-            // 对齐 R_ContributionDTO 结构
-            this.contribution = data.contribution || {};
-            this.comments = data.comments || [];
-            this.isLiked = data.isLiked || false;
-            this.isFavorite = data.isFavorite || false;
             
-            // 如果是漫画且有多张图片，初始化当前页
-            if (this.contribution.type === 1 && this.contribution.images && this.contribution.images.length > 0) {
+            console.log('🔍 [调试] 后端返回完整数据:', JSON.stringify(data, null, 2));
+            console.log('🔍 [调试] isPending:', isPending);
+            
+            if (isPending) {
+              // 待审核作品接口返回 R_Contribution（没有评论和点赞收藏状态）
+              this.contribution = data || {};
+              this.comments = [];
+              this.isLiked = false;
+              this.isFavorite = false;
+              console.log('🔍 [调试] contribution.contributionId:', this.contribution.contributionId);
+              console.log('🔍 [调试] contribution.image (原始):', this.contribution.image);
+              console.log('🔍 [调试] contribution.images (原始):', this.contribution.images);
+              
+              // 🔧 修复：后端返回的 image 字段是 List<String>，需要转换
+              // 插画：image 是单元素数组，转为 string
+              // 漫画：image 是多元素数组，转为 images
+              if (Array.isArray(this.contribution.image)) {
+                if (this.contribution.image.length === 1) {
+                  // 插画：单张图片
+                  this.contribution.image = this.contribution.image[0];
+                  this.contribution.images = [];
+                  console.log('✅ 转换为插画格式 - image:', this.contribution.image);
+                } else if (this.contribution.image.length > 1) {
+                  // 漫画：多张图片
+                  this.contribution.images = this.contribution.image;
+                  this.contribution.image = '';
+                  console.log('✅ 转换为漫画格式 - images:', this.contribution.images);
+                } else {
+                  // 空数组，设置默认值
+                  this.contribution.image = '';
+                  this.contribution.images = [];
+                  console.warn('⚠️ image字段是空数组');
+                }
+              }
+            } else {
+              // 普通作品接口返回 R_ContributionDTO 结构
+              this.contribution = data.contribution || {};
+              this.comments = data.comments || [];
+              this.isLiked = data.isLiked || false;
+              this.isFavorite = data.isFavorite || false;
+              
+              // 🔧 修复：普通作品也可能有 image 数组格式
+              if (this.contribution.image && Array.isArray(this.contribution.image)) {
+                if (this.contribution.image.length === 1) {
+                  this.contribution.image = this.contribution.image[0];
+                  this.contribution.images = [];
+                  console.log('✅ 普通作品转换为插画格式');
+                } else if (this.contribution.image.length > 1) {
+                  this.contribution.images = this.contribution.image;
+                  this.contribution.image = '';
+                  console.log('✅ 普通作品转换为漫画格式');
+                } else {
+                  this.contribution.image = '';
+                  this.contribution.images = [];
+                  console.warn('⚠️ 普通作品image字段是空数组');
+                }
+              }
+            }
+            
+            // 如果有多张图片（漫画或插画集），初始化当前页
+            if (this.contribution.images && Array.isArray(this.contribution.images) && this.contribution.images.length > 0) {
               this.currentImageIndex = 0;
             }
 
@@ -365,11 +435,17 @@ export default {
 
     // 加载所有图片
     async loadAllImages() {
-      if (this.contribution.type === 1 && this.contribution.images && this.contribution.images.length > 0) {
-        // 漫画：加载所有图片
+      console.log('🖼️ [loadAllImages] 开始加载图片...');
+      console.log('📦 contribution.images:', this.contribution.images);
+      console.log('📦 contribution.image:', this.contribution.image);
+
+      if (this.contribution.images && Array.isArray(this.contribution.images) && this.contribution.images.length > 0) {
+        // 多张图片（漫画或插画集）：加载所有图片
+        console.log('✅ 检测到多张图片，数量:', this.contribution.images.length);
         const imagePaths = this.contribution.images;
         for (let i = 0; i < imagePaths.length; i++) {
           const path = imagePaths[i];
+          console.log(`  - 加载第 ${i + 1}/${imagePaths.length} 张:`, path);
           if (!this.loadedImages[path]) {
             const url = await loadImage(path);
             this.$set(this.loadedImages, path, url || path);
@@ -378,23 +454,38 @@ export default {
         // 更新当前显示的图片
         this.updateCurrentLoadedImage();
       } else if (this.contribution.image) {
-        // 插画：加载单张图片
-        const path = this.contribution.image;
+        // 单张图片（插画）
+        console.log('✅ 检测到单张图片');
+        let path = this.contribution.image;
+        
+        // 如果 image 是数组，取第一个元素
+        if (Array.isArray(path)) {
+          console.warn('⚠️ contribution.image 是数组，取第一个元素:', path[0]);
+          path = path[0];
+        }
+        
+        console.log('  - 加载图片:', path);
         if (!this.loadedImages[path]) {
           const url = await loadImage(path);
           this.$set(this.loadedImages, path, url || path);
         }
         this.updateCurrentLoadedImage();
+      } else {
+        console.warn('⚠️ 没有找到图片数据');
       }
     },
 
     // 更新当前显示的已加载图片
     updateCurrentLoadedImage() {
       let currentPath;
-      if (this.contribution.type === 1 && this.contribution.images && this.contribution.images.length > 0) {
+      if (this.contribution.images && Array.isArray(this.contribution.images) && this.contribution.images.length > 0) {
         currentPath = this.contribution.images[this.currentImageIndex];
       } else {
         currentPath = this.contribution.image;
+        // 如果 image 是数组，取第一个元素
+        if (Array.isArray(currentPath)) {
+          currentPath = currentPath[0];
+        }
       }
 
       if (currentPath && this.loadedImages[currentPath]) {

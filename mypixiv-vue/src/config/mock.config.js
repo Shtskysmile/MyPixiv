@@ -12,7 +12,8 @@ const mockConfig = {
   logging: true,
   
   // API基础路径（生产环境使用）
-  apiBaseUrl: process.env.VUE_APP_API_BASE_URL
+  // 优先使用环境变量，如果没有则使用默认值
+  apiBaseUrl: process.env.VUE_APP_API_BASE_URL || 'http://localhost:8080'
 }
 
 export default mockConfig

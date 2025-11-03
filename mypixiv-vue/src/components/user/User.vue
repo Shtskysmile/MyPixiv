@@ -285,7 +285,7 @@ export default {
       
       const params = new URLSearchParams();
       params.append('userId', userId);
-      
+
       // 获取关注数（关注的人数）
       request.post('/concernedList', params)
         .then((res) => {
@@ -295,11 +295,15 @@ export default {
         })
         .catch(() => {});
       
-      // 获取作品数
-      request.post('/contributionList', params)
+      // 获取作品数 - 使用 /user/myContributions 接口
+      request.post('/user/myContributions')
         .then((res) => {
           if (res.data && res.data.code === 0) {
-            this.userStats.works = (res.data.data || []).length;
+            const data = res.data.data;
+            const total = (data.pendingContributions || []).length + 
+                         (data.approvedContributions || []).length + 
+                         (data.dismissalContributions || []).length;
+            this.userStats.works = total;
           }
         })
         .catch(() => {});
@@ -446,24 +450,86 @@ export default {
     openWorks(page = 1) {
       this.view = 'works';
       const p = typeof page === 'number' ? page : (page && page.detail) || 1;
-      const params = new URLSearchParams();
-      params.append('userId', this.currentUserId);
 
-      // 使用后端接口 POST /contributionList，返回 Result<List<R_OverviewContribution>>
-      request.post('/contributionList', params)
+      console.log('🔍 [调试] 开始加载作品列表...');
+      
+      // 使用后端接口 POST /user/myContributions，返回 Result<R_Audit_My_ContributionsDTO>
+      // 需要 Authorization 请求头
+      request.post('/user/myContributions')
         .then((res) => {
+          console.log('🔍 [调试] 后端返回完整响应:', res.data);
+          
           if (res.data && res.data.code === 0) {
-            const list = res.data.data || [];
+            const data = res.data.data;
+            
+            console.log('🔍 [调试] 后端返回data对象:', data);
+            console.log('🔍 [调试] pendingContributions:', data.pendingContributions);
+            console.log('🔍 [调试] approvedContributions:', data.approvedContributions);
+            console.log('🔍 [调试] dismissalContributions:', data.dismissalContributions);
+            
+            // 为每个作品添加 auditStatus 字段
+            const pendingWorks = (data.pendingContributions || []).map(work => ({
+              ...work,
+              auditStatus: 0  // 待审核
+            }));
+            const approvedWorks = (data.approvedContributions || []).map(work => ({
+              ...work,
+              auditStatus: 1  // 已通过
+            }));
+            const dismissalWorks = (data.dismissalContributions || []).map(work => ({
+              ...work,
+              auditStatus: 2  // 已驳回
+            }));
+            
+            // 打印示例作品的详细信息
+            if (pendingWorks.length > 0) {
+              console.group('🔍 [调试] 待审核作品示例');
+              console.log('完整对象:', pendingWorks[0]);
+              console.log('image字段:', pendingWorks[0].image);
+              console.log('image字段类型:', typeof pendingWorks[0].image);
+              console.log('是否为数组:', Array.isArray(pendingWorks[0].image));
+              console.groupEnd();
+            }
+            
+            if (approvedWorks.length > 0) {
+              console.group('🔍 [调试] 已通过作品示例');
+              console.log('完整对象:', approvedWorks[0]);
+              console.log('image字段:', approvedWorks[0].image);
+              console.log('image字段类型:', typeof approvedWorks[0].image);
+              console.log('是否为数组:', Array.isArray(approvedWorks[0].image));
+              console.groupEnd();
+            }
+            
+            // 合并三个列表：待审核、已通过、已驳回
+            const allWorks = [
+              ...pendingWorks,
+              ...approvedWorks,
+              ...dismissalWorks
+            ];
+            
             // 前端分页
             this.worksPage = p;
-            this.worksTotal = list.length;
+            this.worksTotal = allWorks.length;
             const pageSize = 12;
             const start = (p - 1) * pageSize;
             const end = start + pageSize;
-            this.userWorks = list.slice(start, end);
+            this.userWorks = allWorks.slice(start, end);
+            
+            console.log('✅ 作品数据加载成功:', {
+              待审核: pendingWorks.length,
+              已通过: approvedWorks.length,
+              已驳回: dismissalWorks.length,
+              总计: allWorks.length,
+              当前页: p,
+              显示作品数: this.userWorks.length
+            });
+          } else {
+            console.warn('⚠️ 后端返回code不为0:', res.data);
           }
         })
-        .catch(() => {
+        .catch((error) => {
+          console.error('❌ 加载作品失败:', error);
+          console.error('❌ 错误详情:', error.response || error.message);
           this.userWorks = [];
           this.worksPage = 1;
           this.worksTotal = 0;

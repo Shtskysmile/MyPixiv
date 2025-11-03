@@ -15,6 +15,21 @@ export async function loadImage(imagePath) {
     return null;
   }
 
+  // 🔍 调试：检查 imagePath 的类型
+  console.log('🔍 [imageLoader] imagePath:', imagePath, 'type:', typeof imagePath);
+
+  // 如果 imagePath 是数组，取第一个元素
+  if (Array.isArray(imagePath)) {
+    console.warn('⚠️ imagePath 是数组，取第一个元素:', imagePath[0]);
+    imagePath = imagePath[0];
+  }
+
+  // 确保 imagePath 是字符串
+  if (typeof imagePath !== 'string') {
+    console.error('❌ imagePath 不是字符串类型:', imagePath, typeof imagePath);
+    return null;
+  }
+
   // 如果已经是完整的 URL 或 data URI，直接返回
   if (imagePath.startsWith('data:') || imagePath.startsWith('blob:') || 
       imagePath.startsWith('http://') || imagePath.startsWith('https://')) {

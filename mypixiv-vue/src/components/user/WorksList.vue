@@ -7,95 +7,177 @@
       <p class="list-subtitle">共 {{ total }} 个作品</p>
     </div>
 
-    <div class="works-grid" v-if="works.length > 0">
-      <div class="work-card" v-for="work in works" :key="work.contributionId || work.id">
-        <router-link :to="`/image/${work.contributionId || work.id}`" class="card-link">
-          <div class="card-image">
-            <img :src="work.image || work.url" :alt="work.title" @error="onImageError" />
-            <div class="image-overlay">
-              <div class="overlay-stats">
-                <span class="stat-item">
-                  <i>👁️</i> {{ formatCount(work.viewCount) }}
-                </span>
-                <span class="stat-item">
-                  <i>❤️</i> {{ formatCount(work.likeCount) }}
-                </span>
-                <span class="stat-item">
-                  <i>⭐</i> {{ formatCount(work.favoriteCount) }}
-                </span>
+    <!-- 待审核作品 -->
+    <div v-if="pendingWorks.length > 0" class="section-container">
+      <div class="section-header pending-header">
+        <span class="icon">⏳</span>
+        <h4 class="section-title">待审核 ({{ pendingWorks.length }})</h4>
+      </div>
+      <div class="works-grid">
+        <div class="work-card" v-for="work in pendingWorks" :key="work.contributionId">
+          <div @click="handleViewWork(work)" class="card-link clickable">
+            <div class="card-image">
+              <img :src="getWorkImageUrl(work)" :alt="work.title" @error="onImageError" />
+              <div class="image-overlay">
+                <div class="overlay-stats">
+                  <span class="stat-item">
+                    <i>👁️</i> {{ formatCount(work.viewCount) }}
+                  </span>
+                  <span class="stat-item">
+                    <i>❤️</i> {{ formatCount(work.likeCount) }}
+                  </span>
+                  <span class="stat-item">
+                    <i>⭐</i> {{ formatCount(work.favoriteCount) }}
+                  </span>
+                </div>
+              </div>
+              <div class="audit-badge">
+                <span class="badge badge-pending">⏳ 待审核</span>
               </div>
             </div>
-            <!-- 审核状态标签 -->
-            <div class="audit-badge" v-if="work.auditStatus !== undefined">
-              <span 
-                class="badge"
-                :class="{
-                  'badge-pending': work.auditStatus === 0,
-                  'badge-passed': work.auditStatus === 1,
-                  'badge-rejected': work.auditStatus === 2
-                }"
-              >
-                {{ getAuditStatusText(work.auditStatus) }}
-              </span>
+          </div>
+
+          <div class="card-content">
+            <div @click="handleViewWork(work)" class="card-title clickable">
+              {{ work.title || '无标题' }}
             </div>
-          </div>
-        </router-link>
 
-        <div class="card-content">
-          <router-link :to="`/image/${work.contributionId || work.id}`" class="card-title">
-            {{ work.title || '无标题' }}
-          </router-link>
+            <div class="card-stats">
+              <span class="stat"><i>👁️</i> {{ formatCount(work.viewCount) }}</span>
+              <span class="stat"><i>❤️</i> {{ formatCount(work.likeCount) }}</span>
+              <span class="stat"><i>⭐</i> {{ formatCount(work.favoriteCount) }}</span>
+              <span class="stat"><i>💬</i> {{ formatCount(work.commentCount) }}</span>
+            </div>
 
-          <div class="card-stats">
-            <span class="stat"><i>👁️</i> {{ formatCount(work.viewCount) }}</span>
-            <span class="stat"><i>❤️</i> {{ formatCount(work.likeCount) }}</span>
-            <span class="stat"><i>⭐</i> {{ formatCount(work.favoriteCount) }}</span>
-            <span class="stat"><i>💬</i> {{ formatCount(work.commentCount) }}</span>
-          </div>
-
-          <!-- 驳回理由 -->
-          <div class="rejection-reason" v-if="work.dismissalReason">
-            <span class="icon">⚠️</span>
-            <span>{{ work.dismissalReason }}</span>
-          </div>
-
-          <div class="card-actions">
-            <button class="anime-button is-small is-info" @click="handleEdit(work)">
-              <span class="icon">✏️</span>
-              <span>编辑</span>
-            </button>
-            <button class="anime-button is-small is-danger" @click="handleDelete(work)">
-              <span class="icon">🗑️</span>
-              <span>删除</span>
-            </button>
+            <div class="card-actions">
+              <button class="anime-button is-small is-info" @click="handleEdit(work)">
+                <span class="icon">✏️</span>
+                <span>编辑</span>
+              </button>
+              <button class="anime-button is-small is-danger" @click="handleDelete(work)">
+                <span class="icon">🗑️</span>
+                <span>删除</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="empty-state" v-else>
+    <!-- 已通过作品 -->
+    <div v-if="approvedWorks.length > 0" class="section-container">
+      <div class="section-header approved-header">
+        <span class="icon">✅</span>
+        <h4 class="section-title">已通过 ({{ approvedWorks.length }})</h4>
+      </div>
+      <div class="works-grid">
+        <div class="work-card" v-for="work in approvedWorks" :key="work.contributionId">
+          <router-link :to="`/image/${work.contributionId}`" class="card-link">
+            <div class="card-image">
+              <img :src="getWorkImageUrl(work)" :alt="work.title" @error="onImageError" />
+              <div class="image-overlay">
+                <div class="overlay-stats">
+                  <span class="stat-item">
+                    <i>👁️</i> {{ formatCount(work.viewCount) }}
+                  </span>
+                  <span class="stat-item">
+                    <i>❤️</i> {{ formatCount(work.likeCount) }}
+                  </span>
+                  <span class="stat-item">
+                    <i>⭐</i> {{ formatCount(work.favoriteCount) }}
+                  </span>
+                </div>
+              </div>
+              <div class="audit-badge">
+                <span class="badge badge-passed">✅ 已通过</span>
+              </div>
+            </div>
+          </router-link>
+
+          <div class="card-content">
+            <router-link :to="`/image/${work.contributionId}`" class="card-title">
+              {{ work.title || '无标题' }}
+            </router-link>
+
+            <div class="card-stats">
+              <span class="stat"><i>👁️</i> {{ formatCount(work.viewCount) }}</span>
+              <span class="stat"><i>❤️</i> {{ formatCount(work.likeCount) }}</span>
+              <span class="stat"><i>⭐</i> {{ formatCount(work.favoriteCount) }}</span>
+              <span class="stat"><i>💬</i> {{ formatCount(work.commentCount) }}</span>
+            </div>
+
+            <div class="card-actions">
+              <button class="anime-button is-small is-info" @click="handleEdit(work)">
+                <span class="icon">✏️</span>
+                <span>编辑</span>
+              </button>
+              <button class="anime-button is-small is-danger" @click="handleDelete(work)">
+                <span class="icon">🗑️</span>
+                <span>删除</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 已驳回作品 -->
+    <div v-if="rejectedWorks.length > 0" class="section-container">
+      <div class="section-header rejected-header">
+        <span class="icon">❌</span>
+        <h4 class="section-title">已驳回 ({{ rejectedWorks.length }})</h4>
+      </div>
+      <div class="works-grid">
+        <div class="work-card rejected-card" v-for="work in rejectedWorks" :key="work.contributionId">
+          <div class="card-link disabled">
+            <div class="card-image">
+              <img :src="getWorkImageUrl(work)" :alt="work.title" @error="onImageError" />
+              <div class="rejected-overlay">
+                <span class="rejected-text">❌ 无法查看</span>
+              </div>
+              <div class="audit-badge">
+                <span class="badge badge-rejected">❌ 已驳回</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-content">
+            <div class="card-title disabled-title">
+              {{ work.title || '无标题' }}
+            </div>
+
+            <div class="card-stats">
+              <span class="stat"><i>👁️</i> {{ formatCount(work.viewCount) }}</span>
+              <span class="stat"><i>❤️</i> {{ formatCount(work.likeCount) }}</span>
+              <span class="stat"><i>⭐</i> {{ formatCount(work.favoriteCount) }}</span>
+              <span class="stat"><i>💬</i> {{ formatCount(work.commentCount) }}</span>
+            </div>
+
+            <!-- 驳回理由 -->
+            <div class="rejection-reason" v-if="work.dismissalReason">
+              <span class="icon">⚠️</span>
+              <span>{{ work.dismissalReason }}</span>
+            </div>
+
+            <div class="card-actions">
+              <button class="anime-button is-small is-info" @click="handleEdit(work)">
+                <span class="icon">✏️</span>
+                <span>编辑</span>
+              </button>
+              <button class="anime-button is-small is-danger" @click="handleDelete(work)">
+                <span class="icon">🗑️</span>
+                <span>删除</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" v-if="works.length === 0">
       <div class="empty-icon">🎨</div>
       <p class="empty-text">还没有上传作品</p>
       <p class="empty-hint">快去创作并上传你的第一个作品吧！</p>
-    </div>
-
-    <!-- 分页 -->
-    <div class="pagination-wrapper" v-if="totalPages > 1">
-      <button 
-        class="page-btn prev-btn" 
-        :disabled="page <= 1"
-        @click="$emit('page-change', page - 1)"
-      >
-        <span class="icon">◀️</span> 上一页
-      </button>
-      <span class="page-info">第 {{ page }} / {{ totalPages }} 页</span>
-      <button 
-        class="page-btn next-btn" 
-        :disabled="page >= totalPages"
-        @click="$emit('page-change', page + 1)"
-      >
-        下一页 <span class="icon">▶️</span>
-      </button>
     </div>
   </div>
 </template>
@@ -124,9 +206,29 @@ export default {
   computed: {
     totalPages() {
       return Math.max(1, Math.ceil(this.total / this.pageSize));
+    },
+    // 待审核作品 (auditStatus === 0)
+    pendingWorks() {
+      return this.works.filter(work => work.auditStatus === 0);
+    },
+    // 已通过作品 (auditStatus === 1)
+    approvedWorks() {
+      return this.works.filter(work => work.auditStatus === 1);
+    },
+    // 已驳回作品 (auditStatus === 2)
+    rejectedWorks() {
+      return this.works.filter(work => work.auditStatus === 2);
     }
   },
   methods: {
+    // 处理待审核作品的查看（使用 pendingContribution 接口）
+    handleViewWork(work) {
+      // 待审核作品跳转到特殊的待审核详情页（暂时使用普通详情页，但传递 pending 参数）
+      this.$router.push({
+        path: `/image/${work.contributionId}`,
+        query: { pending: 'true' }
+      });
+    },
     formatCount(count) {
       if (!count && count !== 0) return 0;
       if (count >= 10000) return (count / 10000).toFixed(1) + 'w';
@@ -145,6 +247,65 @@ export default {
       };
       return statusMap[status] || '未知';
     },
+    getWorkImageUrl(work) {
+      // 后端 R_OverviewContribution.image 是 List<String>，每个元素是图片路径
+      // 格式如: /files/userId/contributions/xxx.jpg
+      
+      console.group(`🖼️ [图片URL调试] ${work.title || work.contributionId}`);
+      console.log('📦 完整作品对象:', work);
+      console.log('🔍 image字段原始值:', work.image);
+      console.log('🔍 image字段类型:', typeof work.image);
+      console.log('🔍 是否为数组:', Array.isArray(work.image));
+      if (Array.isArray(work.image)) {
+        console.log('🔍 数组长度:', work.image.length);
+        console.log('🔍 数组内容:', work.image);
+      }
+      
+      let imagePath = '';
+      
+      if (Array.isArray(work.image) && work.image.length > 0) {
+        // 如果是数组，取第一张图
+        imagePath = work.image[0];
+        console.log('✅ 从数组获取图片路径:', imagePath);
+      } else if (typeof work.image === 'string' && work.image) {
+        // 如果是字符串（兼容旧数据）
+        imagePath = work.image;
+        console.log('✅ 从字符串获取图片路径:', imagePath);
+      } else if (work.url) {
+        // 兼容旧的 url 字段
+        imagePath = work.url;
+        console.log('✅ 从url字段获取图片路径:', imagePath);
+      }
+      
+      if (!imagePath) {
+        // 返回占位图
+        console.warn('❌ 没有找到图片路径，显示占位图');
+        console.groupEnd();
+        return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23ddd" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="20"%3E暂无图片%3C/text%3E%3C/svg%3E';
+      }
+      
+      // 如果是完整URL，直接返回
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        console.log('✅ 完整URL，直接返回:', imagePath);
+        console.groupEnd();
+        return imagePath;
+      }
+      
+      // 拼接基础 URL（参考 Navbar.vue 的头像逻辑）
+      const baseURL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:8080';
+      const fullPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+      const finalUrl = `${baseURL}${fullPath}`;
+      
+      console.log('🌐 环境信息:', {
+        NODE_ENV: process.env.NODE_ENV,
+        VUE_APP_API_BASE_URL: process.env.VUE_APP_API_BASE_URL,
+        baseURL: baseURL
+      });
+      console.log('🔗 最终图片URL:', finalUrl);
+      console.groupEnd();
+      
+      return finalUrl;
+    },
     handleEdit(work) {
       // TODO: 实现编辑功能
       alert('编辑功能开发中...');
@@ -157,6 +318,31 @@ export default {
       }
     },
     onImageError(e) {
+      const failedUrl = e.target.src;
+      console.error('❌ 图片加载失败:', failedUrl);
+      
+      // 尝试验证URL是否可访问
+      console.group('🔍 图片加载失败诊断');
+      console.log('失败的URL:', failedUrl);
+      console.log('可以尝试在新标签页打开此URL查看详细错误:', failedUrl);
+      
+      // 测试图片是否真的存在
+      fetch(failedUrl, { method: 'HEAD' })
+        .then(response => {
+          console.log('HEAD请求响应状态:', response.status);
+          if (response.ok) {
+            console.warn('⚠️ 图片URL可访问，但img标签加载失败。可能是CORS或其他问题。');
+          } else {
+            console.error('❌ 图片URL不可访问，HTTP状态:', response.status);
+          }
+        })
+        .catch(err => {
+          console.error('❌ HEAD请求失败:', err.message);
+        })
+        .finally(() => {
+          console.groupEnd();
+        });
+      
       e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23ddd" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="20"%3E图片加载失败%3C/text%3E%3C/svg%3E';
     },
     onAvatarError(e) {
@@ -176,8 +362,56 @@ export default {
 }
 
 .list-header {
-  margin-bottom: 24px;
+  margin-bottom: 32px;
   text-align: center;
+}
+
+/* 分类区域容器 */
+.section-container {
+  margin-bottom: 40px;
+}
+
+.section-container:last-of-type {
+  margin-bottom: 0;
+}
+
+/* 分类标题 */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  font-weight: 700;
+  border-left: 5px solid;
+}
+
+.pending-header {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-left-color: #fbbf24;
+  color: #92400e;
+}
+
+.approved-header {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border-left-color: #10b981;
+  color: #065f46;
+}
+
+.rejected-header {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  border-left-color: #ef4444;
+  color: #991b1b;
+}
+
+.section-header .icon {
+  font-size: 1.5rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  margin: 0;
 }
 
 .list-title {
@@ -228,11 +462,54 @@ export default {
   text-decoration: none;
 }
 
+/* 可点击的待审核卡片 */
+.card-link.clickable {
+  cursor: pointer;
+}
+
+/* 不可点击的驳回卡片 */
+.card-link.disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 .card-image {
   position: relative;
   height: 200px;
   overflow: hidden;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+/* 驳回作品的遮罩层 */
+.rejected-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+
+.rejected-text {
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* 驳回卡片特殊样式 */
+.rejected-card {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(254, 242, 242, 0.3);
+}
+
+.rejected-card:hover {
+  transform: none;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
 }
 
 .card-image img {
@@ -328,6 +605,24 @@ export default {
 .card-title:hover {
   color: #a855f7;
   text-decoration: underline;
+}
+
+/* 可点击的待审核标题 */
+.card-title.clickable {
+  cursor: pointer;
+}
+
+/* 驳回作品的标题 */
+.disabled-title {
+  display: block;
+  color: #9ca3af;
+  font-weight: 700;
+  font-size: 15px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: not-allowed;
 }
 
 .card-stats {
