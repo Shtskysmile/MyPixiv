@@ -91,17 +91,33 @@ export default {
   },
   methods: {
     async loadImageData() {
-      const imagePath = this.image.image || this.image.url;
+      // 处理后端返回的 image 字段：可能是字符串数组或单个字符串
+      let imagePath = this.image.url; // 优先使用 url 字段（单个字符串）
+      
       if (!imagePath) {
+        // 如果没有 url 字段，检查 image 字段
+        if (Array.isArray(this.image.image) && this.image.image.length > 0) {
+          // image 是数组，取第一张图片作为封面
+          imagePath = this.image.image[0];
+          console.log('📸 使用数组第一张图片作为封面:', imagePath);
+        } else if (typeof this.image.image === 'string') {
+          // image 是字符串
+          imagePath = this.image.image;
+        }
+      }
+      
+      if (!imagePath) {
+        console.warn('⚠️ 未找到图片路径:', this.image);
         this.imageLoading = false;
         return;
       }
 
+      console.log('🖼️ 加载图片:', imagePath);
       try {
         const url = await loadImage(imagePath);
         this.loadedImageUrl = url || imagePath;
       } catch (error) {
-        console.error('加载图片失败:', error);
+        console.error('❌ 加载图片失败:', error);
         this.loadedImageUrl = imagePath;
       } finally {
         // imageLoading 会在图片 @load 事件触发时设置为 false

@@ -52,7 +52,7 @@
                   :class="{ 'active': idx === currentImageIndex }"
                   @click="goToPage(idx)"
                 >
-                  <img :src="img" :alt="`Page ${idx + 1}`" />
+                  <img :src="getThumbnailUrl(img)" :alt="`Page ${idx + 1}`" />
                   <span class="thumbnail-number">{{ idx + 1 }}</span>
                 </div>
               </div>
@@ -67,7 +67,7 @@
                 <div class="media-left">
                   <figure class="image is-64x64">
                     <img 
-                      :src="loadedAvatar || contribution.uploaderAvatarPath || defaultAvatar" 
+                      :src="avatarUrl" 
                       alt="author" 
                       class="is-rounded anime-avatar"
                       @error="onAvatarError"
@@ -89,27 +89,20 @@
                       class="button anime-button"
                       :class="{ 'is-danger': isLiked, 'is-light': !isLiked }"
                       @click="toggleLike"
+                      :disabled="likeLoading"
                     >
                       <span class="icon">{{ isLiked ? '❤️' : '🤍' }}</span>
-                      <span>{{ isLiked ? '已点赞' : '点赞' }}</span>
+                      <span>{{ likeLoading ? '处理中...' : (isLiked ? '已点赞' : '点赞') }}</span>
                     </button>
                     <button 
                       class="button anime-button"
                       :class="{ 'is-warning': isFavorite, 'is-light': !isFavorite }"
                       @click="toggleFavorite"
+                      :disabled="favoriteLoading"
                     >
                       <span class="icon">{{ isFavorite ? '⭐' : '☆' }}</span>
-                      <span>{{ isFavorite ? '已收藏' : '收藏' }}</span>
+                      <span>{{ favoriteLoading ? '处理中...' : (isFavorite ? '已收藏' : '收藏') }}</span>
                     </button>
-                    <a 
-                      :href="contribution.image" 
-                      class="button anime-button is-link is-light" 
-                      target="_blank" 
-                      download
-                    >
-                      <span class="icon">📥</span>
-                      <span>下载</span>
-                    </a>
                   </div>
                 </div>
               </div>
@@ -179,7 +172,7 @@
                 <div v-for="(c, idx) in comments" :key="idx" class="comment-item">
                   <div class="comment-header">
                     <img 
-                      :src="c.avatar" 
+                      :src="getCommentAvatarUrl(c)" 
                       class="comment-avatar"
                       @error="onAvatarError"
                     />
@@ -277,6 +270,8 @@ export default {
       showModal: false,
       modalImageSrc: '',
       loading: false,
+      likeLoading: false,
+      favoriteLoading: false,
       currentImageIndex: 0, // 当前显示的图片索引（漫画多图翻页）
       loadedImages: {}, // 缓存已加载的图片 URL { imagePath: loadedUrl }
       loadedAvatar: null, // 缓存已加载的头像 URL
@@ -285,6 +280,22 @@ export default {
     };
   },
   computed: {
+    // 作者头像URL
+    avatarUrl() {
+      // 优先使用已加载的头像 URL
+      if (this.loadedAvatar) {
+        return this.loadedAvatar;
+      }
+      
+      // 如果有原始路径，使用 getImageUrl 处理
+      if (this.contribution.uploaderAvatarPath) {
+        return this.getImageUrl(this.contribution.uploaderAvatarPath);
+      }
+      
+      // 最后返回默认头像
+      return this.defaultAvatar;
+    },
+    
     // 当前显示的图片URL
     currentImage() {
       // 优先返回已加载的图片 URL
@@ -292,18 +303,29 @@ export default {
         return this.currentLoadedImage;
       }
 
+      // 获取原始图片路径
+      let originalPath = '';
       if (this.contribution.images && Array.isArray(this.contribution.images) && this.contribution.images.length > 0) {
         // 多张图片：返回当前索引的图片
-        return this.contribution.images[this.currentImageIndex] || '';
+        originalPath = this.contribution.images[this.currentImageIndex] || '';
       } else {
         // 单张图片
         let image = this.contribution.image || '';
         // 如果 image 是数组，取第一个元素
         if (Array.isArray(image)) {
-          return image[0] || '';
+          originalPath = image[0] || '';
+        } else {
+          originalPath = image;
         }
-        return image;
       }
+
+      // 如果在 loadedImages 中找到了处理后的 URL，优先使用
+      if (originalPath && this.loadedImages[originalPath]) {
+        return this.loadedImages[originalPath];
+      }
+
+      // 如果没有找到，使用 getImageUrl 方法处理
+      return this.getImageUrl(originalPath);
     },
     // 是否为漫画
     isManga() {
@@ -501,23 +523,91 @@ export default {
       }
     },
     
-    toggleLike() {
-      // TODO: 调用后端接口 POST /user/likeContribution 或 /user/unlikeContribution
-      this.isLiked = !this.isLiked;
-      if (this.isLiked) {
-        this.contribution.likeCount++;
-      } else {
-        this.contribution.likeCount--;
+    async toggleLike() {
+      if (this.likeLoading) return;
+      
+      this.likeLoading = true;
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        alert('请先登录');
+        this.likeLoading = false;
+        return;
+      }
+      
+      try {
+        const endpoint = this.isLiked ? '/api/user/unlikeContribution' : '/api/user/likeContribution';
+        const params = new URLSearchParams();
+        params.append('contributionId', this.contribution.contributionId);
+        
+        console.log(`📡 正在${this.isLiked ? '取消点赞' : '点赞'}...`);
+        
+        const response = await axios.post(endpoint, params, {
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+        
+        console.log('✅ 点赞接口响应:', response.data);
+        
+        // 后端成功状态：code === 0 或 code === 200
+        if (response.data?.code === 0 || response.data?.code === 200) {
+          console.log('✨', response.data.message || (this.isLiked ? '取消点赞成功' : '点赞成功'));
+          
+          // 重新请求后端，刷新点赞和收藏数
+          await this.refreshContributionData();
+        } else {
+          alert(response.data?.message || '操作失败');
+        }
+      } catch (err) {
+        console.error('❌ 点赞操作失败:', err);
+        alert('操作失败，请稍后重试');
+      } finally {
+        this.likeLoading = false;
       }
     },
     
-    toggleFavorite() {
-      // TODO: 调用后端接口 POST /user/favoriteContribution 或 /user/unfavoriteContribution
-      this.isFavorite = !this.isFavorite;
-      if (this.isFavorite) {
-        this.contribution.favoriteCount++;
-      } else {
-        this.contribution.favoriteCount--;
+    async toggleFavorite() {
+      if (this.favoriteLoading) return;
+      
+      this.favoriteLoading = true;
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        alert('请先登录');
+        this.favoriteLoading = false;
+        return;
+      }
+      
+      try {
+        const endpoint = this.isFavorite ? '/api/user/unfavoriteContribution' : '/api/user/favoriteContribution';
+        const params = new URLSearchParams();
+        params.append('contributionId', this.contribution.contributionId);
+        
+        console.log(`📡 正在${this.isFavorite ? '取消收藏' : '收藏'}...`);
+        
+        const response = await axios.post(endpoint, params, {
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+        
+        console.log('✅ 收藏接口响应:', response.data);
+        
+        // 后端成功状态：code === 0 或 code === 200
+        if (response.data?.code === 0 || response.data?.code === 200) {
+          console.log('✨', response.data.message || (this.isFavorite ? '取消收藏成功' : '收藏成功'));
+          
+          // 重新请求后端，刷新点赞和收藏数
+          await this.refreshContributionData();
+        } else {
+          alert(response.data?.message || '操作失败');
+        }
+      } catch (err) {
+        console.error('❌ 收藏操作失败:', err);
+        alert('操作失败，请稍后重试');
+      } finally {
+        this.favoriteLoading = false;
       }
     },
     
@@ -537,6 +627,63 @@ export default {
       this.newComment = '';
       
       alert('评论成功！');
+    },
+    
+    // 刷新作品数据（用于点赞/收藏后更新统计数据）
+    async refreshContributionData() {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      
+      const params = new URLSearchParams();
+      params.append('contributionId', this.contribution.contributionId);
+      
+      // 检查是否为待审核作品
+      const isPending = this.$route.query.pending === 'true';
+      const endpoint = isPending ? '/api/pendingContribution' : '/api/contribution';
+      
+      try {
+        console.log('🔄 正在刷新作品数据...');
+        
+        const response = await axios.post(endpoint, params, {
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+        
+        if (response.data && response.data.code === 0) {
+          const data = response.data.data;
+          
+          if (isPending) {
+            // 待审核作品：只更新统计数据，不更新图片和评论
+            this.contribution.likeCount = data.likeCount || 0;
+            this.contribution.favoriteCount = data.favoriteCount || 0;
+            this.contribution.viewCount = data.viewCount || 0;
+            this.contribution.commentCount = data.commentCount || 0;
+          } else {
+            // 普通作品：更新统计数据和状态
+            this.contribution.likeCount = data.contribution?.likeCount || 0;
+            this.contribution.favoriteCount = data.contribution?.favoriteCount || 0;
+            this.contribution.viewCount = data.contribution?.viewCount || 0;
+            this.contribution.commentCount = data.contribution?.commentCount || 0;
+            this.isLiked = data.isLiked || false;
+            this.isFavorite = data.isFavorite || false;
+            
+            // 如果有新评论，也更新评论列表
+            if (data.comments) {
+              this.comments = data.comments;
+            }
+          }
+          
+          console.log('✅ 数据刷新成功');
+          console.log('  - 点赞数:', this.contribution.likeCount);
+          console.log('  - 收藏数:', this.contribution.favoriteCount);
+          console.log('  - 点赞状态:', this.isLiked);
+          console.log('  - 收藏状态:', this.isFavorite);
+        }
+      } catch (err) {
+        console.error('❌ 刷新数据失败:', err);
+        // 刷新失败不影响用户体验，静默处理
+      }
     },
     
     openModal(src) {
@@ -611,6 +758,46 @@ export default {
     
     onAvatarError(e) {
       e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="64" height="64"%3E%3Crect fill="%23ddd" width="64" height="64"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="24"%3EU%3C/text%3E%3C/svg%3E';
+    },
+    
+    // 获取图片URL（通用方法）
+    getImageUrl(imagePath) {
+      if (!imagePath) {
+        return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23ddd" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999"%3E暂无图片%3C/text%3E%3C/svg%3E';
+      }
+      
+      // 如果是完整URL，直接返回
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
+      }
+      
+      // 拼接基础 URL
+      const baseURL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:8080';
+      const fullPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+      return `${baseURL}${fullPath}`;
+    },
+    
+    // 获取缩略图URL
+    getThumbnailUrl(imagePath) {
+      // 优先使用已加载的图片URL
+      if (this.loadedImages[imagePath]) {
+        return this.loadedImages[imagePath];
+      }
+      
+      // 如果还没加载，使用通用方法处理URL
+      return this.getImageUrl(imagePath);
+    },
+    
+    // 获取评论头像URL
+    getCommentAvatarUrl(comment) {
+      const avatarPath = comment.avatar;
+      
+      if (!avatarPath) {
+        return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="36" height="36"%3E%3Crect fill="%23ddd" width="36" height="36"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999"%3EU%3C/text%3E%3C/svg%3E';
+      }
+      
+      // 使用通用方法处理URL
+      return this.getImageUrl(avatarPath);
     }
   },
 };

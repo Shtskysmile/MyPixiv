@@ -170,25 +170,32 @@ export default {
     }
   },
   methods: {
-    fetchMangas() {
+    async fetchMangas() {
       this.loading = true;
-      axios.get('/api/mangas')
-        .then((res) => {
-          if (res.data && res.data.code === 200) {
-            this.images = res.data.data || [];
-            this.totalPage = Math.ceil(this.images.length / 35) || 1;
-          } else {
-            console.error('获取漫画列表失败:', res.data?.message);
-            this.images = [];
-          }
-        })
-        .catch((err) => {
-          console.error('请求失败:', err);
+      try {
+        console.log('📡 正在请求 /api/mangas...');
+        const response = await axios.get('/api/mangas');
+        
+        console.log('✅ 漫画接口响应:', response);
+        console.log('📦 响应 code:', response.data?.code);
+        console.log('📦 响应 data:', response.data?.data);
+        
+        // 后端成功状态：code === 0 或 code === 200
+        if (response.data?.code === 0 || response.data?.code === 200) {
+          this.images = response.data.data || [];
+          this.totalPage = Math.ceil(this.images.length / 35) || 1;
+          console.log('✨ 成功加载漫画数量:', this.images.length);
+        } else {
+          console.warn('⚠️ 响应 code 不是 0 或 200:', response.data?.code);
           this.images = [];
-        })
-        .finally(() => {
-          this.loading = false;
-        });
+        }
+      } catch (err) {
+        console.error('❌ 请求失败:', err);
+        console.error('❌ 错误详情:', err.response);
+        this.images = [];
+      } finally {
+        this.loading = false;
+      }
     },
     getPageFromUrl() {
       const url = new URL(window.location.href);

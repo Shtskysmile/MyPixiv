@@ -190,26 +190,32 @@ export default {
     async fetchIllustrations() {
       this.loading = true;
       try {
-        // 同时获取插画和漫画
-        const [illustrationsRes, mangasRes] = await Promise.all([
-          axios.get('/api/illustrations'),
-          axios.get('/api/mangas')
-        ]);
+        // 调用 /api/allContributions 获取所有作品
+        console.log('📡 正在请求 /api/allContributions...');
+        const response = await axios.get('/api/allContributions');
         
-        const illustrations = (illustrationsRes.data?.code === 200) ? (illustrationsRes.data.data || []) : [];
-        const mangas = (mangasRes.data?.code === 200) ? (mangasRes.data.data || []) : [];
+        console.log('✅ 接口响应完整数据:', response);
+        console.log('📦 响应状态码:', response.status);
+        console.log('📦 响应数据:', response.data);
+        console.log('📦 响应 code:', response.data?.code);
+        console.log('📦 响应 data 数组:', response.data?.data);
+        console.log('📦 数据数量:', response.data?.data?.length);
         
-        // 合并数据（保持后端原有的type: 0-插画, 1-漫画）
-        const allImages = [
-          ...illustrations, // type已经是0
-          ...mangas         // type已经是1
-        ];
+        // 后端成功状态：code === 0 或 code === 200
+        if (response.data?.code === 0 || response.data?.code === 200) {
+          this.images = response.data.data || [];
+          console.log('✨ 成功加载作品数量:', this.images.length);
+          console.log('✨ 作品列表:', this.images);
+        } else {
+          console.warn('⚠️ 响应 code 不是 0 或 200:', response.data?.code);
+          this.images = [];
+        }
         
-        // 可以按某种方式排序，例如按时间或随机
-        this.images = allImages;
         this.totalPage = Math.ceil(this.images.length / 35) || 1;
+        console.log('📄 总页数:', this.totalPage);
       } catch (err) {
-        console.error('请求失败:', err);
+        console.error('❌ 请求失败:', err);
+        console.error('❌ 错误详情:', err.response);
         this.images = [];
       } finally {
         this.loading = false;
