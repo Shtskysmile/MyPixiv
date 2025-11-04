@@ -24,9 +24,10 @@
           </span>
         </div>
         
-        <div class="user-id">
+        <div class="user-id" @click="copyIdToClipboard(userData.userId, '用户ID')" title="点击复制ID">
           <span class="icon">🆔</span>
           <span class="id-text">ID: {{ formatUserId(userData.userId) }}</span>
+          <span class="copy-icon">📋</span>
         </div>
       </div>
 
@@ -90,9 +91,11 @@
 
 <script>
 import defaultAvatar from '@/assets/images/avatar.png';
+import copyIdMixin from '@/mixins/copyId';
 
 export default {
   name: 'UserProfile',
+  mixins: [copyIdMixin],
   props: {
     user: {
       type: Object,
@@ -147,10 +150,6 @@ export default {
     }
   },
   methods: {
-    formatUserId(userId) {
-      if (!userId) return '未知';
-      return userId.length > 12 ? userId.substring(0, 12) + '...' : userId;
-    },
     getRoleText(role) {
       const roles = {
         0: '👤 普通用户',
@@ -322,6 +321,33 @@ export default {
   color: #6b7280;
   font-size: 14px;
   margin-bottom: 16px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+  user-select: none;
+}
+
+.user-id:hover {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+  transform: translateX(2px);
+}
+
+.user-id:active {
+  transform: scale(0.98);
+}
+
+.copy-icon {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-size: 12px;
+  margin-left: auto;
+}
+
+.user-id:hover .copy-icon {
+  opacity: 1;
 }
 
 .id-text {

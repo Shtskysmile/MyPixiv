@@ -6,8 +6,8 @@ echo ========================================
 echo.
 echo Setting environment variables...
 set VUE_APP_USE_MOCK=false
-set VUE_APP_API_BASE_URL=http://10.61.133.80:8080
-REM set VUE_APP_API_BASE_URL=http://localhost:8081
+set VUE_APP_API_BASE_URL=http://192.168.43.108:8080
+REM set VUE_APP_API_BASE_URL=http://localhost:8080
 echo Mock mode: DISABLED
 echo API Base URL: %VUE_APP_API_BASE_URL%
 echo.

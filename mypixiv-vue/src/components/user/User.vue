@@ -30,6 +30,23 @@
               <li v-if="isOwnProfile"><a :class="{ 'is-active': view === 'submit' }" @click.prevent="view = 'submit'">
                 <span class="icon">📤</span> 提交作品
               </a></li>
+              <!-- 社区管理员菜单 -->
+              <li v-if="isOwnProfile && isCommunityAdmin"><a :class="{ 'is-active': view === 'audit' }" @click.prevent="openAuditWorks">
+                <span class="icon">🛡️</span> 审核作品
+              </a></li>
+              <li v-if="isOwnProfile && isCommunityAdmin"><a :class="{ 'is-active': view === 'blockedWorks' }" @click.prevent="view = 'blockedWorks'">
+                <span class="icon">🚫</span> 已封禁作品
+              </a></li>
+              <li v-if="isOwnProfile && isCommunityAdmin"><a :class="{ 'is-active': view === 'blockedUsers' }" @click.prevent="view = 'blockedUsers'">
+                <span class="icon">🔒</span> 被封禁用户
+              </a></li>
+              <!-- 系统管理员菜单 -->
+              <li v-if="isOwnProfile && isSystemAdmin"><a :class="{ 'is-active': view === 'userManagement' }" @click.prevent="view = 'userManagement'">
+                <span class="icon">👥</span> 用户管理
+              </a></li>
+              <li v-if="isOwnProfile && isSystemAdmin"><a :class="{ 'is-active': view === 'systemLogs' }" @click.prevent="view = 'systemLogs'">
+                <span class="icon">📋</span> 系统日志
+              </a></li>
             </ul>
           </aside>
         </div>
@@ -65,6 +82,26 @@
 
           <div v-if="view === 'submit'">
             <SubmitArtwork :user="user" :editWork="editingWork" @submitted="onArtworkSubmitted" @cancel-edit="cancelEditWork" />
+          </div>
+
+          <div v-if="view === 'audit'">
+            <AuditWorksList :auditData="auditData" />
+          </div>
+
+          <div v-if="view === 'blockedWorks'">
+            <BlockedWorksList />
+          </div>
+
+          <div v-if="view === 'blockedUsers'">
+            <BlockedUsersList />
+          </div>
+
+          <div v-if="view === 'userManagement'">
+            <UserManagement />
+          </div>
+
+          <div v-if="view === 'systemLogs'">
+            <SystemLogs />
           </div>
         </div>
       </div>
@@ -146,12 +183,17 @@ import LikesList from './LikesList.vue';
 import WorksList from './WorksList.vue';
 import Profile from './Profile.vue';
 import FollowersList from './FollowersList.vue';
+import AuditWorksList from './AuditWorksList.vue';
+import BlockedWorksList from './BlockedWorksList.vue';
+import BlockedUsersList from './BlockedUsersList.vue';
+import UserManagement from './UserManagement.vue';
+import SystemLogs from './SystemLogs.vue';
 import avatar from '@/assets/images/avatar.png';
 import bgImg from '@/assets/images/Alice_Damage.jpg';
 
 export default {
   name: 'UserPage',
-  components: { Navbar, SubmitArtwork, FavoritesList, LikesList, FollowersList, Profile, WorksList },
+  components: { Navbar, SubmitArtwork, FavoritesList, LikesList, FollowersList, Profile, WorksList, AuditWorksList, BlockedWorksList, BlockedUsersList, UserManagement, SystemLogs },
   props: {
     id: {
       type: String,
@@ -185,6 +227,7 @@ export default {
       worksTotal: 0,
       view: 'info',
       editingWork: null, // 正在编辑的作品
+      auditData: null, // 审核数据
       editModalVisible: false,
       editName: '',
       editGender: 0,
@@ -224,6 +267,14 @@ export default {
     isOwnProfile() {
       const loggedInUserId = localStorage.getItem('userId');
       return this.currentUserId === loggedInUserId;
+    },
+    // 是否是社区管理员（role为1）
+    isCommunityAdmin() {
+      return this.user.role === 1;
+    },
+    // 是否是系统管理员（role为2）
+    isSystemAdmin() {
+      return this.user.role === 2;
     }
   },
   created() {
@@ -827,6 +878,27 @@ export default {
             alert('关注失败，请稍后重试');
           });
       }
+    },
+    
+    // 打开审核作品列表
+    openAuditWorks() {
+      this.view = 'audit';
+      
+      // 调用后端接口 GET /communityAdmin/auditContributions
+      // 返回 Result<R_Audit_My_ContributionsDTO>
+      request.get('/communityAdmin/auditContributions')
+        .then((res) => {
+          if (res.data && res.data.code === 0) {
+            this.auditData = res.data.data;
+            console.log('📋 审核数据:', this.auditData);
+          } else {
+            alert('加载审核数据失败: ' + (res.data?.message || '未知错误'));
+          }
+        })
+        .catch((error) => {
+          console.error('加载审核数据失败:', error);
+          alert('加载审核数据失败，请稍后重试');
+        });
     },
   },
 };

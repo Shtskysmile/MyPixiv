@@ -7,9 +7,6 @@ import Register from '@/components/user/Register.vue'
 import User from '@/components/user/User.vue'
 import ImageView from '@/components/ImageView.vue'
 import ChangePwd from '@/components/user/ChangePwd.vue'
-import AdminPortal from '@/components/admin/AdminPortal.vue'
-import CommunityAdmin from '@/components/admin/CommunityAdmin.vue'
-import SystemAdmin from '@/components/admin/SystemAdmin.vue'
 import IllustrationPage from '@/components/IllustrationPage.vue'
 import MangaPage from '@/components/MangaPage.vue'
 import RankingPage from '@/components/RankingPage.vue'
@@ -32,9 +29,6 @@ export default new Router({
     { path: '/register', name: 'register', component: Register },
     { path: '/guide', name: 'guide-explicit', component: Guide },
     { path: '/changepwd', name: 'changepwd', component: ChangePwd },
-    { path: '/image/:id', name: 'image-detail', component: ImageView, props: true },
-    { path: '/admin', name: 'admin-portal', component: AdminPortal },
-    { path: '/admin/community', name: 'community-admin', component: CommunityAdmin },
-    { path: '/admin/system', name: 'system-admin', component: SystemAdmin }
+    { path: '/image/:id', name: 'image-detail', component: ImageView, props: true }
   ]
 })

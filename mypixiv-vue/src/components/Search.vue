@@ -174,7 +174,14 @@
                   </div>
                   <div class="user-info">
                     <h3 class="user-name">{{ user.username }}</h3>
-                    <p class="user-id">ID: {{ user.userId }}</p>
+                    <p 
+                      class="user-id clickable-id" 
+                      @click.stop="copyIdToClipboard(user.userId, '用户ID')" 
+                      title="点击复制ID"
+                    >
+                      ID: {{ formatUserId(user.userId) }}
+                      <span class="copy-icon-small">📋</span>
+                    </p>
                     <div class="user-meta">
                       <span class="user-badge" v-if="user.role === 1">
                         <span class="badge-icon">👑</span>
@@ -374,9 +381,11 @@
 import Navbar from './Navbar.vue'
 import Sidebar from './Sidebar.vue'
 import axios from 'axios'
+import copyIdMixin from '@/mixins/copyId'
 
 export default {
   name: 'Search',
+  mixins: [copyIdMixin],
   components: {
     Navbar,
     Sidebar
@@ -1303,6 +1312,39 @@ export default {
   font-size: 14px;
   color: #999;
   margin-bottom: 12px;
+  font-family: 'Courier New', monospace;
+}
+
+.clickable-id {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.03);
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+.clickable-id:hover {
+  background: rgba(102, 126, 234, 0.15);
+  color: #667eea;
+  transform: translateX(2px);
+}
+
+.clickable-id:active {
+  transform: scale(0.98);
+}
+
+.copy-icon-small {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-size: 11px;
+}
+
+.clickable-id:hover .copy-icon-small {
+  opacity: 1;
 }
 
 .user-meta {

@@ -22,7 +22,14 @@
           
           <div class="user-info">
             <div class="user-name">{{ follower.username || follower.name || '用户' }}</div>
-            <div class="user-id">ID: {{ formatUserId(follower.userId || follower.id) }}</div>
+            <div 
+              class="user-id clickable-id" 
+              @click.stop="copyIdToClipboard(follower.userId || follower.id, '用户ID')" 
+              title="点击复制ID"
+            >
+              ID: {{ formatUserId(follower.userId || follower.id) }}
+              <span class="copy-icon-mini">📋</span>
+            </div>
             <div class="user-badges">
               <span class="mini-badge" :class="getRoleBadgeClass(follower.role)">
                 {{ getRoleText(follower.role) }}
@@ -79,8 +86,11 @@
 </template>
 
 <script>
+import copyIdMixin from '@/mixins/copyId';
+
 export default {
   name: 'UserFollowersList',
+  mixins: [copyIdMixin],
   props: {
     followers: {
       type: Array,
@@ -117,10 +127,6 @@ export default {
       // 直接拼接基础 URL 即可访问
       const baseURL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:8080';
       return `${baseURL}${avatar}`;
-    },
-    formatUserId(userId) {
-      if (!userId) return '未知';
-      return userId.length > 12 ? userId.substring(0, 12) + '...' : userId;
     },
     getRoleText(role) {
       const roles = { 0: '用户', 1: '管理', 2: '系统' };
@@ -263,6 +269,38 @@ export default {
   color: #9ca3af;
   font-family: 'Courier New', monospace;
   margin-bottom: 8px;
+}
+
+.clickable-id {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.03);
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  user-select: none;
+}
+
+.clickable-id:hover {
+  background: rgba(102, 126, 234, 0.15);
+  color: #667eea;
+  transform: translateX(2px);
+}
+
+.clickable-id:active {
+  transform: scale(0.98);
+}
+
+.copy-icon-mini {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-size: 10px;
+}
+
+.clickable-id:hover .copy-icon-mini {
+  opacity: 1;
 }
 
 .user-badges {
