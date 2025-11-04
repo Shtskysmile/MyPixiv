@@ -8,6 +8,7 @@ import org.example.PCOI.Mapper.CommentMapper;
 import org.example.PCOI.Mapper.ContributionMapper;
 import org.example.PCOI.Mapper.UserMapper;
 import org.example.PCOI.ResponseDTO.R_Audit_My_ContributionsDTO;
+import org.example.PCOI.ResponseDTO.R_Contribution;
 import org.example.PCOI.ResponseDTO.R_OverviewContribution;
 import org.example.PCOI.ResponseDTO.R_User;
 import org.example.PCOI.Service.Inter.CommunityAdminService;
@@ -76,7 +77,7 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
     public boolean blockContribution(String contributionId) {
         // 查询作品是否存在
         Contribution contribution = contributionMapper.selectContributionById(contributionId);
-        if(contribution==null)
+        if(contribution==null||contribution.getAuditStatus()!=approved)
             return false;
         // 设置作品状态为封禁
         contribution.setStatus(banned);
@@ -93,7 +94,7 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
     public boolean unblockContribution(String contributionId) {
         // 查询作品是否存在
         Contribution contribution = contributionMapper.selectContributionById(contributionId);
-        if(contribution==null)
+        if(contribution==null||contribution.getAuditStatus()!=approved)
             return false;
         // 恢复作品为正常状态
         contribution.setStatus(normal);
@@ -161,11 +162,11 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
     @Override
     public boolean dismissContribution(String contributionId, String dismissalReason) {
         // 查询目标作品是否存在
-        Contribution contribution = contributionMapper.selectContributionById(contributionId);
+        Contribution contribution = contributionMapper.selectNoAuditContributionById(contributionId);
         if (contribution == null)
             return false;
         // 更新状态与驳回原因并持久化
-        contribution.setStatus(dismissal);
+        contribution.setAuditStatus(dismissal);
         contribution.setDismissalReason(dismissalReason);
         contributionMapper.updateContribution(contribution);
         return true;
@@ -181,11 +182,11 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
     @Override
     public boolean approveContribution(String contributionId) {
         // 查询目标作品是否存在
-        Contribution contribution = contributionMapper.selectContributionById(contributionId);
+        Contribution contribution = contributionMapper.selectNoAuditContributionById(contributionId);
         if (contribution == null)
             return false;
         // 更新状态为通过并清空驳回原因，随后持久化
-        contribution.setStatus(approved);
+        contribution.setAuditStatus(approved);
         contribution.setDismissalReason(null);
         contributionMapper.updateContribution(contribution);
         return true;
@@ -212,6 +213,16 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
             blockedRContributions.add(rOverviewContribution);
         }
         return blockedRContributions;
+    }
+
+    @Override
+    public R_Contribution getBannedContribution(String contributionId) {
+        Contribution contribution = contributionMapper.selectBannedContributionById(contributionId);
+        if(contribution==null||contribution.getAuditStatus()!=approved)
+            return null;
+        User user = userMapper.selectUserById(contribution.getAuthorId());
+        R_Contribution rContribution = transformService.transformContributionToRContribution(contribution,user.getAvatar(),user.getUsername());
+        return rContribution;
     }
 
     @Override

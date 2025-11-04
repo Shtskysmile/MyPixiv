@@ -22,6 +22,16 @@ public interface ContributionMapper {
 
     @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
     @Select("SELECT * FROM contribution WHERE contributionId = #{contributionId} AND status = 0 AND auditStatus = 0")
+    Contribution selectNoAuditContributionById(String contributionId);
+
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
+    @Select("SELECT * FROM contribution WHERE contributionId = #{contributionId} AND status = 1")
+    Contribution selectBannedContributionById(String contributionId);
+
+
+
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
+    @Select("SELECT * FROM contribution WHERE contributionId = #{contributionId} AND status = 0 AND auditStatus = 0")
     Contribution selectPendingContributionById(String contributionId);
 
     @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
@@ -67,6 +77,7 @@ public interface ContributionMapper {
     @Select("SELECT * FROM contribution WHERE status = 0 AND auditStatus = 1 AND type = #{type} ORDER BY commentCount DESC LIMIT #{limit}")
     List<Contribution> selectContributionsByTypeAndCommentCount(@Param("type") int type, @Param("limit") int limit);
 
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
     @Update("UPDATE contribution SET type = #{type}, title = #{title}, image = #{image, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler}, description = #{description}, status = #{status}, auditStatus = #{auditStatus}, publishTime = #{publishTime}, authorId = #{authorId}, viewCount = #{viewCount}, favoriteCount = #{favoriteCount}, likeCount = #{likeCount}, commentCount = #{commentCount}, dismissalReason = #{dismissalReason} WHERE contributionId = #{contributionId}")
     void updateContribution(Contribution contribution);
 
