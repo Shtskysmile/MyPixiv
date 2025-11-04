@@ -2,7 +2,7 @@
   <div class="anime-list-container">
     <div class="list-header">
       <h3 class="list-title anime-gradient-text">
-        <span class="icon">⭐</span> 收藏的作品
+        <span class="icon">⭐</span> {{ isOwnProfile ? '我收藏的作品' : 'TA收藏的作品' }}
       </h3>
       <p class="list-subtitle">共 {{ favorites.length }} 个作品</p>
     </div>
@@ -67,6 +67,10 @@ export default {
     favorites: {
       type: Array,
       default: () => []
+    },
+    isOwnProfile: {
+      type: Boolean,
+      default: true
     }
   },
   methods: {

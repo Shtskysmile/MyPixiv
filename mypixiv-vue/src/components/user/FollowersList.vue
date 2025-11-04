@@ -2,7 +2,7 @@
   <div class="anime-list-container">
     <div class="list-header">
       <h3 class="list-title anime-gradient-text">
-        <span class="icon">👥</span> 我的关注
+        <span class="icon">👥</span> {{ isOwnProfile ? '我的关注' : 'TA的关注' }}
       </h3>
       <p class="list-subtitle">共 {{ total }} 位用户</p>
     </div>
@@ -12,7 +12,7 @@
         <div class="card-header">
           <div class="avatar-wrapper">
             <img 
-              :src="follower.avatar" 
+              :src="getAvatarUrl(follower.avatar)" 
               alt="avatar" 
               class="follower-avatar"
               @error="onAvatarError"
@@ -36,11 +36,6 @@
 
         <div class="card-bio" v-if="follower.bio">
           <p>{{ follower.bio }}</p>
-        </div>
-        <div class="card-bio empty-bio" v-else>
-          <p class="has-text-grey-light">
-            <span class="icon">💭</span> 暂无简介
-          </p>
         </div>
 
         <div class="card-actions">
@@ -102,6 +97,10 @@ export default {
     total: {
       type: Number,
       default: 0
+    },
+    isOwnProfile: {
+      type: Boolean,
+      default: true
     }
   },
   computed: {
@@ -110,6 +109,15 @@ export default {
     }
   },
   methods: {
+    getAvatarUrl(avatar) {
+      if (!avatar) {
+        return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="80" height="80"%3E%3Crect fill="%23ddd" width="80" height="80"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="24"%3EU%3C/text%3E%3C/svg%3E';
+      }
+      // avatar 格式如: /files/userId/avatar/xxx.jpg
+      // 直接拼接基础 URL 即可访问
+      const baseURL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:8080';
+      return `${baseURL}${avatar}`;
+    },
     formatUserId(userId) {
       if (!userId) return '未知';
       return userId.length > 12 ? userId.substring(0, 12) + '...' : userId;
@@ -126,8 +134,10 @@ export default {
       };
     },
     handleVisit(follower) {
-      // TODO: 跳转到用户主页
-      alert('查看用户主页功能开发中...');
+      const userId = follower.userId || follower.id;
+      if (userId) {
+        this.$router.push(`/user/${userId}`);
+      }
     },
     handleUnfollow(follower) {
       const name = follower.username || follower.name || '此用户';

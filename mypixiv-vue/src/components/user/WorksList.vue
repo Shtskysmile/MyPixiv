@@ -2,7 +2,7 @@
   <div class="anime-list-container">
     <div class="list-header">
       <h3 class="list-title anime-gradient-text">
-        <span class="icon">🎨</span> 我的作品
+        <span class="icon">🎨</span> {{ isOwnProfile ? '我的作品' : 'TA的作品' }}
       </h3>
       <p class="list-subtitle">共 {{ total }} 个作品</p>
     </div>
@@ -201,6 +201,10 @@ export default {
     total: {
       type: Number,
       default: 0
+    },
+    isOwnProfile: {
+      type: Boolean,
+      default: true
     }
   },
   computed: {

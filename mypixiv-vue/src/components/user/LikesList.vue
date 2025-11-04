@@ -2,7 +2,7 @@
   <div class="anime-list-container">
     <div class="list-header">
       <h3 class="list-title anime-gradient-text">
-        <span class="icon">❤️</span> 点赞的作品
+        <span class="icon">❤️</span> {{ isOwnProfile ? '我点赞的作品' : 'TA点赞的作品' }}
       </h3>
       <p class="list-subtitle">共 {{ likes.length }} 个作品</p>
     </div>
@@ -67,6 +67,10 @@ export default {
     likes: {
       type: Array,
       default: () => []
+    },
+    isOwnProfile: {
+      type: Boolean,
+      default: true
     }
   },
   methods: {

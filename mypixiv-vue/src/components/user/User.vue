@@ -43,23 +43,24 @@
               :stats="userStats"
               @edit="openEdit" 
               @back="$router.push('/index')" 
+              @toggle-concern="handleToggleConcern"
             />
           </div>
 
           <div v-if="view === 'favorites'">
-            <FavoritesList :favorites="favorites" @unfavorite="unfavorite" />
+            <FavoritesList :favorites="favorites" :isOwnProfile="isOwnProfile" @unfavorite="unfavorite" />
           </div>
 
           <div v-if="view === 'likes'">
-            <LikesList :likes="likes" @unlike="unlike" />
+            <LikesList :likes="likes" :isOwnProfile="isOwnProfile" @unlike="unlike" />
           </div>
 
           <div v-if="view === 'works'">
-            <WorksList :works="userWorks" :page="worksPage" :pageSize="12" :total="worksTotal" @page-change="openWorks" />
+            <WorksList :works="userWorks" :page="worksPage" :pageSize="12" :total="worksTotal" :isOwnProfile="isOwnProfile" @page-change="openWorks" />
           </div>
 
           <div v-if="view === 'followers'">
-            <FollowersList :followers="followers" :page="followersPage" :pageSize="10" :total="followersTotal" @page-change="openFollowers" @remove="unfollow" />
+            <FollowersList :followers="followers" :page="followersPage" :pageSize="10" :total="followersTotal" :isOwnProfile="isOwnProfile" @page-change="openFollowers" @remove="unfollow" />
           </div>
 
           <div v-if="view === 'submit'">
@@ -229,11 +230,60 @@ export default {
   },
   watch: {
     // 监听路由参数变化，重新加载用户信息
-    id(newId) {
+    id(newId, oldId) {
+      // 重置所有状态
+      this.resetPageData();
+      // 重新加载用户信息
       this.fetchUser();
+    },
+    // 监听整个路由变化（包括从 /user 到 /user/:id）
+    '$route'(to, from) {
+      // 如果是在用户页面之间切换
+      if (to.name === 'user-id' || to.name === 'user') {
+        const oldUserId = from.params.id || localStorage.getItem('userId');
+        const newUserId = to.params.id || localStorage.getItem('userId');
+        
+        // 只有当用户ID真正改变时才重置和刷新
+        if (oldUserId !== newUserId) {
+          this.resetPageData();
+          this.fetchUser();
+        }
+      }
     }
   },
   methods: {
+    resetPageData() {
+      // 重置用户信息
+      this.user = {
+        userId: '',
+        username: '加载中...',
+        role: 0,
+        sex: 0,
+        status: 0,
+        avatar: avatar,
+      };
+      // 重置关注状态
+      this.isConcerned = false;
+      // 重置统计数据
+      this.userStats = {
+        following: 0,
+        followers: 0,
+        works: 0,
+        favorites: 0
+      };
+      // 重置各个列表
+      this.favorites = [];
+      this.likes = [];
+      this.followers = [];
+      this.followersPage = 1;
+      this.followersTotal = 0;
+      this.userWorks = [];
+      this.worksPage = 1;
+      this.worksTotal = 0;
+      // 重置视图为个人信息
+      this.view = 'info';
+    },
+    
     fetchUser() {
       const userId = this.currentUserId;
       
@@ -295,18 +345,30 @@ export default {
         })
         .catch(() => {});
       
-      // 获取作品数 - 使用 /user/myContributions 接口
-      request.post('/user/myContributions')
-        .then((res) => {
-          if (res.data && res.data.code === 0) {
-            const data = res.data.data;
-            const total = (data.pendingContributions || []).length + 
-                         (data.approvedContributions || []).length + 
-                         (data.dismissalContributions || []).length;
-            this.userStats.works = total;
-          }
-        })
-        .catch(() => {});
+      // 获取作品数
+      if (this.isOwnProfile) {
+        // 查看自己的作品数：使用 /user/myContributions 接口
+        request.post('/user/myContributions')
+          .then((res) => {
+            if (res.data && res.data.code === 0) {
+              const data = res.data.data;
+              const total = (data.pendingContributions || []).length + 
+                           (data.approvedContributions || []).length + 
+                           (data.dismissalContributions || []).length;
+              this.userStats.works = total;
+            }
+          })
+          .catch(() => {});
+      } else {
+        // 查看他人的作品数：使用 /contributionList 接口
+        request.post('/contributionList', params)
+          .then((res) => {
+            if (res.data && res.data.code === 0) {
+              this.userStats.works = (res.data.data || []).length;
+            }
+          })
+          .catch(() => {});
+      }
       
       // 获取收藏数
       request.post('/favouriteList', params)
@@ -452,88 +514,136 @@ export default {
       const p = typeof page === 'number' ? page : (page && page.detail) || 1;
 
       console.log('🔍 [调试] 开始加载作品列表...');
+      console.log('🔍 [调试] isOwnProfile:', this.isOwnProfile);
+      console.log('🔍 [调试] currentUserId:', this.currentUserId);
       
-      // 使用后端接口 POST /user/myContributions，返回 Result<R_Audit_My_ContributionsDTO>
-      // 需要 Authorization 请求头
-      request.post('/user/myContributions')
-        .then((res) => {
-          console.log('🔍 [调试] 后端返回完整响应:', res.data);
-          
-          if (res.data && res.data.code === 0) {
-            const data = res.data.data;
+      if (this.isOwnProfile) {
+        // 查看自己的作品：使用 /user/myContributions（包含待审核、已通过、已驳回）
+        request.post('/user/myContributions')
+          .then((res) => {
+            console.log('🔍 [调试] 后端返回完整响应:', res.data);
             
-            console.log('🔍 [调试] 后端返回data对象:', data);
-            console.log('🔍 [调试] pendingContributions:', data.pendingContributions);
-            console.log('🔍 [调试] approvedContributions:', data.approvedContributions);
-            console.log('🔍 [调试] dismissalContributions:', data.dismissalContributions);
-            
-            // 为每个作品添加 auditStatus 字段
-            const pendingWorks = (data.pendingContributions || []).map(work => ({
-              ...work,
-              auditStatus: 0  // 待审核
-            }));
-            const approvedWorks = (data.approvedContributions || []).map(work => ({
-              ...work,
-              auditStatus: 1  // 已通过
-            }));
-            const dismissalWorks = (data.dismissalContributions || []).map(work => ({
-              ...work,
-              auditStatus: 2  // 已驳回
-            }));
-            
-            // 打印示例作品的详细信息
-            if (pendingWorks.length > 0) {
-              console.group('🔍 [调试] 待审核作品示例');
-              console.log('完整对象:', pendingWorks[0]);
-              console.log('image字段:', pendingWorks[0].image);
-              console.log('image字段类型:', typeof pendingWorks[0].image);
-              console.log('是否为数组:', Array.isArray(pendingWorks[0].image));
-              console.groupEnd();
+            if (res.data && res.data.code === 0) {
+              const data = res.data.data;
+              
+              console.log('🔍 [调试] 后端返回data对象:', data);
+              console.log('🔍 [调试] pendingContributions:', data.pendingContributions);
+              console.log('🔍 [调试] approvedContributions:', data.approvedContributions);
+              console.log('🔍 [调试] dismissalContributions:', data.dismissalContributions);
+              
+              // 为每个作品添加 auditStatus 字段
+              const pendingWorks = (data.pendingContributions || []).map(work => ({
+                ...work,
+                auditStatus: 0  // 待审核
+              }));
+              const approvedWorks = (data.approvedContributions || []).map(work => ({
+                ...work,
+                auditStatus: 1  // 已通过
+              }));
+              const dismissalWorks = (data.dismissalContributions || []).map(work => ({
+                ...work,
+                auditStatus: 2  // 已驳回
+              }));
+              
+              // 打印示例作品的详细信息
+              if (pendingWorks.length > 0) {
+                console.group('🔍 [调试] 待审核作品示例');
+                console.log('完整对象:', pendingWorks[0]);
+                console.log('image字段:', pendingWorks[0].image);
+                console.log('image字段类型:', typeof pendingWorks[0].image);
+                console.log('是否为数组:', Array.isArray(pendingWorks[0].image));
+                console.groupEnd();
+              }
+              
+              if (approvedWorks.length > 0) {
+                console.group('🔍 [调试] 已通过作品示例');
+                console.log('完整对象:', approvedWorks[0]);
+                console.log('image字段:', approvedWorks[0].image);
+                console.log('image字段类型:', typeof approvedWorks[0].image);
+                console.log('是否为数组:', Array.isArray(approvedWorks[0].image));
+                console.groupEnd();
+              }
+              
+              // 合并三个列表：待审核、已通过、已驳回
+              const allWorks = [
+                ...pendingWorks,
+                ...approvedWorks,
+                ...dismissalWorks
+              ];
+              
+              // 前端分页
+              this.worksPage = p;
+              this.worksTotal = allWorks.length;
+              const pageSize = 12;
+              const start = (p - 1) * pageSize;
+              const end = start + pageSize;
+              this.userWorks = allWorks.slice(start, end);
+              
+              console.log('✅ 作品数据加载成功:', {
+                待审核: pendingWorks.length,
+                已通过: approvedWorks.length,
+                已驳回: dismissalWorks.length,
+                总计: allWorks.length,
+                当前页: p,
+                显示作品数: this.userWorks.length
+              });
+            } else {
+              console.warn('⚠️ 后端返回code不为0:', res.data);
             }
+          })
+          .catch((error) => {
+            console.error('❌ 加载作品失败:', error);
+            console.error('❌ 错误详情:', error.response || error.message);
+            this.userWorks = [];
+            this.worksPage = 1;
+            this.worksTotal = 0;
+          });
+      } else {
+        // 查看他人的作品：使用 /contributionList（只显示已通过的作品）
+        const params = new URLSearchParams();
+        params.append('userId', this.currentUserId);
+        
+        request.post('/contributionList', params)
+          .then((res) => {
+            console.log('🔍 [调试] 他人作品后端返回:', res.data);
             
-            if (approvedWorks.length > 0) {
-              console.group('🔍 [调试] 已通过作品示例');
-              console.log('完整对象:', approvedWorks[0]);
-              console.log('image字段:', approvedWorks[0].image);
-              console.log('image字段类型:', typeof approvedWorks[0].image);
-              console.log('是否为数组:', Array.isArray(approvedWorks[0].image));
-              console.groupEnd();
+            if (res.data && res.data.code === 0) {
+              const works = res.data.data || [];
+              
+              // 所有作品都是已通过的，添加 auditStatus 标记
+              const allWorks = works.map(work => ({
+                ...work,
+                auditStatus: 1  // 已通过
+              }));
+              
+              // 前端分页
+              this.worksPage = p;
+              this.worksTotal = allWorks.length;
+              const pageSize = 12;
+              const start = (p - 1) * pageSize;
+              const end = start + pageSize;
+              this.userWorks = allWorks.slice(start, end);
+              
+              console.log('✅ 他人作品加载成功:', {
+                总计: allWorks.length,
+                当前页: p,
+                显示作品数: this.userWorks.length
+              });
+            } else {
+              console.warn('⚠️ 后端返回code不为0:', res.data);
+              this.userWorks = [];
+              this.worksPage = 1;
+              this.worksTotal = 0;
             }
-            
-            // 合并三个列表：待审核、已通过、已驳回
-            const allWorks = [
-              ...pendingWorks,
-              ...approvedWorks,
-              ...dismissalWorks
-            ];
-            
-            // 前端分页
-            this.worksPage = p;
-            this.worksTotal = allWorks.length;
-            const pageSize = 12;
-            const start = (p - 1) * pageSize;
-            const end = start + pageSize;
-            this.userWorks = allWorks.slice(start, end);
-            
-            console.log('✅ 作品数据加载成功:', {
-              待审核: pendingWorks.length,
-              已通过: approvedWorks.length,
-              已驳回: dismissalWorks.length,
-              总计: allWorks.length,
-              当前页: p,
-              显示作品数: this.userWorks.length
-            });
-          } else {
-            console.warn('⚠️ 后端返回code不为0:', res.data);
-          }
-        })
-        .catch((error) => {
-          console.error('❌ 加载作品失败:', error);
-          console.error('❌ 错误详情:', error.response || error.message);
-          this.userWorks = [];
-          this.worksPage = 1;
-          this.worksTotal = 0;
-        });
+          })
+          .catch((error) => {
+            console.error('❌ 加载他人作品失败:', error);
+            console.error('❌ 错误详情:', error.response || error.message);
+            this.userWorks = [];
+            this.worksPage = 1;
+            this.worksTotal = 0;
+          });
+      }
     },
     
     unlike(item) {
@@ -628,6 +738,53 @@ export default {
       // 刷新作品列表
       if (this.view === 'works') {
         this.openWorks(1);
+      }
+    },
+    
+    handleToggleConcern({ userId, currentState }) {
+      if (currentState) {
+        // 当前已关注，执行取消关注
+        const ok = window.confirm('确定要取消关注吗？');
+        if (!ok) return;
+        
+        const params = new URLSearchParams();
+        params.append('concernedUserId', userId);
+        
+        request.post('/user/unconcernUser', params)
+          .then((res) => {
+            if (res.data && res.data.code === 0) {
+              this.isConcerned = false;
+              alert('已取消关注');
+              // 刷新统计数据
+              this.fetchUserStats(this.currentUserId);
+            } else {
+              alert('取消关注失败: ' + (res.data?.message || '未知错误'));
+            }
+          })
+          .catch((error) => {
+            console.error('取消关注失败:', error);
+            alert('取消关注失败，请稍后重试');
+          });
+      } else {
+        // 当前未关注，执行关注
+        const params = new URLSearchParams();
+        params.append('concernedUserId', userId);
+        
+        request.post('/user/concernUser', params)
+          .then((res) => {
+            if (res.data && res.data.code === 0) {
+              this.isConcerned = true;
+              alert('关注成功！');
+              // 刷新统计数据
+              this.fetchUserStats(this.currentUserId);
+            } else {
+              alert('关注失败: ' + (res.data?.message || '未知错误'));
+            }
+          })
+          .catch((error) => {
+            console.error('关注失败:', error);
+            alert('关注失败，请稍后重试');
+          });
       }
     },
   },

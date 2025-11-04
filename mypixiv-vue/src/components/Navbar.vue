@@ -8,14 +8,14 @@
     <template v-if="noContainer">
       <div class="navbar-inner">
         <div class="navbar-brand">
-          <a class="navbar-item logo-item" href="/">
+          <router-link class="navbar-item logo-item" to="/index">
             <img
               class="site-logo"
               src="@/assets/images/Pixiv_Icon.svg"
               alt="logo"
             />
             <span class="logo-text">MyPixiv</span>
-          </a>
+          </router-link>
 
           <a
             role="button"
@@ -96,14 +96,14 @@
     <template v-else>
       <div class="container">
         <div class="navbar-brand">
-          <a class="navbar-item logo-item" href="/">
+          <router-link class="navbar-item logo-item" to="/index">
             <img
               class="site-logo"
               src="@/assets/images/Pixiv_Icon.svg"
               alt="logo"
             />
             <span class="logo-text">MyPixiv</span>
-          </a>
+          </router-link>
 
           <a
             role="button"

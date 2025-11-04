@@ -35,19 +35,22 @@
           <span class="icon">✏️</span>
           <span>编辑资料</span>
         </button>
+        
+        <!-- 查看他人主页时显示关注/取消关注按钮 -->
+        <button 
+          v-if="!isOwnProfile && isConcerned !== undefined" 
+          class="anime-button" 
+          :class="isConcerned ? 'is-danger' : 'is-success'"
+          @click="toggleConcern"
+        >
+          <span class="icon">{{ isConcerned ? '💔' : '💖' }}</span>
+          <span>{{ isConcerned ? '取消关注' : '关注TA' }}</span>
+        </button>
+        
         <button class="anime-button is-light" @click="$emit('back')">
           <span class="icon">🏠</span>
           <span>返回首页</span>
         </button>
-        
-        <div class="concern-badge" v-if="!isOwnProfile && isConcerned !== undefined">
-          <span v-if="isConcerned" class="tag is-success is-light">
-            <span class="icon">✅</span> 已关注此用户
-          </span>
-          <span v-else class="tag is-info is-light">
-            <span class="icon">👋</span> 未关注
-          </span>
-        </div>
       </div>
     </div>
 
@@ -174,6 +177,13 @@ export default {
     },
     onAvatarError(e) {
       e.target.src = this.defaultAvatar;
+    },
+    toggleConcern() {
+      // 触发父组件事件，传递当前关注状态和用户ID
+      this.$emit('toggle-concern', {
+        userId: this.userData.userId,
+        currentState: this.isConcerned
+      });
     }
   }
 };
@@ -359,6 +369,26 @@ export default {
 .anime-button.is-light:hover {
   background: rgba(147, 51, 234, 0.05);
   border-color: #a78bfa;
+}
+
+.anime-button.is-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.anime-button.is-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+}
+
+.anime-button.is-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.anime-button.is-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3);
 }
 
 .concern-badge {

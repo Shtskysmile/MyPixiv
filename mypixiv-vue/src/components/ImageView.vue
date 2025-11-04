@@ -64,7 +64,7 @@
               
               <!-- 作者信息 -->
               <div class="media">
-                <div class="media-left">
+                <div class="media-left" @click="goToAuthorProfile" style="cursor: pointer;">
                   <figure class="image is-64x64">
                     <img 
                       :src="avatarUrl" 
@@ -75,8 +75,11 @@
                   </figure>
                 </div>
                 <div class="media-content">
-                  <p class="subtitle is-6 author-name">
-                    <strong>作者 ID:</strong> {{ formatAuthorId(contribution.authorId) }}
+                  <p class="subtitle is-6 author-name" v-if="contribution.authorName" @click="goToAuthorProfile" style="cursor: pointer;">
+                    <strong>作者:</strong> {{ contribution.authorName }}
+                  </p>
+                  <p class="subtitle is-6 author-id">
+                    <strong>ID:</strong> {{ formatAuthorId(contribution.authorId) }}
                   </p>
                   <p class="is-size-7 publish-time">
                     <span class="icon">📅</span>
@@ -256,6 +259,7 @@ export default {
         auditStatus: 1,
         publishTime: '',
         authorId: '',
+        authorName: '',
         uploaderAvatarPath: '',
         viewCount: 0,
         favoriteCount: 0,
@@ -798,6 +802,18 @@ export default {
       
       // 使用通用方法处理URL
       return this.getImageUrl(avatarPath);
+    },
+    
+    // 跳转到作者主页
+    goToAuthorProfile() {
+      if (this.contribution.authorId) {
+        this.$router.push({
+          name: 'user-id',
+          params: { id: this.contribution.authorId }
+        });
+      } else {
+        console.warn('作者ID不存在，无法跳转');
+      }
     }
   },
 };
@@ -856,13 +872,25 @@ export default {
 }
 
 .anime-avatar {
+  width: 64px !important;
+  height: 64px !important;
   border: 3px solid #a78bfa !important;
   box-shadow: 0 4px 12px rgba(167, 139, 250, 0.3);
+  border-radius: 50% !important;
+  object-fit: cover;
+  display: block;
 }
 
 .author-name {
   color: #6366f1;
   font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.author-id {
+  color: #6b7280;
+  font-weight: 500;
+  font-size: 0.9em;
 }
 
 .publish-time {
@@ -972,10 +1000,13 @@ export default {
 }
 
 .comment-avatar {
-  width: 36px;
-  height: 36px;
+  width: 36px !important;
+  height: 36px !important;
   border-radius: 50%;
   border: 2px solid #e0e7ff;
+  object-fit: cover;
+  display: block;
+  flex-shrink: 0;
 }
 
 .comment-info {

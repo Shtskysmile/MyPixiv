@@ -38,10 +38,13 @@
         <img
           class="author-avatar"
           :src="loadedAvatarUrl || defaultAvatar"
-          :alt="image.authorId || 'author'"
+          :alt="image.authorName || image.authorId || 'author'"
           @error="onAvatarError"
         />
-        <span class="author-name">ID: {{ formatAuthorId(image.authorId) }}</span>
+        <div class="author-info">
+          <span class="author-name" v-if="image.authorName">{{ image.authorName }}</span>
+          <span class="author-id">ID: {{ formatAuthorId(image.authorId) }}</span>
+        </div>
       </div>
       <div class="art-tags" v-if="image.tags && image.tags.length">
         <span class="mini-tag" v-for="(tag, idx) in image.tags.slice(0, 3)" :key="idx">
@@ -314,14 +317,34 @@ export default {
   object-fit: cover;
   border: 2px solid #e0e7ff;
   transition: border-color 0.2s ease;
+  flex-shrink: 0;
 }
 
 .anime-card:hover .author-avatar {
   border-color: #a78bfa;
 }
 
+.author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+  min-width: 0;
+}
+
 .author-name {
+  font-weight: 600;
+  color: #6366f1;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.author-id {
   font-weight: 500;
+  font-size: 11px;
+  color: #9ca3af;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
