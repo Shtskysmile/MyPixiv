@@ -26,14 +26,27 @@
                       class="input anime-input" 
                       v-model="username" 
                       placeholder="请输入用户名"
-                      @blur="fetchSecurityQuestions"
                       required
                     />
                     <span class="icon is-small is-left">
                       <i>👤</i>
                     </span>
                   </div>
-                  <p class="help">输入用户名后将自动加载密保问题</p>
+                </div>
+
+                <div class="field">
+                  <div class="control">
+                    <button 
+                      class="button is-info is-fullwidth anime-button-fetch" 
+                      type="button"
+                      @click="fetchSecurityQuestions"
+                      :class="{ 'is-loading': loadingQuestions }"
+                      :disabled="loadingQuestions || !username.trim()"
+                    >
+                      <span class="icon">🔍</span>
+                      <span>{{ loadingQuestions ? '加载中...' : '获取密保问题' }}</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div v-if="questions.length > 0" class="security-section">
@@ -182,6 +195,7 @@ export default {
       newPassword: '',
       confirmNewPassword: '',
       loading: false,
+      loadingQuestions: false, // 加载密保问题的loading状态
       error: '',
       success: '',
     };
@@ -198,11 +212,13 @@ export default {
   methods: {
     async fetchSecurityQuestions() {
       if (!this.username.trim()) {
+        this.error = '请先输入用户名';
         return;
       }
 
-      this.loading = true;
+      this.loadingQuestions = true;
       this.error = '';
+      this.questions = [];
       
       try {
         // 对齐后端接口：POST /mySecurityIssues
@@ -211,20 +227,24 @@ export default {
         const params = new URLSearchParams();
         params.append('username', this.username);
 
+        console.log('🔍 正在获取密保问题，用户名:', this.username);
         const res = await axios.post('/api/mySecurityIssues', params);
+        console.log('📥 密保问题响应:', res.data);
         
         if (res.data && res.data.code === 0) {
           this.questions = res.data.data || [];
           this.answers = new Array(this.questions.length).fill('');
+          console.log('✅ 成功加载', this.questions.length, '个密保问题');
         } else {
           this.error = res.data?.message || '获取密保问题失败';
           this.questions = [];
+          console.error('❌ 获取密保问题失败:', res.data?.message);
         }
       } catch (err) {
-        console.error('获取密保问题错误:', err);
+        console.error('❌ 获取密保问题错误:', err);
         this.error = err.response?.data?.message || '获取密保问题失败，请检查用户名';
       } finally {
-        this.loading = false;
+        this.loadingQuestions = false;
       }
     },
     
@@ -265,24 +285,35 @@ export default {
           type: 'application/json'
         }));
 
+        console.log('🔐 正在验证密保问题...');
         const res = await axios.post('/api/verifySecurityIssues', formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
         });
         
+        console.log('📥 密保验证响应:', res.data);
+        
         if (res.data && res.data.code === 0) {
           const data = res.data.data; // R_VerifySecurityIssuesDTO
+          console.log('📦 验证结果数据:', data);
+          
           if (data.verified) {
-            // 验证成功，保存临时token
-            this.tempToken = data.token || '';
+            // 验证成功，保存临时token（注意：后端返回的是 tempToken 字段）
+            this.tempToken = data.tempToken || '';
+            console.log('✅ 密保验证成功！');
+            console.log('🔑 临时Token:', this.tempToken);
+            console.log('🔑 Token长度:', this.tempToken.length);
+            
             this.currentStep = 2; // 进入下一步：修改密码
             this.error = '';
           } else {
             this.error = '密保答案验证失败，请重新输入';
+            console.error('❌ 密保验证失败: verified = false');
           }
         } else {
           this.error = res.data?.message || '密保验证失败';
+          console.error('❌ 密保验证失败:', res.data?.message);
         }
       } catch (err) {
         console.error('验证密保错误:', err);
@@ -321,14 +352,23 @@ export default {
         params.append('username', this.username);
         params.append('newPassword', this.newPassword);
 
+        console.log('🔄 正在修改密码...');
+        console.log('👤 用户名:', this.username);
+        console.log('🔑 使用的Token:', this.tempToken);
+        console.log('🔑 Token长度:', this.tempToken?.length || 0);
+        console.log('📋 请求参数:', { username: this.username, newPassword: '***' });
+
         const res = await axios.post('/api/updatePassword', params, {
           headers: {
-            'Authorization': this.tempToken // 使用临时token
+            'Authorization': 'Bearer ' + this.tempToken // 使用临时token，添加Bearer前缀
           }
         });
         
+        console.log('📥 修改密码响应:', res.data);
+        
         if (res.data && res.data.code === 0) {
           // 修改成功
+          console.log('✅ 密码修改成功！');
           this.success = '密码修改成功！3秒后跳转到登录页...';
           this.error = '';
           
@@ -338,9 +378,11 @@ export default {
           }, 3000);
         } else {
           this.error = res.data?.message || '密码修改失败';
+          console.error('❌ 密码修改失败:', res.data?.message);
         }
       } catch (err) {
-        console.error('修改密码错误:', err);
+        console.error('❌ 修改密码错误:', err);
+        console.error('❌ 错误响应:', err.response?.data);
         this.error = err.response?.data?.message || '修改密码失败，请稍后重试';
       } finally {
         this.loading = false;
@@ -494,6 +536,32 @@ export default {
 
 .anime-button:active:not(:disabled) {
   transform: translateY(0);
+}
+
+.anime-button-fetch {
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 700;
+  font-size: 15px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border: none;
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.anime-button-fetch:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.3);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}
+
+.anime-button-fetch:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.anime-button-fetch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .anime-notification {

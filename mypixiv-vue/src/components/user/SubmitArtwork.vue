@@ -2,9 +2,9 @@
   <div class="anime-submit-container">
     <div class="submit-header">
       <h3 class="submit-title anime-gradient-text">
-        <span class="icon">📤</span> 提交作品
+        <span class="icon">{{ isEditMode ? '✏️' : '📤' }}</span> {{ isEditMode ? '编辑作品' : '提交作品' }}
       </h3>
-      <p class="submit-subtitle">分享你的创作，让更多人看到！</p>
+      <p class="submit-subtitle">{{ isEditMode ? '修改你的作品信息' : '分享你的创作，让更多人看到！' }}</p>
     </div>
 
     <form @submit.prevent="handleSubmit" class="submit-form">
@@ -208,8 +208,23 @@
                 :class="{ 'is-loading': loading }"
                 :disabled="loading || imagePreviews.length === 0"
               >
-                <span class="icon">🚀</span>
-                <span>{{ loading ? '上传中...' : '提交作品' }}</span>
+                <span class="icon">{{ isEditMode ? '💾' : '🚀' }}</span>
+                <span>{{ loading ? (isEditMode ? '保存中...' : '上传中...') : (isEditMode ? '保存修改' : '提交作品') }}</span>
+              </button>
+            </div>
+          </div>
+          
+          <!-- 取消编辑按钮（仅编辑模式显示） -->
+          <div class="field" v-if="isEditMode">
+            <div class="control">
+              <button 
+                type="button" 
+                class="button is-light is-fullwidth anime-button"
+                @click="handleCancelEdit"
+                :disabled="loading"
+              >
+                <span class="icon">❌</span>
+                <span>取消编辑</span>
               </button>
             </div>
           </div>
@@ -228,6 +243,10 @@ export default {
     user: {
       type: Object,
       required: true
+    },
+    editWork: {
+      type: Object,
+      default: null
     }
   },
   data() {
@@ -248,9 +267,83 @@ export default {
   computed: {
     currentPreview() {
       return this.imagePreviews[this.imageIndex] || '';
+    },
+    isEditMode() {
+      return this.editWork !== null;
+    }
+  },
+  watch: {
+    // 监听 editWork 变化，自动填充表单
+    editWork: {
+      immediate: true,
+      handler(work) {
+        if (work) {
+          this.loadWorkData(work);
+        } else {
+          this.resetForm();
+        }
+      }
     }
   },
   methods: {
+    // 加载作品数据到表单（编辑模式）
+    loadWorkData(work) {
+      console.log('📝 加载作品数据:', work);
+      
+      this.title = work.title || '';
+      this.artType = work.type !== undefined ? work.type : 0;
+      this.description = work.description || '';
+      this.tags = work.tags || [];
+      
+      // 加载图片预览
+      // 注意：编辑模式下不清空 imageFiles，只显示现有图片预览
+      this.imagePreviews = [];
+      this.imageFiles = [];
+      this.imageIndex = 0;
+      
+      // 从后端 image 字段加载图片 URL
+      if (work.image) {
+        const images = Array.isArray(work.image) ? work.image : [work.image];
+        images.forEach(imagePath => {
+          const imageUrl = this.getImageUrl(imagePath);
+          this.imagePreviews.push(imageUrl);
+        });
+      }
+    },
+    
+    // 重置表单
+    resetForm() {
+      this.title = '';
+      this.artType = 0;
+      this.description = '';
+      this.tags = [];
+      this.currentTag = '';
+      this.imageFiles = [];
+      this.imagePreviews = [];
+      this.imageIndex = 0;
+      this.error = '';
+      this.success = '';
+    },
+    
+    // 获取图片 URL
+    getImageUrl(imagePath) {
+      if (!imagePath) return '';
+      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
+      }
+      const baseURL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:8080';
+      const fullPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+      return `${baseURL}${fullPath}`;
+    },
+    
+    // 取消编辑
+    handleCancelEdit() {
+      const confirmed = confirm('确定要取消编辑吗？未保存的修改将丢失。');
+      if (confirmed) {
+        this.$emit('cancel-edit');
+      }
+    },
+    
     triggerFileInput() {
       this.$refs.fileInput.click();
     },
@@ -350,7 +443,7 @@ export default {
         this.error = '请输入作品标题';
         return;
       }
-      if (this.imageFiles.length === 0) {
+      if (this.imagePreviews.length === 0) {
         this.error = '请至少上传一张图片';
         return;
       }
@@ -362,55 +455,97 @@ export default {
       this.loading = true;
 
       try {
-        // 对齐后端接口：POST /user/uploadContribution
-        // 参数：title, type, description, tags (List<String>, 可选), images (List<MultipartFile>)
-        const formData = new FormData();
-        
-        formData.append('title', this.title.trim());
-        formData.append('type', this.artType);
-        formData.append('description', this.description.trim());
-        
-        // 添加标签（对齐后端 @RequestPart List<String>）
-        // 后端使用 @RequestPart 接收，需要作为 JSON Blob
-        if (this.tags.length > 0) {
-          const tagsBlob = new Blob([JSON.stringify(this.tags)], { type: 'application/json' });
-          formData.append('tags', tagsBlob);
-        }
-        
-        // 添加多个图片（对齐后端 List<MultipartFile>）
-        this.imageFiles.forEach(file => {
-          formData.append('images', file);
-        });
-
-        const res = await request.post('/user/uploadContribution', formData);
-        
-        if (res.data && res.data.code === 0) {
-          // 上传成功
-          this.success = '作品提交成功！等待审核中...';
-          this.$emit('submitted', null);
-          
-          // 重置表单
-          this.title = '';
-          this.artType = 0;
-          this.description = '';
-          this.tags = [];
-          this.currentTag = '';
-          this.imageFiles = [];
-          this.imagePreviews = [];
-          this.imageIndex = 0;
-          
-          // 3秒后清空成功提示
-          setTimeout(() => {
-            this.success = '';
-          }, 3000);
+        if (this.isEditMode) {
+          // 编辑模式：调用编辑接口
+          await this.handleEditSubmit();
         } else {
-          this.error = res.data?.message || '提交失败，请稍后重试';
+          // 新建模式：调用上传接口
+          await this.handleCreateSubmit();
         }
       } catch (err) {
         console.error('提交作品错误:', err);
         this.error = err.response?.data?.message || '提交失败，请稍后重试';
       } finally {
         this.loading = false;
+      }
+    },
+    
+    async handleCreateSubmit() {
+      // 对齐后端接口：POST /user/uploadContribution
+      // 参数：title, type, description, tags (List<String>, 可选), images (List<MultipartFile>)
+      const formData = new FormData();
+      
+      formData.append('title', this.title.trim());
+      formData.append('type', this.artType);
+      formData.append('description', this.description.trim());
+      
+      // 添加标签（对齐后端 @RequestPart List<String>）
+      // 后端使用 @RequestPart 接收，需要作为 JSON Blob
+      if (this.tags.length > 0) {
+        const tagsBlob = new Blob([JSON.stringify(this.tags)], { type: 'application/json' });
+        formData.append('tags', tagsBlob);
+      }
+      
+      // 添加多个图片（对齐后端 List<MultipartFile>）
+      this.imageFiles.forEach(file => {
+        formData.append('images', file);
+      });
+
+      const res = await request.post('/user/uploadContribution', formData);
+      
+      if (res.data && res.data.code === 0) {
+        // 上传成功
+        this.success = '作品提交成功！等待审核中...';
+        this.$emit('submitted', null);
+        
+        // 重置表单
+        this.resetForm();
+        
+        // 3秒后清空成功提示
+        setTimeout(() => {
+          this.success = '';
+        }, 3000);
+      } else {
+        this.error = res.data?.message || '提交失败，请稍后重试';
+      }
+    },
+    
+    async handleEditSubmit() {
+      // 对齐后端接口：POST /user/updateContribution
+      // 参数：contributionId, title, type, description, tags (List<String>, 可选), images (List<MultipartFile>, 可选)
+      const formData = new FormData();
+      
+      formData.append('contributionId', this.editWork.contributionId);
+      formData.append('title', this.title.trim());
+      formData.append('type', this.artType);
+      formData.append('description', this.description.trim());
+      
+      // 添加标签
+      if (this.tags.length > 0) {
+        const tagsBlob = new Blob([JSON.stringify(this.tags)], { type: 'application/json' });
+        formData.append('tags', tagsBlob);
+      }
+      
+      // 如果用户重新上传了图片，才添加图片
+      if (this.imageFiles.length > 0) {
+        this.imageFiles.forEach(file => {
+          formData.append('images', file);
+        });
+      }
+
+      const res = await request.post('/user/updateContribution', formData);
+      
+      if (res.data && res.data.code === 0) {
+        // 编辑成功
+        this.success = '作品修改成功！';
+        this.$emit('submitted', null);
+        
+        // 3秒后清空成功提示
+        setTimeout(() => {
+          this.success = '';
+        }, 3000);
+      } else {
+        this.error = res.data?.message || '修改失败，请稍后重试';
       }
     }
   }

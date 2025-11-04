@@ -13,6 +13,7 @@ import SystemAdmin from '@/components/admin/SystemAdmin.vue'
 import IllustrationPage from '@/components/IllustrationPage.vue'
 import MangaPage from '@/components/MangaPage.vue'
 import RankingPage from '@/components/RankingPage.vue'
+import Search from '@/components/Search.vue'
 
 Vue.use(Router)
 
@@ -21,6 +22,7 @@ export default new Router({
   routes: [
     { path: '/', name: 'guide', component: Guide },
     { path: '/index', name: 'index', component: Index },
+    { path: '/search', name: 'search', component: Search },
     { path: '/illustrations', name: 'illustrations', component: IllustrationPage },
     { path: '/mangas', name: 'mangas', component: MangaPage },
     { path: '/ranking', name: 'ranking', component: RankingPage },

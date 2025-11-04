@@ -180,7 +180,7 @@
                       @error="onAvatarError"
                     />
                     <div class="comment-info">
-                      <strong class="comment-author">{{ c.author }}</strong>
+                      <strong class="comment-author">{{ c.authorName || c.author || '匿名用户' }}</strong>
                       <span class="comment-time">{{ formatTime(c.time) }}</span>
                     </div>
                   </div>
@@ -615,22 +615,48 @@ export default {
       }
     },
     
-    submitComment() {
+    async submitComment() {
       if (!this.newComment.trim()) return;
       
-      // TODO: 调用后端接口 POST /user/commentContribution
-      const newCommentObj = {
-        author: '当前用户',
-        description: this.newComment,
-        time: new Date().toISOString(),
-        avatar: '/static/default-avatar.png'
-      };
+      const token = localStorage.getItem('token');
       
-      this.comments.push(newCommentObj);
-      this.contribution.commentCount++;
-      this.newComment = '';
+      if (!token) {
+        alert('请先登录');
+        return;
+      }
       
-      alert('评论成功！');
+      try {
+        const params = new URLSearchParams();
+        params.append('contributionId', this.contribution.contributionId);
+        params.append('comment', this.newComment.trim());
+        
+        console.log('📡 正在提交评论...');
+        
+        const response = await axios.post('/api/user/commentContribution', params, {
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+        
+        console.log('✅ 评论接口响应:', response.data);
+        
+        if (response.data?.code === 0 || response.data?.code === 200) {
+          console.log('✨ 评论成功！');
+          
+          // 清空输入框
+          this.newComment = '';
+          
+          // 刷新作品数据，获取最新评论列表
+          await this.refreshContributionData();
+          
+          alert('评论成功！');
+        } else {
+          alert(response.data?.message || '评论失败');
+        }
+      } catch (err) {
+        console.error('❌ 评论失败:', err);
+        alert('评论失败，请稍后重试');
+      }
     },
     
     // 刷新作品数据（用于点赞/收藏后更新统计数据）
@@ -797,11 +823,19 @@ export default {
       const avatarPath = comment.avatar;
       
       if (!avatarPath) {
-        return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="36" height="36"%3E%3Crect fill="%23ddd" width="36" height="36"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999"%3EU%3C/text%3E%3C/svg%3E';
+        // 返回默认头像
+        return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="36" height="36"%3E%3Crect fill="%23ddd" width="36" height="36"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="18"%3EU%3C/text%3E%3C/svg%3E';
       }
       
-      // 使用通用方法处理URL
-      return this.getImageUrl(avatarPath);
+      // 如果是完整URL，直接返回
+      if (avatarPath.startsWith('http://') || avatarPath.startsWith('https://')) {
+        return avatarPath;
+      }
+      
+      // 拼接基础 URL
+      const baseURL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:8080';
+      const fullPath = avatarPath.startsWith('/') ? avatarPath : `/${avatarPath}`;
+      return `${baseURL}${fullPath}`;
     },
     
     // 跳转到作者主页

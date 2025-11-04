@@ -49,7 +49,7 @@
               <span class="stat"><i>💬</i> {{ formatCount(work.commentCount) }}</span>
             </div>
 
-            <div class="card-actions">
+            <div class="card-actions" v-if="isOwnProfile">
               <button class="anime-button is-small is-info" @click="handleEdit(work)">
                 <span class="icon">✏️</span>
                 <span>编辑</span>
@@ -106,7 +106,7 @@
               <span class="stat"><i>💬</i> {{ formatCount(work.commentCount) }}</span>
             </div>
 
-            <div class="card-actions">
+            <div class="card-actions" v-if="isOwnProfile">
               <button class="anime-button is-small is-info" @click="handleEdit(work)">
                 <span class="icon">✏️</span>
                 <span>编辑</span>
@@ -159,7 +159,7 @@
               <span>{{ work.dismissalReason }}</span>
             </div>
 
-            <div class="card-actions">
+            <div class="card-actions" v-if="isOwnProfile">
               <button class="anime-button is-small is-info" @click="handleEdit(work)">
                 <span class="icon">✏️</span>
                 <span>编辑</span>
@@ -311,8 +311,8 @@ export default {
       return finalUrl;
     },
     handleEdit(work) {
-      // TODO: 实现编辑功能
-      alert('编辑功能开发中...');
+      // 触发编辑事件，将作品数据传递给父组件
+      this.$emit('edit', work);
     },
     handleDelete(work) {
       const title = work.title || '此作品';

@@ -42,50 +42,16 @@
           </router-link>
         </li>
         <li>
-          <a class="menu-item" @click="handleSearchClick">
+          <router-link to="/search" class="menu-item" active-class="is-active">
             <span class="icon">🔎</span>
             <span>搜索</span>
-            <span class="badge coming-soon">即将开放</span>
-          </a>
+          </router-link>
         </li>
         <li>
           <a class="menu-item" @click="handleTagsClick">
             <span class="icon">🏷️</span>
             <span>标签</span>
             <span class="badge coming-soon">即将开放</span>
-          </a>
-        </li>
-      </ul>
-    </div>
-
-    <!-- 个人分类 -->
-    <div class="menu-section anime-menu-box">
-      <p class="menu-label anime-menu-label">
-        <span class="icon">👤</span> 个人
-      </p>
-      <ul class="menu-list">
-        <li>
-          <router-link to="/user" class="menu-item" active-class="is-active">
-            <span class="icon">📋</span>
-            <span>个人主页</span>
-          </router-link>
-        </li>
-        <li>
-          <a class="menu-item" @click="goToUserSection('favorites')">
-            <span class="icon">⭐</span>
-            <span>我的收藏</span>
-          </a>
-        </li>
-        <li>
-          <a class="menu-item" @click="goToUserSection('likes')">
-            <span class="icon">❤️</span>
-            <span>我的点赞</span>
-          </a>
-        </li>
-        <li>
-          <a class="menu-item" @click="goToUserSection('followers')">
-            <span class="icon">👥</span>
-            <span>我的关注</span>
           </a>
         </li>
       </ul>
@@ -104,15 +70,8 @@
 export default {
   name: 'Sidebar',
   methods: {
-    goToUserSection(section) {
-      // 跳转到用户页面并打开指定标签
-      this.$router.push({ path: '/user', query: { tab: section } });
-    },
     handleRankingClick() {
       alert('排行榜功能即将开放，敬请期待！🏆');
-    },
-    handleSearchClick() {
-      alert('搜索功能即将开放，敬请期待！🔎');
     },
     handleTagsClick() {
       alert('标签功能即将开放，敬请期待！🏷️');

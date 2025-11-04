@@ -266,39 +266,58 @@ export default {
     onSearch() {
       const q = (this.search || '').trim();
 
-      // 构建目标 route 对象（确保 query 值为字符串以便比较）
-      const target = q
-        ? { path: '/index', query: { search: String(q), page: '1' } }
-        : { path: '/index', query: { page: '1' } };
+      // 如果有搜索关键词，跳转到搜索页面
+      if (q) {
+        const target = { 
+          path: '/search', 
+          query: { 
+            keyword: String(q), 
+            type: 'name' // 默认使用名称搜索
+          } 
+        };
 
-      // 规范化当前 route 的 query 为字符串值并排序键
-      const currPath = this.$route.path;
-      const currQuery = {};
-      Object.keys(this.$route.query || {})
-        .sort()
-        .forEach((k) => {
-          currQuery[k] = String(this.$route.query[k]);
+        // 规范化当前 route 的 query 为字符串值并排序键
+        const currPath = this.$route.path;
+        const currQuery = {};
+        Object.keys(this.$route.query || {})
+          .sort()
+          .forEach((k) => {
+            currQuery[k] = String(this.$route.query[k]);
+          });
+
+        // 规范化目标 query 并比较是否与当前 route 相同
+        const targetQuery = {};
+        Object.keys(target.query || {})
+          .sort()
+          .forEach((k) => {
+            targetQuery[k] = String(target.query[k]);
+          });
+
+        if (currPath === target.path && JSON.stringify(currQuery) === JSON.stringify(targetQuery)) {
+          // 已经在相同位置，触发搜索页面的刷新事件
+          // 使用 Vue 的事件总线或者强制刷新搜索结果
+          window.dispatchEvent(new CustomEvent('refresh-search'));
+          // 关闭移动端菜单
+          this.isBurgerActive = false;
+          return;
+        }
+
+        // 执行导航并捕获重复导航错误（兼容 Vue Router v3/v4）
+        this.$router.push(target).catch((err) => {
+          // 某些 Vue Router 版本会抛出 NavigationDuplicated，这里静默处理
+          // 其他错误可以选择记录或上报；目前无需中断用户操作
+          return err;
         });
-
-      // 规范化目标 query 并比较是否与当前 route 相同
-      const targetQuery = {};
-      Object.keys(target.query || {})
-        .sort()
-        .forEach((k) => {
-          targetQuery[k] = String(target.query[k]);
-        });
-
-      if (currPath === target.path && JSON.stringify(currQuery) === JSON.stringify(targetQuery)) {
-        // 已经在相同位置，避免重复导航
-        return;
+      } else {
+        // 没有搜索关键词，跳转到首页
+        const target = { path: '/index', query: { page: '1' } };
+        
+        if (this.$route.path === target.path && this.$route.query.page === '1' && !this.$route.query.search) {
+          return;
+        }
+        
+        this.$router.push(target).catch((err) => err);
       }
-
-      // 执行导航并捕获重复导航错误（兼容 Vue Router v3/v4）
-      this.$router.push(target).catch((err) => {
-        // 某些 Vue Router 版本会抛出 NavigationDuplicated，这里静默处理
-        // 其他错误可以选择记录或上报；目前无需中断用户操作
-        return err;
-      });
       
       // 关闭移动端菜单
       this.isBurgerActive = false;
@@ -479,15 +498,33 @@ export default {
   cursor: pointer;
   transition: all 0.3s ease;
   white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+
+.search-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, #0080e6 0%, #1a5ce6 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.search-button:hover::before {
+  opacity: 1;
 }
 
 .search-button:hover {
-  background: linear-gradient(135deg, #0080e6 0%, #1a5ce6 100%);
-  transform: translateX(-2px);
+  box-shadow: 0 4px 12px rgba(0, 110, 255, 0.3);
 }
 
 .search-button:active {
-  transform: translateX(-2px) scale(0.98);
+  transform: scale(0.98);
 }
 
 /* 按钮样式 */

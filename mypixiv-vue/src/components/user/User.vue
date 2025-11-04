@@ -56,7 +56,7 @@
           </div>
 
           <div v-if="view === 'works'">
-            <WorksList :works="userWorks" :page="worksPage" :pageSize="12" :total="worksTotal" :isOwnProfile="isOwnProfile" @page-change="openWorks" />
+            <WorksList :works="userWorks" :page="worksPage" :pageSize="12" :total="worksTotal" :isOwnProfile="isOwnProfile" @page-change="openWorks" @edit="handleEditWork" @delete="handleDeleteWork" />
           </div>
 
           <div v-if="view === 'followers'">
@@ -64,7 +64,7 @@
           </div>
 
           <div v-if="view === 'submit'">
-            <SubmitArtwork :user="user" @submitted="onArtworkSubmitted" />
+            <SubmitArtwork :user="user" :editWork="editingWork" @submitted="onArtworkSubmitted" @cancel-edit="cancelEditWork" />
           </div>
         </div>
       </div>
@@ -184,6 +184,7 @@ export default {
       worksPage: 1,
       worksTotal: 0,
       view: 'info',
+      editingWork: null, // 正在编辑的作品
       editModalVisible: false,
       editName: '',
       editGender: 0,
@@ -735,10 +736,50 @@ export default {
     
     onArtworkSubmitted(artwork) {
       alert('作品提交成功！');
+      // 清除编辑状态
+      this.editingWork = null;
       // 刷新作品列表
-      if (this.view === 'works') {
-        this.openWorks(1);
-      }
+      this.openWorks(1);
+      // 切换回作品列表视图
+      this.view = 'works';
+    },
+    
+    handleEditWork(work) {
+      console.log('📝 编辑作品:', work);
+      // 设置正在编辑的作品
+      this.editingWork = work;
+      // 切换到提交作品视图
+      this.view = 'submit';
+    },
+    
+    cancelEditWork() {
+      console.log('❌ 取消编辑');
+      // 清除编辑状态
+      this.editingWork = null;
+      // 切换回作品列表视图
+      this.view = 'works';
+    },
+    
+    handleDeleteWork(work) {
+      console.log('🗑️ 删除作品:', work);
+      // TODO: 调用后端删除接口
+      const params = new URLSearchParams();
+      params.append('contributionId', work.contributionId);
+      
+      request.post('/user/deleteContribution', params)
+        .then((res) => {
+          if (res.data && res.data.code === 0) {
+            alert('删除成功！');
+            // 刷新作品列表
+            this.openWorks(this.worksPage);
+          } else {
+            alert('删除失败: ' + (res.data?.message || '未知错误'));
+          }
+        })
+        .catch((error) => {
+          console.error('删除失败:', error);
+          alert('删除失败，请稍后重试');
+        });
     },
     
     handleToggleConcern({ userId, currentState }) {
