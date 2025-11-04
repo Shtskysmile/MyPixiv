@@ -93,10 +93,9 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
     @Override
     public boolean unblockContribution(String contributionId) {
         // 查询作品是否存在
-        Contribution contribution = contributionMapper.selectContributionById(contributionId);
+        Contribution contribution = contributionMapper.selectBannedContributionById(contributionId);
         if(contribution==null||contribution.getAuditStatus()!=approved)
             return false;
-        // 恢复作品为正常状态
         contribution.setStatus(normal);
         contributionMapper.updateContribution(contribution);
         return true;
@@ -218,7 +217,7 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
     @Override
     public R_Contribution getBannedContribution(String contributionId) {
         Contribution contribution = contributionMapper.selectBannedContributionById(contributionId);
-        if(contribution==null||contribution.getAuditStatus()!=approved)
+        if(contribution==null||contribution.getAuditStatus()!=approved||contribution.getStatus()!=banned)
             return null;
         User user = userMapper.selectUserById(contribution.getAuthorId());
         R_Contribution rContribution = transformService.transformContributionToRContribution(contribution,user.getAvatar(),user.getUsername());

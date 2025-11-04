@@ -50,7 +50,6 @@ public class CommunityAdminController {
             @RequestParam("contributionId") String contributionId) {
         System.out.println("contributionId: " + contributionId);
         R_Contribution c = communityAdminService.getBannedContribution(contributionId);
-        System.out.println(c.getImage());
         return Result.success(c);
     }
 
