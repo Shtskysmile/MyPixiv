@@ -34,7 +34,7 @@ public interface UserMapper {
             """)
     List<User> selectUsersByName(
             @Param("limit") int limit,
-            @Param("titleKeyword") String keyword
+            @Param("keyword") String keyword
     );
 
     @Select("SELECT * FROM user WHERE status = #{status}")

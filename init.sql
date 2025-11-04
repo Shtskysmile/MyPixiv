@@ -38,7 +38,7 @@ CREATE TABLE contribution (
     INDEX idx_type (type),
     INDEX idx_audit (auditStatus),
     INDEX idx_title (title),                 
-    FULLTEXT idx_title_fulltext (title)   
+    FULLTEXT idx_title_fulltext (title) WITH PARSER ngram
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- 3. 评论表

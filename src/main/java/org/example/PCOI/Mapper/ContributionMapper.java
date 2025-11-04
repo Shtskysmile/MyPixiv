@@ -71,14 +71,32 @@ public interface ContributionMapper {
     void updateContribution(Contribution contribution);
 
 
-    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
+//    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
+//    @Select("""
+//            SELECT * FROM contribution
+//            WHERE MATCH(title) AGAINST(#{titleKeyword} IN NATURAL LANGUAGE MODE)
+//            AND status = 0 AND auditStatus = 1
+//            ORDER BY MATCH(title) AGAINST(#{titleKeyword} IN NATURAL LANGUAGE MODE) DESC
+//            LIMIT #{limit}
+//            """)
+//    List<Contribution> selectContributionsByTitle(
+//            @Param("limit") int limit,
+//            @Param("titleKeyword") String titleKeyword
+//    );
+
+    @Results({
+            @Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)
+    })
     @Select("""
-            SELECT * FROM contribution
-            WHERE MATCH(title) AGAINST(#{titleKeyword} IN NATURAL LANGUAGE MODE)
-            AND status = 0 AND auditStatus = 1
-            ORDER BY MATCH(title) AGAINST(#{titleKeyword} IN NATURAL LANGUAGE MODE) DESC
-            LIMIT #{limit}
-            """)
+        SELECT *
+        FROM contribution
+        WHERE 
+            title LIKE CONCAT('%', #{titleKeyword}, '%')  -- 核心：子串匹配
+            AND status = 0 
+            AND auditStatus = 1
+        ORDER BY publishTime DESC  -- 按时间倒序（最新优先）
+        LIMIT #{limit}
+    """)
     List<Contribution> selectContributionsByTitle(
             @Param("limit") int limit,
             @Param("titleKeyword") String titleKeyword

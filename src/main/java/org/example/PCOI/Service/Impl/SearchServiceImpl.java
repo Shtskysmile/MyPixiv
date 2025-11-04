@@ -37,16 +37,21 @@ public class SearchServiceImpl implements SearchService {
         List<R_OverviewContribution> mangas = new ArrayList<>();
         List<R_User> rUsers = new ArrayList<>();
         R_SearchDTO rSearchDTO = new R_SearchDTO();
-        Contribution contribution = contributionMapper.selectContributionById(keyword);
         User user = userMapper.selectUserById(keyword);
-        R_User rUser = transformService.transformUserToRUser(user);
-        User contributionUser = userMapper.selectUserById(contribution.getAuthorId());
-        R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar(), contributionUser.getUsername());
-        if (contribution.getType().equals(illustration))
-            illustrations.add(rOverviewContribution);
-        else if (contribution.getType().equals(manga))
-            mangas.add(rOverviewContribution);
-        rUsers.add(rUser);
+        if(user != null)
+        {
+            R_User rUser = transformService.transformUserToRUser(user);
+            rUsers.add(rUser);
+        }
+        Contribution contribution = contributionMapper.selectContributionById(keyword);
+        if(contribution!=null) {
+            User contributionUser = userMapper.selectUserById(contribution.getAuthorId());
+            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar(), contributionUser.getUsername());
+            if (contribution.getType().equals(illustration))
+                illustrations.add(rOverviewContribution);
+            else if (contribution.getType().equals(manga))
+                mangas.add(rOverviewContribution);
+        }
         rSearchDTO.setIllustrations(illustrations);
         rSearchDTO.setMangas(mangas);
         rSearchDTO.setUsers(rUsers);
@@ -61,17 +66,22 @@ public class SearchServiceImpl implements SearchService {
         R_SearchDTO rSearchDTO = new R_SearchDTO();
         List<Contribution> contributions = contributionMapper.selectContributionsByTitle(maxSearchLimit,keyword);
         List<User> users = userMapper.selectUsersByName(maxSearchLimit,keyword);
-        for(User user : users){
-            R_User rUser = transformService.transformUserToRUser(user);
-            rUsers.add(rUser);
+        if(!users.isEmpty())
+        {
+            for(User user : users){
+                R_User rUser = transformService.transformUserToRUser(user);
+                rUsers.add(rUser);
+            }
         }
-        for(Contribution contribution : contributions){
-            User contributionUser = userMapper.selectUserById(contribution.getAuthorId());
-            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar(), contributionUser.getUsername());
-            if (contribution.getType().equals(illustration))
-                illustrations.add(rOverviewContribution);
-            else if (contribution.getType().equals(manga))
-                mangas.add(rOverviewContribution);
+        if(!contributions.isEmpty()){
+            for(Contribution contribution : contributions){
+                User contributionUser = userMapper.selectUserById(contribution.getAuthorId());
+                R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar(), contributionUser.getUsername());
+                if (contribution.getType().equals(illustration))
+                    illustrations.add(rOverviewContribution);
+                else if (contribution.getType().equals(manga))
+                    mangas.add(rOverviewContribution);
+            }
         }
         rSearchDTO.setIllustrations(illustrations);
         rSearchDTO.setMangas(mangas);
@@ -86,13 +96,15 @@ public class SearchServiceImpl implements SearchService {
         List<R_User> rUsers = new ArrayList<>();
         R_SearchDTO rSearchDTO = new R_SearchDTO();
         List<Contribution> contributions = contributionMapper.selectContributionsByTag(keyword);
-        for(Contribution contribution : contributions){
-            User contributionUser = userMapper.selectUserById(contribution.getAuthorId());
-            R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar(), contributionUser.getUsername());
-            if (contribution.getType().equals(illustration))
-                illustrations.add(rOverviewContribution);
-            else if (contribution.getType().equals(manga))
-                mangas.add(rOverviewContribution);
+        if(!contributions.isEmpty()){
+            for(Contribution contribution : contributions){
+                User contributionUser = userMapper.selectUserById(contribution.getAuthorId());
+                R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar(), contributionUser.getUsername());
+                if (contribution.getType().equals(illustration))
+                    illustrations.add(rOverviewContribution);
+                else if (contribution.getType().equals(manga))
+                    mangas.add(rOverviewContribution);
+            }
         }
         rSearchDTO.setIllustrations(illustrations);
         rSearchDTO.setMangas(mangas);
