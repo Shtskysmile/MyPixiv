@@ -50,10 +50,6 @@
             </div>
 
             <div class="card-actions" v-if="isOwnProfile">
-              <button class="anime-button is-small is-info" @click="handleEdit(work)">
-                <span class="icon">✏️</span>
-                <span>编辑</span>
-              </button>
               <button class="anime-button is-small is-danger" @click="handleDelete(work)">
                 <span class="icon">🗑️</span>
                 <span>删除</span>
@@ -107,10 +103,6 @@
             </div>
 
             <div class="card-actions" v-if="isOwnProfile">
-              <button class="anime-button is-small is-info" @click="handleEdit(work)">
-                <span class="icon">✏️</span>
-                <span>编辑</span>
-              </button>
               <button class="anime-button is-small is-danger" @click="handleDelete(work)">
                 <span class="icon">🗑️</span>
                 <span>删除</span>
@@ -160,10 +152,6 @@
             </div>
 
             <div class="card-actions" v-if="isOwnProfile">
-              <button class="anime-button is-small is-info" @click="handleEdit(work)">
-                <span class="icon">✏️</span>
-                <span>编辑</span>
-              </button>
               <button class="anime-button is-small is-danger" @click="handleDelete(work)">
                 <span class="icon">🗑️</span>
                 <span>删除</span>
@@ -309,10 +297,6 @@ export default {
       console.groupEnd();
       
       return finalUrl;
-    },
-    handleEdit(work) {
-      // 触发编辑事件，将作品数据传递给父组件
-      this.$emit('edit', work);
     },
     handleDelete(work) {
       const title = work.title || '此作品';

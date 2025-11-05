@@ -37,9 +37,20 @@
           <span>编辑资料</span>
         </button>
         
-        <!-- 查看他人主页时显示关注/取消关注按钮 -->
+        <!-- 社区管理员查看他人主页时显示封禁/解封按钮 -->
         <button 
-          v-if="!isOwnProfile && isConcerned !== undefined" 
+          v-if="!isOwnProfile && isCommunityAdmin" 
+          class="anime-button" 
+          :class="userData.status === 1 ? 'is-success' : 'is-danger'"
+          @click="toggleBlockUser"
+        >
+          <span class="icon">{{ userData.status === 1 ? '🔓' : '🚫' }}</span>
+          <span>{{ userData.status === 1 ? '解封用户' : '封禁用户' }}</span>
+        </button>
+        
+        <!-- 普通用户查看他人主页时显示关注/取消关注按钮 -->
+        <button 
+          v-if="!isOwnProfile && !isCommunityAdmin && isConcerned !== undefined" 
           class="anime-button" 
           :class="isConcerned ? 'is-danger' : 'is-success'"
           @click="toggleConcern"
@@ -108,6 +119,10 @@ export default {
     isOwnProfile: {
       type: Boolean,
       default: true
+    },
+    isCommunityAdmin: {
+      type: Boolean,
+      default: false
     },
     stats: {
       type: Object,
@@ -182,6 +197,13 @@ export default {
       this.$emit('toggle-concern', {
         userId: this.userData.userId,
         currentState: this.isConcerned
+      });
+    },
+    toggleBlockUser() {
+      // 触发父组件事件，传递用户ID和当前封禁状态
+      this.$emit('toggle-block-user', {
+        userId: this.userData.userId,
+        currentStatus: this.userData.status
       });
     }
   }

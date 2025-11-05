@@ -15,19 +15,25 @@
               <li><a :class="{ 'is-active': view === 'info' }" @click.prevent="view = 'info'">
                 <span class="icon">📋</span> 个人信息
               </a></li>
-              <li><a :class="{ 'is-active': view === 'favorites' }" @click.prevent="openFavorites">
+              <!-- 管理员不能查看收藏和点赞 -->
+              <li v-if="!isCommunityAdmin && !isSystemAdmin"><a :class="{ 'is-active': view === 'favorites' }" @click.prevent="openFavorites">
                 <span class="icon">⭐</span> 收藏的画作
               </a></li>
-              <li><a :class="{ 'is-active': view === 'likes' }" @click.prevent="openLikes">
+              <li v-if="!isCommunityAdmin && !isSystemAdmin"><a :class="{ 'is-active': view === 'likes' }" @click.prevent="openLikes">
                 <span class="icon">❤️</span> 点赞的画作
               </a></li>
-              <li><a :class="{ 'is-active': view === 'works' }" @click.prevent="openWorks">
+              <!-- 普通用户才能查看和提交作品，管理员不能提交作品 -->
+              <li v-if="!isCommunityAdmin && !isSystemAdmin"><a :class="{ 'is-active': view === 'works' }" @click.prevent="openWorks">
                 <span class="icon">🎨</span> {{ isOwnProfile ? '我的' : 'TA的' }}画作
               </a></li>
-              <li><a :class="{ 'is-active': view === 'followers' }" @click.prevent="openFollowers">
+              <!-- 管理员不能查看关注列表 -->
+              <li v-if="!isCommunityAdmin && !isSystemAdmin"><a :class="{ 'is-active': view === 'followers' }" @click.prevent="openFollowers">
                 <span class="icon">👥</span> {{ isOwnProfile ? '我的' : 'TA的' }}关注
               </a></li>
-              <li v-if="isOwnProfile"><a :class="{ 'is-active': view === 'submit' }" @click.prevent="view = 'submit'">
+              <li v-if="!isCommunityAdmin && !isSystemAdmin"><a :class="{ 'is-active': view === 'comments' }" @click.prevent="openComments">
+                <span class="icon">💬</span> {{ isOwnProfile ? '我的' : 'TA的' }}评论
+              </a></li>
+              <li v-if="isOwnProfile && !isCommunityAdmin && !isSystemAdmin"><a :class="{ 'is-active': view === 'submit' }" @click.prevent="view = 'submit'">
                 <span class="icon">📤</span> 提交作品
               </a></li>
               <!-- 社区管理员菜单 -->
@@ -57,10 +63,12 @@
               :user="user" 
               :isOwnProfile="isOwnProfile" 
               :isConcerned="isConcerned"
+              :isCommunityAdmin="isCurrentUserCommunityAdmin"
               :stats="userStats"
               @edit="openEdit" 
               @back="$router.push('/index')" 
               @toggle-concern="handleToggleConcern"
+              @toggle-block-user="handleToggleBlockUser"
             />
           </div>
 
@@ -78,6 +86,10 @@
 
           <div v-if="view === 'followers'">
             <FollowersList :followers="followers" :page="followersPage" :pageSize="10" :total="followersTotal" :isOwnProfile="isOwnProfile" @page-change="openFollowers" @remove="unfollow" />
+          </div>
+
+          <div v-if="view === 'comments'">
+            <CommentsList :comments="comments" :isOwnProfile="isOwnProfile" @delete="handleDeleteComment" />
           </div>
 
           <div v-if="view === 'submit'">
@@ -183,6 +195,7 @@ import LikesList from './LikesList.vue';
 import WorksList from './WorksList.vue';
 import Profile from './Profile.vue';
 import FollowersList from './FollowersList.vue';
+import CommentsList from './CommentsList.vue';
 import AuditWorksList from './AuditWorksList.vue';
 import BlockedWorksList from './BlockedWorksList.vue';
 import BlockedUsersList from './BlockedUsersList.vue';
@@ -193,7 +206,7 @@ import bgImg from '@/assets/images/Alice_Damage.jpg';
 
 export default {
   name: 'UserPage',
-  components: { Navbar, SubmitArtwork, FavoritesList, LikesList, FollowersList, Profile, WorksList, AuditWorksList, BlockedWorksList, BlockedUsersList, UserManagement, SystemLogs },
+  components: { Navbar, SubmitArtwork, FavoritesList, LikesList, FollowersList, CommentsList, Profile, WorksList, AuditWorksList, BlockedWorksList, BlockedUsersList, UserManagement, SystemLogs },
   props: {
     id: {
       type: String,
@@ -222,6 +235,7 @@ export default {
       followers: [],
       followersPage: 1,
       followersTotal: 0,
+      comments: [],
       userWorks: [],
       worksPage: 1,
       worksTotal: 0,
@@ -275,6 +289,13 @@ export default {
     // 是否是系统管理员（role为2）
     isSystemAdmin() {
       return this.user.role === 2;
+    },
+    // 当前登录用户是否是社区管理员（用于判断是否显示封禁按钮）
+    isCurrentUserCommunityAdmin() {
+      const loggedInUserId = localStorage.getItem('userId');
+      const currentUserRole = parseInt(localStorage.getItem('userRole') || '0');
+      // 只有当前登录用户是社区管理员（role=1或2），且不是查看自己的主页时，才显示封禁按钮
+      return (currentUserRole === 1 || currentUserRole === 2) && !this.isOwnProfile;
     }
   },
   created() {
@@ -329,6 +350,7 @@ export default {
       this.followers = [];
       this.followersPage = 1;
       this.followersTotal = 0;
+      this.comments = [];
       this.userWorks = [];
       this.worksPage = 1;
       this.worksTotal = 0;
@@ -377,18 +399,22 @@ export default {
     },
     
     fetchUserStats(userId) {
-      // 重置统计数据
+      // 仅在个人信息页面显示时才加载统计数据
+      // 其他数据在切换到对应页面时按需加载
+      // 这里只保留重置逻辑，不主动加载任何数据
       this.userStats = {
         following: 0,
         followers: 0,
         works: 0,
         favorites: 0
       };
-      
+    },
+    
+    // 获取关注数统计
+    fetchFollowingCount(userId) {
       const params = new URLSearchParams();
       params.append('userId', userId);
-
-      // 获取关注数（关注的人数）
+      
       request.post('/concernedList', params)
         .then((res) => {
           if (res.data && res.data.code === 0) {
@@ -396,8 +422,13 @@ export default {
           }
         })
         .catch(() => {});
+    },
+    
+    // 获取作品数统计
+    fetchWorksCount(userId) {
+      const params = new URLSearchParams();
+      params.append('userId', userId);
       
-      // 获取作品数
       if (this.isOwnProfile) {
         // 查看自己的作品数：使用 /user/myContributions 接口
         request.post('/user/myContributions')
@@ -421,8 +452,13 @@ export default {
           })
           .catch(() => {});
       }
+    },
+    
+    // 获取收藏数统计
+    fetchFavoritesCount(userId) {
+      const params = new URLSearchParams();
+      params.append('userId', userId);
       
-      // 获取收藏数
       request.post('/favouriteList', params)
         .then((res) => {
           if (res.data && res.data.code === 0) {
@@ -430,9 +466,6 @@ export default {
           }
         })
         .catch(() => {});
-      
-      // 注意：后端没有提供"粉丝数"（有多少人关注我）的接口
-      // 如果需要，需要后端添加新接口
     },
     
     openEdit() {
@@ -528,7 +561,17 @@ export default {
     },
     
     openFavorites() {
+      // 管理员不能查看收藏
+      if (this.isCommunityAdmin || this.isSystemAdmin) {
+        console.warn('⚠️ 管理员无法查看收藏');
+        return;
+      }
+      
       this.view = 'favorites';
+      
+      // 如果数据已加载过，直接返回
+      if (this.favorites.length > 0) return;
+      
       const params = new URLSearchParams();
       params.append('userId', this.currentUserId);
 
@@ -537,6 +580,8 @@ export default {
         .then((res) => {
           if (res.data && res.data.code === 0) {
             this.favorites = res.data.data || [];
+            // 更新统计数据
+            this.userStats.favorites = this.favorites.length;
           }
         })
         .catch(() => {
@@ -545,7 +590,17 @@ export default {
     },
     
     openLikes() {
+      // 管理员不能查看点赞
+      if (this.isCommunityAdmin || this.isSystemAdmin) {
+        console.warn('⚠️ 管理员无法查看点赞');
+        return;
+      }
+      
       this.view = 'likes';
+      
+      // 如果数据已加载过，直接返回
+      if (this.likes.length > 0) return;
+      
       const params = new URLSearchParams();
       params.append('userId', this.currentUserId);
 
@@ -562,8 +617,20 @@ export default {
     },
     
     openWorks(page = 1) {
+      // 管理员不能查看作品
+      if (this.isCommunityAdmin || this.isSystemAdmin) {
+        console.warn('⚠️ 管理员无法查看作品');
+        return;
+      }
+      
       this.view = 'works';
       const p = typeof page === 'number' ? page : (page && page.detail) || 1;
+
+      // 如果是分页请求（page > 1），或者数据已加载过，直接处理分页
+      if (p > 1 || (this.worksTotal > 0 && this.userWorks.length > 0)) {
+        // 处理分页逻辑（这里需要保存所有作品数据才能分页）
+        // 暂时保留原逻辑，继续加载
+      }
 
       console.log('🔍 [调试] 开始加载作品列表...');
       console.log('🔍 [调试] isOwnProfile:', this.isOwnProfile);
@@ -631,6 +698,9 @@ export default {
               const end = start + pageSize;
               this.userWorks = allWorks.slice(start, end);
               
+              // 更新统计数据
+              this.userStats.works = allWorks.length;
+              
               console.log('✅ 作品数据加载成功:', {
                 待审核: pendingWorks.length,
                 已通过: approvedWorks.length,
@@ -676,6 +746,9 @@ export default {
               const end = start + pageSize;
               this.userWorks = allWorks.slice(start, end);
               
+              // 更新统计数据
+              this.userStats.works = allWorks.length;
+              
               console.log('✅ 他人作品加载成功:', {
                 总计: allWorks.length,
                 当前页: p,
@@ -699,6 +772,13 @@ export default {
     },
     
     unlike(item) {
+      // 管理员不能取消点赞
+      if (this.isCommunityAdmin || this.isSystemAdmin) {
+        console.warn('⚠️ 管理员无法取消点赞');
+        alert('管理员无法取消点赞');
+        return;
+      }
+      
       const ok = window.confirm(`确定取消点赞《${item.title}》吗？`);
       if (!ok) return;
       
@@ -719,6 +799,13 @@ export default {
     },
     
     unfavorite(fav) {
+      // 管理员不能取消收藏
+      if (this.isCommunityAdmin || this.isSystemAdmin) {
+        console.warn('⚠️ 管理员无法取消收藏');
+        alert('管理员无法取消收藏');
+        return;
+      }
+      
       const ok = window.confirm(`确定取消收藏《${fav.title}》吗？`);
       if (!ok) return;
       
@@ -739,8 +826,21 @@ export default {
     },
     
     openFollowers(page = 1) {
+      // 管理员不能查看关注列表
+      if (this.isCommunityAdmin || this.isSystemAdmin) {
+        console.warn('⚠️ 管理员无法查看关注列表');
+        return;
+      }
+      
       this.view = 'followers';
       const p = typeof page === 'number' ? page : (page && page.detail) || 1;
+      
+      // 如果是分页请求或数据已加载，跳过重复请求
+      if (p > 1 || this.followersTotal > 0) {
+        // 分页逻辑会在下面处理
+        // 暂时保留，因为需要完整数据进行分页
+      }
+      
       const params = new URLSearchParams();
       params.append('userId', this.currentUserId);
 
@@ -756,6 +856,9 @@ export default {
             const start = (p - 1) * pageSize;
             const end = start + pageSize;
             this.followers = list.slice(start, end);
+            
+            // 更新统计数据
+            this.userStats.following = list.length;
           }
         })
         .catch(() => {
@@ -765,7 +868,98 @@ export default {
         });
     },
     
+    openComments() {
+      // 管理员不能查看评论列表
+      if (this.isCommunityAdmin || this.isSystemAdmin) {
+        console.warn('⚠️ 管理员无法查看评论列表');
+        return;
+      }
+      
+      this.view = 'comments';
+      
+      // 如果已经加载过评论，不重复请求
+      if (this.comments.length > 0) {
+        return;
+      }
+      
+      console.log('📋 加载用户评论列表...');
+      const params = new URLSearchParams();
+      params.append('userId', this.currentUserId);
+      
+      // 调用后端接口 POST /userCommentList，返回 Result<List<R_UserComment>>
+      request.post('/userCommentList', params)
+        .then((res) => {
+          console.log('📋 评论列表响应:', res.data);
+          if (res.data && res.data.code === 0) {
+            this.comments = res.data.data || [];
+            console.log('✅ 成功加载评论列表，共', this.comments.length, '条');
+          } else {
+            console.error('❌ 加载评论列表失败:', res.data?.message);
+            this.comments = [];
+          }
+        })
+        .catch((error) => {
+          console.error('❌ 加载评论列表异常:', error);
+          this.comments = [];
+        });
+    },
+    
+    handleDeleteComment(comment) {
+      // 管理员不能删除评论
+      if (this.isCommunityAdmin || this.isSystemAdmin) {
+        console.warn('⚠️ 管理员无法删除评论');
+        alert('管理员无法删除评论');
+        return;
+      }
+      
+      // 只能删除自己的评论
+      if (!this.isOwnProfile) {
+        alert('您只能删除自己的评论');
+        return;
+      }
+      
+      console.log('🗑️ 删除评论:', comment);
+      
+      const params = new URLSearchParams();
+      params.append('commentId', comment.comment.commentId);
+      
+      // 调用后端接口 POST /user/deleteComment
+      // 需要 Authorization 头
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('未登录，请先登录');
+        this.$router.push('/login');
+        return;
+      }
+      
+      request.post('/user/deleteComment', params, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+        .then((res) => {
+          if (res.data && res.data.code === 0) {
+            alert('删除成功！');
+            // 从列表中移除该评论
+            this.comments = this.comments.filter(c => c.comment.commentId !== comment.comment.commentId);
+          } else {
+            alert('删除失败: ' + (res.data?.message || '未知错误'));
+          }
+        })
+        .catch((error) => {
+          console.error('删除评论失败:', error);
+          alert('删除失败，请稍后重试');
+        });
+    },
+    
     unfollow(f) {
+      // 管理员不能取消关注
+      if (this.isCommunityAdmin || this.isSystemAdmin) {
+        console.warn('⚠️ 管理员无法取消关注');
+        alert('管理员无法取消关注');
+        return;
+      }
+      
       const ok = window.confirm(`确定取消关注 ${f.username || f.name} 吗？`);
       if (!ok) return;
       
@@ -786,6 +980,13 @@ export default {
     },
     
     onArtworkSubmitted(artwork) {
+      // 管理员不能提交作品
+      if (this.isCommunityAdmin || this.isSystemAdmin) {
+        console.warn('⚠️ 管理员无法提交作品');
+        alert('管理员无法提交作品');
+        return;
+      }
+      
       alert('作品提交成功！');
       // 清除编辑状态
       this.editingWork = null;
@@ -796,6 +997,13 @@ export default {
     },
     
     handleEditWork(work) {
+      // 管理员不能编辑作品
+      if (this.isCommunityAdmin || this.isSystemAdmin) {
+        console.warn('⚠️ 管理员无法编辑作品');
+        alert('管理员无法编辑作品');
+        return;
+      }
+      
       console.log('📝 编辑作品:', work);
       // 设置正在编辑的作品
       this.editingWork = work;
@@ -812,12 +1020,47 @@ export default {
     },
     
     handleDeleteWork(work) {
+      // 管理员不能删除作品
+      if (this.isCommunityAdmin || this.isSystemAdmin) {
+        console.warn('⚠️ 管理员无法删除作品');
+        alert('管理员无法删除作品');
+        return;
+      }
+      
       console.log('🗑️ 删除作品:', work);
-      // TODO: 调用后端删除接口
+      
       const params = new URLSearchParams();
       params.append('contributionId', work.contributionId);
       
-      request.post('/user/deleteContribution', params)
+      // 根据作品的审核状态选择不同的删除接口
+      let deleteEndpoint = '';
+      let statusText = '';
+      
+      switch (work.auditStatus) {
+        case 0:
+          // 待审核作品
+          deleteEndpoint = '/user/deletePendingContribution';
+          statusText = '待审核';
+          break;
+        case 1:
+          // 已通过作品
+          deleteEndpoint = '/user/deleteContribution';
+          statusText = '已通过';
+          break;
+        case 2:
+          // 已驳回作品
+          deleteEndpoint = '/user/deleteDismissalContribution';
+          statusText = '已驳回';
+          break;
+        default:
+          console.error('❌ 未知的审核状态:', work.auditStatus);
+          alert('删除失败：未知的作品状态');
+          return;
+      }
+      
+      console.log(`🔧 删除${statusText}作品，调用接口: ${deleteEndpoint}`);
+      
+      request.post(deleteEndpoint, params)
         .then((res) => {
           if (res.data && res.data.code === 0) {
             alert('删除成功！');
@@ -834,6 +1077,13 @@ export default {
     },
     
     handleToggleConcern({ userId, currentState }) {
+      // 管理员不能关注或取消关注
+      if (this.isCommunityAdmin || this.isSystemAdmin) {
+        console.warn('⚠️ 管理员无法进行关注操作');
+        alert('管理员无法进行关注操作');
+        return;
+      }
+      
       if (currentState) {
         // 当前已关注，执行取消关注
         const ok = window.confirm('确定要取消关注吗？');
@@ -898,6 +1148,39 @@ export default {
         .catch((error) => {
           console.error('加载审核数据失败:', error);
           alert('加载审核数据失败，请稍后重试');
+        });
+    },
+    
+    // 处理封禁/解封用户
+    handleToggleBlockUser({ userId, currentStatus }) {
+      const isBlocked = currentStatus === 1;
+      const action = isBlocked ? '解封' : '封禁';
+      const confirmMsg = `确定要${action}该用户吗？`;
+      
+      const ok = window.confirm(confirmMsg);
+      if (!ok) return;
+      
+      const params = new URLSearchParams();
+      params.append('userId', userId);
+      
+      // 根据当前状态选择封禁或解封接口
+      const endpoint = isBlocked ? '/communityAdmin/unblockUser' : '/communityAdmin/blockUser';
+      
+      // 使用 request 工具调用后端接口（不需要 /api 前缀）
+      // POST /communityAdmin/blockUser 或 POST /communityAdmin/unblockUser
+      request.post(endpoint, params)
+        .then((res) => {
+          if (res.data && res.data.code === 0) {
+            alert(`${action}成功！`);
+            // 更新本地用户状态
+            this.user.status = isBlocked ? 0 : 1;
+          } else {
+            alert(`${action}失败: ` + (res.data?.message || '未知错误'));
+          }
+        })
+        .catch((error) => {
+          console.error(`${action}失败:`, error);
+          alert(`${action}失败，请稍后重试`);
         });
     },
   },

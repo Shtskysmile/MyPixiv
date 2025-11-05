@@ -97,7 +97,7 @@
                       class="button anime-button"
                       :class="{ 'is-danger': isLiked, 'is-light': !isLiked }"
                       @click="toggleLike"
-                      :disabled="likeLoading"
+                      :disabled="likeLoading || isCommunityAdmin || isSystemAdmin"
                     >
                       <span class="icon">{{ isLiked ? '❤️' : '🤍' }}</span>
                       <span>{{ likeLoading ? '处理中...' : (isLiked ? '已点赞' : '点赞') }}</span>
@@ -106,7 +106,7 @@
                       class="button anime-button"
                       :class="{ 'is-warning': isFavorite, 'is-light': !isFavorite }"
                       @click="toggleFavorite"
-                      :disabled="favoriteLoading"
+                      :disabled="favoriteLoading || isCommunityAdmin || isSystemAdmin"
                     >
                       <span class="icon">{{ isFavorite ? '⭐' : '☆' }}</span>
                       <span>{{ favoriteLoading ? '处理中...' : (isFavorite ? '已收藏' : '收藏') }}</span>
@@ -268,15 +268,27 @@
               <div v-if="comments.length" class="comments-list">
                 <div v-for="(c, idx) in comments" :key="idx" class="comment-item">
                   <div class="comment-header">
-                    <img 
-                      :src="getCommentAvatarUrl(c)" 
-                      class="comment-avatar"
-                      @error="onAvatarError"
-                    />
-                    <div class="comment-info">
-                      <strong class="comment-author">{{ c.authorName || c.author || '匿名用户' }}</strong>
-                      <span class="comment-time">{{ formatTime(c.time) }}</span>
+                    <div class="comment-user-info">
+                      <img 
+                        :src="getCommentAvatarUrl(c)" 
+                        class="comment-avatar"
+                        @error="onAvatarError"
+                      />
+                      <div class="comment-info">
+                        <strong class="comment-author">{{ c.authorName || c.author || '匿名用户' }}</strong>
+                        <span class="comment-time">{{ formatTime(c.time) }}</span>
+                      </div>
                     </div>
+                    <!-- 社区管理员删除按钮 -->
+                    <button 
+                      v-if="isCommunityAdmin" 
+                      class="button is-small is-danger delete-comment-btn"
+                      @click="deleteComment(c)"
+                      title="删除此评论"
+                    >
+                      <span class="icon">🗑️</span>
+                      <span>删除</span>
+                    </button>
                   </div>
                   <div class="comment-content">
                     {{ c.description }}
@@ -297,13 +309,14 @@
                 <textarea 
                   class="textarea anime-textarea" 
                   v-model="newComment"
-                  placeholder="发表你的看法..."
+                  :placeholder="(isCommunityAdmin || isSystemAdmin) ? '管理员无法发表评论' : '发表你的看法...'"
                   rows="3"
+                  :disabled="isCommunityAdmin || isSystemAdmin"
                 ></textarea>
                 <button 
                   class="button anime-button is-primary" 
                   @click="submitComment"
-                  :disabled="!newComment.trim()"
+                  :disabled="!newComment.trim() || isCommunityAdmin || isSystemAdmin"
                 >
                   <span class="icon">📝</span>
                   <span>发送评论</span>
@@ -497,9 +510,10 @@ export default {
       // 如果没有找到，使用 getImageUrl 方法处理
       return this.getImageUrl(originalPath);
     },
-    // 是否为漫画
+    // 是否为多图作品（包括漫画和多图插画）
     isManga() {
-      return this.contribution.type === 1;
+      // 如果有多张图片，无论是漫画还是插画都显示翻页控件
+      return this.totalPages > 1;
     },
     // 总页数（漫画或插画集）
     totalPages() {
@@ -520,6 +534,11 @@ export default {
     isCommunityAdmin() {
       const role = localStorage.getItem('userRole');
       return role === '1';
+    },
+    // 是否为系统管理员
+    isSystemAdmin() {
+      const role = localStorage.getItem('userRole');
+      return role === '2';
     },
     // 图片变换样式
     imageTransformStyle() {
@@ -609,6 +628,13 @@ export default {
               this.comments = data.comments || [];
               this.isLiked = data.isLiked || false;
               this.isFavorite = data.isFavorite || false;
+              
+              // 🔍 调试：检查评论数据
+              console.log('💬 [调试] 评论数据:', this.comments);
+              if (this.comments.length > 0) {
+                console.log('💬 [调试] 第一条评论:', this.comments[0]);
+                console.log('💬 [调试] commentId:', this.comments[0].commentId);
+              }
               
               // 🔧 修复：普通作品也可能有 image 数组格式
               if (this.contribution.image && Array.isArray(this.contribution.image)) {
@@ -745,6 +771,13 @@ export default {
     async toggleLike() {
       if (this.likeLoading) return;
       
+      // 管理员不能点赞或取消点赞
+      if (this.isCommunityAdmin || this.isSystemAdmin) {
+        console.warn('⚠️ 管理员无法点赞或取消点赞');
+        alert('管理员无法点赞或取消点赞');
+        return;
+      }
+      
       this.likeLoading = true;
       const token = localStorage.getItem('token');
       
@@ -788,6 +821,13 @@ export default {
     
     async toggleFavorite() {
       if (this.favoriteLoading) return;
+      
+      // 管理员不能收藏或取消收藏
+      if (this.isCommunityAdmin || this.isSystemAdmin) {
+        console.warn('⚠️ 管理员无法收藏或取消收藏');
+        alert('管理员无法收藏或取消收藏');
+        return;
+      }
       
       this.favoriteLoading = true;
       const token = localStorage.getItem('token');
@@ -833,6 +873,13 @@ export default {
     async submitComment() {
       if (!this.newComment.trim()) return;
       
+      // 管理员不能发表评论
+      if (this.isCommunityAdmin || this.isSystemAdmin) {
+        console.warn('⚠️ 管理员无法发表评论');
+        alert('管理员无法发表评论');
+        return;
+      }
+      
       const token = localStorage.getItem('token');
       
       if (!token) {
@@ -871,6 +918,66 @@ export default {
       } catch (err) {
         console.error('❌ 评论失败:', err);
         alert('评论失败，请稍后重试');
+      }
+    },
+    
+    // 社区管理员删除评论
+    async deleteComment(comment) {
+      if (!this.isCommunityAdmin) {
+        console.warn('⚠️ 只有社区管理员可以删除评论');
+        alert('只有社区管理员可以删除评论');
+        return;
+      }
+      
+      // 确认删除
+      const confirmed = window.confirm(
+        `确定要删除这条评论吗？此操作不可恢复！\n\n` +
+        `评论者: ${comment.authorName || comment.author || '匿名用户'}\n` +
+        `评论内容: ${comment.description || '无内容'}`
+      );
+      
+      if (!confirmed) {
+        return;
+      }
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('未登录，请先登录');
+        this.$router.push('/login');
+        return;
+      }
+      
+      try {
+        const params = new URLSearchParams();
+        params.append('commentId', comment.commentId);
+        
+        console.log('🗑️ 正在删除评论，commentId:', comment.commentId);
+        
+        const response = await axios.post('/api/communityAdmin/deleteComment', params, {
+          headers: {
+            'Authorization': 'Bearer ' + token
+          }
+        });
+        
+        console.log('✅ 删除评论接口响应:', response.data);
+        
+        if (response.data?.code === 0 || response.data?.code === 200) {
+          console.log('✨ 删除评论成功！');
+          alert('删除评论成功！');
+          
+          // 从本地评论列表中移除该评论
+          this.comments = this.comments.filter(c => c.commentId !== comment.commentId);
+          
+          // 更新评论数量
+          if (this.contribution.commentCount > 0) {
+            this.contribution.commentCount--;
+          }
+        } else {
+          alert(response.data?.message || '删除评论失败');
+        }
+      } catch (err) {
+        console.error('❌ 删除评论失败:', err);
+        alert('删除评论失败，请稍后重试');
       }
     },
     
@@ -1506,8 +1613,16 @@ export default {
 .comment-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
   margin-bottom: 8px;
+}
+
+.comment-user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
 }
 
 .comment-avatar {
@@ -1523,6 +1638,17 @@ export default {
 .comment-info {
   display: flex;
   flex-direction: column;
+}
+
+.delete-comment-btn {
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.delete-comment-btn:hover {
+  opacity: 1;
+  transform: scale(1.05);
 }
 
 .comment-author {

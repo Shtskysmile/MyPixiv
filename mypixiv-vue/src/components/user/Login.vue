@@ -146,10 +146,16 @@ export default {
 
         const res = await axios.post('/api/login', params);
         
-        if (res.data && res.data.code === 0) {
+        if (res.data && res.data.code === 0 && res.data.data) {
           // 登录成功
           const data = res.data.data; // R_LoginDTO
           const { user, token } = data;
+          
+          // 额外的空值检查
+          if (!user || !token) {
+            this.error = '登录数据异常，请稍后重试';
+            return;
+          }
           
           // 保存用户信息和 token
           localStorage.setItem('token', token);
@@ -164,7 +170,7 @@ export default {
           // 跳转到首页
           this.$router.push('/index');
         } else {
-          // 登录失败
+          // 登录失败 - 处理各种错误情况
           this.error = res.data?.message || '登录失败，请检查用户名和密码';
         }
       } catch (err) {
