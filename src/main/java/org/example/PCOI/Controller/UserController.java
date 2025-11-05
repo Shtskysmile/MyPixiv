@@ -36,7 +36,7 @@ public class UserController {
             @RequestParam("username") String username,
             @RequestParam("password") String password) {
         Map<String,Object> response = userService.login(username, password);
-        if (response.get("rLoginDTO")!= null) {
+        if (response.get("rLoginDTO")!= "null") {
             return Result.success((R_LoginDTO) response.get("rLoginDTO"));
         } else {
             return Result.error((String) response.get("message"));
@@ -112,9 +112,31 @@ public class UserController {
             return Result.success("删除作品成功");
         }
         return Result.error("删除作品失败");
-
     }
 
+    @PostMapping("/user/deletePendingContribution")
+    public Result<String> deletePendingContribution(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestParam ("contributionId") String contributionId) throws Exception {
+        String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
+        boolean ok = userService.deletePendingContribution(contributionId, userId);
+        if (ok) {
+            return Result.success("删除待审核作品成功");
+        }
+        return Result.error("删除待审核作品失败");
+    }
+
+    @PostMapping("/user/deleteDismissalContribution")
+    public Result<String> deleteDismissalContribution(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestParam ("contributionId") String contributionId) throws Exception {
+        String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
+        boolean ok = userService.deleteDismissalContribution(contributionId, userId);
+        if (ok) {
+            return Result.success("删除被驳回作品成功");
+        }
+        return Result.error("删除被驳回作品失败");
+    }
     @PostMapping("/userInfo")
     public Result<R_UserInfoDTO> getUserInfo(
             @RequestHeader("Authorization") String authHeader,

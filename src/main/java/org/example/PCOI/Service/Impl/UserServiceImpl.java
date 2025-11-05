@@ -70,17 +70,17 @@ public class UserServiceImpl implements UserService {
     public Map<String,Object> login(String username, String password) {
         User user = usermapper.selectUserByName(username);
         if(user == null) {
-            return Map.of( "rLoginDTO",null,
+            return Map.of( "rLoginDTO","null",
                     "message", "用户不存在");
         }
         if(!BcryptUtil.matches(password, user.getPassword()))
         {
-            return Map.of( "rLoginDTO", null,
+            return Map.of( "rLoginDTO", "null",
                     "message", "密码错误");
         }
         if(user.getStatus().equals(banned))
         {
-            return Map.of( "rLoginDTO", null,
+            return Map.of( "rLoginDTO", "null",
                     "message", "用户已被封禁");
         }
         Claims claims = new Claims(user.getUsername(), user.getUserId(),user.getRole(),login);
@@ -210,11 +210,32 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
+
     @Override
     public boolean deleteContribution(String contributionId, String userId) {
         Contribution contribution = contributionmapper.selectContributionById(contributionId);
         if(contribution == null || !contribution.getAuthorId().equals(userId)) {
             return false; // 作品不存在或用户无权限删除
+        }
+        contributionmapper.deleteContributionById(contributionId);
+        return true;
+    }
+
+    @Override
+    public boolean deletePendingContribution(String contributionId, String userId) {
+        Contribution contribution = contributionmapper.selectNoAuditContributionById(contributionId);
+        if(contribution == null || !contribution.getAuthorId().equals(userId)) {
+            return false; // 待审核作品不存在或用户无权限删除
+        }
+        contributionmapper.deleteContributionById(contributionId);
+        return true;
+    }
+
+    @Override
+    public boolean deleteDismissalContribution(String contributionId, String userId) {
+        Contribution contribution = contributionmapper.selectDismissalContributionById(contributionId);
+        if(contribution == null || !contribution.getAuthorId().equals(userId)) {
+            return false; // 驳回作品不存在或用户无权限删除
         }
         contributionmapper.deleteContributionById(contributionId);
         return true;

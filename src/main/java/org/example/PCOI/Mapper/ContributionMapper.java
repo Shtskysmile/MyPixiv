@@ -25,6 +25,10 @@ public interface ContributionMapper {
     Contribution selectNoAuditContributionById(String contributionId);
 
     @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
+    @Select("SELECT * FROM contribution WHERE contributionId = #{contributionId} AND status = 0 AND auditStatus = 2")
+    Contribution selectDismissalContributionById(String contributionId);
+
+    @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})
     @Select("SELECT * FROM contribution WHERE contributionId = #{contributionId} AND status = 1")
     Contribution selectBannedContributionById(String contributionId);
 
@@ -50,7 +54,7 @@ public interface ContributionMapper {
     @Select("SELECT * FROM contribution WHERE status = #{status} ")
     List<Contribution> selectContributionsByStatus(int status);
 
-    @Delete("DELETE FROM contribution WHERE contributionId = #{contributionId} AND status = 0 AND auditStatus = 1")
+    @Delete("DELETE FROM contribution WHERE contributionId = #{contributionId} ")
     void deleteContributionById(String contributionId);
 
     @Results({@Result(property = "image", column = "image", typeHandler = JacksonTypeHandler.class)})

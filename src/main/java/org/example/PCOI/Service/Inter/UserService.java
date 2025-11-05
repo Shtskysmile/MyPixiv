@@ -21,6 +21,8 @@ public interface UserService {
     List<R_UserComment> getUserCommentList(String userId);
     boolean deleteComment(String commentId, String userId);
     boolean deleteContribution(String contributionId, String userId);
+    boolean deletePendingContribution(String contributionId, String userId);
+    boolean deleteDismissalContribution(String contributionId, String userId);
     R_UserInfoDTO getUserInfo(String requesterId,String userId);
     boolean updateUserInfo(String userId, String newUsername, Integer newGender, MultipartFile newAvatar);
 
