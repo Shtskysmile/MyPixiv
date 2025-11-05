@@ -70,17 +70,17 @@ public class UserServiceImpl implements UserService {
     public Map<String,Object> login(String username, String password) {
         User user = usermapper.selectUserByName(username);
         if(user == null) {
-            return Map.of( "rLoginDTO", new R_LoginDTO(),
+            return Map.of( "rLoginDTO",null,
                     "message", "用户不存在");
         }
         if(!BcryptUtil.matches(password, user.getPassword()))
         {
-            return Map.of( "rLoginDTO", new R_LoginDTO(),
+            return Map.of( "rLoginDTO", null,
                     "message", "密码错误");
         }
         if(user.getStatus().equals(banned))
         {
-            return Map.of( "rLoginDTO", new R_LoginDTO(),
+            return Map.of( "rLoginDTO", null,
                     "message", "用户已被封禁");
         }
         Claims claims = new Claims(user.getUsername(), user.getUserId(),user.getRole(),login);

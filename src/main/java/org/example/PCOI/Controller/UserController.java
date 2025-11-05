@@ -36,9 +36,8 @@ public class UserController {
             @RequestParam("username") String username,
             @RequestParam("password") String password) {
         Map<String,Object> response = userService.login(username, password);
-        R_LoginDTO result = (R_LoginDTO) response.get("rLoginDTO");
-        if (result != null) {
-            return Result.success(result);
+        if (response.get("rLoginDTO")!= null) {
+            return Result.success((R_LoginDTO) response.get("rLoginDTO"));
         } else {
             return Result.error((String) response.get("message"));
         }
