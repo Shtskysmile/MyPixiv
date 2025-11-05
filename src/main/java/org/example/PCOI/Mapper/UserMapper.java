@@ -9,7 +9,7 @@ public interface UserMapper {
     @Insert("INSERT INTO user (username, password, avatar, sex) VALUES (#{username},#{password},#{avatar},#{sex})")
     void insertUser(User user);
 
-    @Update("UPDATE user SET username=#{username}, password=#{password}, avatar=#{avatar},sex =#{sex} WHERE userId=#{userId}")
+    @Update("UPDATE user SET username=#{username}, password=#{password}, avatar=#{avatar},sex =#{sex} ,status =#{status}, userId=#{userId} WHERE userId = #{userId}")
     void updateUser(User user);
 
     @Select("SELECT * FROM user WHERE userId = #{userId}")

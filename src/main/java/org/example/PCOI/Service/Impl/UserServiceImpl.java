@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.example.PCOI.Service.Support.Enum.*;
 
@@ -66,10 +67,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public R_LoginDTO login(String username, String password) {
+    public Map<String,Object> login(String username, String password) {
         User user = usermapper.selectUserByName(username);
-        if(user == null || !BcryptUtil.matches(password, user.getPassword())) {
-            return null;
+        if(user == null) {
+            return Map.of( "rLoginDTO", new R_LoginDTO(),
+                    "message", "用户不存在");
+        }
+        if(!BcryptUtil.matches(password, user.getPassword()))
+        {
+            return Map.of( "rLoginDTO", new R_LoginDTO(),
+                    "message", "密码错误");
+        }
+        if(user.getStatus().equals(banned))
+        {
+            return Map.of( "rLoginDTO", new R_LoginDTO(),
+                    "message", "用户已被封禁");
         }
         Claims claims = new Claims(user.getUsername(), user.getUserId(),user.getRole(),login);
         String token = JwtUtil.genToken(claims.toMap());
@@ -77,7 +89,8 @@ public class UserServiceImpl implements UserService {
         R_LoginDTO loginDTO = new R_LoginDTO();
         loginDTO.setUser(rUser);
         loginDTO.setToken(token);
-        return loginDTO;
+        return Map.of( "rLoginDTO", loginDTO,
+                "message", "登录成功");
     }
 
     @Override

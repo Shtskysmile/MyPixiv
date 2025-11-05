@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 
 @RestController()
@@ -34,11 +35,12 @@ public class UserController {
     public Result<R_LoginDTO> login(
             @RequestParam("username") String username,
             @RequestParam("password") String password) {
-        R_LoginDTO result = userService.login(username, password);
+        Map<String,Object> response = userService.login(username, password);
+        R_LoginDTO result = (R_LoginDTO) response.get("rLoginDTO");
         if (result != null) {
             return Result.success(result);
         } else {
-            return Result.error("用户名或密码错误");
+            return Result.error((String) response.get("message"));
         }
     }
 

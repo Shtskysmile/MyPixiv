@@ -4,11 +4,12 @@ import org.example.PCOI.ResponseDTO.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 public interface UserService {
     // 账号相关
     boolean register(String username, String password, Integer gender, List<R_SecurityIssue> SecurityIssues, MultipartFile avatar);
-    R_LoginDTO login(String username, String password);
+    Map<String,Object> login(String username, String password);
     boolean updatePassword(String tokenUsername,Integer type,String username, String newPassword);
 
     // 作品和用户信息相关
