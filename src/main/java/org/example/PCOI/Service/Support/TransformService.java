@@ -50,6 +50,7 @@ public class TransformService {
     public R_ContributionComment transformCommentToRContributionComment(Comment comment,String avatar,String authorName)
     {
         R_ContributionComment rContributionComment = new R_ContributionComment();
+        rContributionComment.setCommentId(comment.getCommentId());
         rContributionComment.setAuthor(comment.getAuthor());
         rContributionComment.setDescription(comment.getDescription());
         rContributionComment.setAvatar(avatar);
