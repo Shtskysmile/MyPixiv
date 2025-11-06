@@ -39,9 +39,7 @@ public class WebConfig implements WebMvcConfigurer {
                     "/updatePassword",
                     "/illustrations",
                     "/mangas",
-                    "/contribution",
                     "/search",
-                    "/userInfo",
                     // 静态资源
                     "/files/**",
                     "/img/**",
@@ -59,9 +57,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "/updatePassword",
                         "/illustrations",
                         "/mangas",
-                        "/contribution",
                         "/search",
-                        "/userInfo",
                         // 静态资源
                         "/files/**",
                         "/img/**",
