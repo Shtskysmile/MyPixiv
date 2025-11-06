@@ -28,10 +28,12 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) throws Exception {
         String token = request.getHeader("Authorization");
+        System.out.println(("token"+token));
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);
             try {
                 Map<String, Object> claims = JwtUtil.parseToken(token);
+                System.out.println("RequestLoggingInterceptor: " + request.getRequestURI());
                 String userId = (String)TokenProcess.getAttributeFromToken(token, "userId");
                 String operation = request.getRequestURI();
                 if (request.getDispatcherType() != DispatcherType.REQUEST || "/error".equals(operation)) {
