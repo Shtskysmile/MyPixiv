@@ -3,6 +3,7 @@ package org.example.PCOI.Service.Impl;
 import lombok.extern.slf4j.Slf4j;
 import org.example.PCOI.Entity.Comment;
 import org.example.PCOI.Entity.Contribution;
+import org.example.PCOI.Entity.Tag;
 import org.example.PCOI.Entity.User;
 import org.example.PCOI.Mapper.*;
 import org.example.PCOI.ResponseDTO.*;
@@ -83,7 +84,13 @@ public class ContributionServiceImpl implements ContributionService {
         List<Comment> comments = commentMapper.selectCommentsByContributionId(contributionId);
         boolean isLiked = likeMapper.isLike(userId, contributionId);
         boolean isFavorite = favoriteMapper.isFavorite(userId, contributionId);
-        R_Contribution rContribution = transformService.transformContributionToRContribution(contribution, contributionUser.getAvatar(), contributionUser.getUsername());
+        List<Integer> tagIds = tagRelationMapper.getContributionTags(contributionId);
+        List<Tag> tags = new ArrayList<>();
+        for(Integer tagId : tagIds){
+            Tag tag = tagMapper.selectTagById(tagId);
+            tags.add(tag);
+        }
+        R_Contribution rContribution = transformService.transformContributionToRContribution(contribution, contributionUser.getAvatar(), contributionUser.getUsername(), tags);
         List<R_ContributionComment> rContributionComments = new ArrayList<>();
         for (Comment comment : comments) {
             User commentUser = userMapper.selectUserById(comment.getAuthor());
@@ -106,7 +113,13 @@ public class ContributionServiceImpl implements ContributionService {
         if(contribution!=null && (userId.equals(contribution.getAuthorId())||role.equals(communityAdmin)))
         {
             User contributionUser = userMapper.selectUserById(contribution.getAuthorId());
-            return transformService.transformContributionToRContribution(contribution, contributionUser.getAvatar(), contributionUser.getUsername());
+            List<Integer> tagIds = tagRelationMapper.getContributionTags(contributionId);
+            List<Tag> tags = new ArrayList<>();
+            for(Integer tagId : tagIds){
+                Tag tag = tagMapper.selectTagById(tagId);
+                tags.add(tag);
+            }
+            return transformService.transformContributionToRContribution(contribution, contributionUser.getAvatar(), contributionUser.getUsername(), tags);
         }
         return null;
     }

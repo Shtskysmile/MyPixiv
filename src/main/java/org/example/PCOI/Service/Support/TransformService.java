@@ -1,11 +1,10 @@
 package org.example.PCOI.Service.Support;
 
-import org.example.PCOI.Entity.Comment;
-import org.example.PCOI.Entity.Contribution;
-import org.example.PCOI.Entity.SecurityIssue;
-import org.example.PCOI.Entity.User;
+import org.example.PCOI.Entity.*;
 import org.example.PCOI.ResponseDTO.*;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class TransformService {
@@ -67,7 +66,7 @@ public class TransformService {
         return rUserComment;
     }
 
-    public R_Contribution transformContributionToRContribution(Contribution contribution,String avatar,String authorName)
+    public R_Contribution transformContributionToRContribution(Contribution contribution, String avatar, String authorName, List<Tag> tags)
     {
         R_Contribution rContribution = new R_Contribution();
         rContribution.setType(contribution.getType());
@@ -86,6 +85,7 @@ public class TransformService {
         rContribution.setAuditStatus(contribution.getAuditStatus());
         rContribution.setUploaderAvatarPath(avatar);
         rContribution.setAuthorName(authorName);
+        rContribution.setTags(tags);
         return rContribution;
     }
 }

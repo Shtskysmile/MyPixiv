@@ -3,10 +3,9 @@ package org.example.PCOI.Service.Impl;
 import lombok.extern.slf4j.Slf4j;
 import org.example.PCOI.Entity.Comment;
 import org.example.PCOI.Entity.Contribution;
+import org.example.PCOI.Entity.Tag;
 import org.example.PCOI.Entity.User;
-import org.example.PCOI.Mapper.CommentMapper;
-import org.example.PCOI.Mapper.ContributionMapper;
-import org.example.PCOI.Mapper.UserMapper;
+import org.example.PCOI.Mapper.*;
 import org.example.PCOI.ResponseDTO.R_Audit_My_ContributionsDTO;
 import org.example.PCOI.ResponseDTO.R_Contribution;
 import org.example.PCOI.ResponseDTO.R_OverviewContribution;
@@ -33,6 +32,10 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
     private TransformService transformService;
     @Autowired
     private CommentMapper commentMapper;
+    @Autowired
+    private TagRelationMapper tagRelationMapper;
+    @Autowired
+    private TagMapper tagMapper;
 
     /**
      * 封禁指定用户。
@@ -220,7 +223,13 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
         if(contribution==null||contribution.getAuditStatus()!=approved||contribution.getStatus()!=banned)
             return null;
         User user = userMapper.selectUserById(contribution.getAuthorId());
-        R_Contribution rContribution = transformService.transformContributionToRContribution(contribution,user.getAvatar(),user.getUsername());
+        List<Integer> tagIds = tagRelationMapper.getContributionTags(contributionId);
+        List<Tag> tags = new ArrayList<>();
+        for(Integer tagId : tagIds){
+            Tag tag = tagMapper.selectTagById(tagId);
+            tags.add(tag);
+        }
+        R_Contribution rContribution = transformService.transformContributionToRContribution(contribution,user.getAvatar(),user.getUsername(),tags);
         return rContribution;
     }
 

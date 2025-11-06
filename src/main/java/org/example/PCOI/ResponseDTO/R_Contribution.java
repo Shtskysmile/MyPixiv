@@ -1,6 +1,7 @@
 package org.example.PCOI.ResponseDTO;
 
 import lombok.Data;
+import org.example.PCOI.Entity.Tag;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,4 +24,5 @@ public class R_Contribution {
     private Integer likeCount;      // 点赞数
     private Integer commentCount;   // 评论数
     private String dismissalReason; // 驳回理由
+    private List<Tag> tags;        // 作品标签
 }

@@ -18,6 +18,9 @@ public interface TagMapper {
     @Select("SELECT * FROM tag WHERE tagName = #{tagName}")
     Tag selectTagByName(String tagName);
 
+    @Select("SELECT * FROM tag WHERE Id = #{tagId}")
+    Tag selectTagById(int tagId);
+
     @Select("SELECT * FROM tag")
     List<Tag> selectAllTags();
 }
