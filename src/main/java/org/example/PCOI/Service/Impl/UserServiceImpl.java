@@ -108,6 +108,34 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean changePassword(String userId, String oldPassword, String newPassword) {
+        User user = usermapper.selectUserById(userId);
+        if(user == null) {
+            return false; // 用户不存在
+        }
+        if(!BcryptUtil.matches(oldPassword, user.getPassword())) {
+            return false; // 旧密码错误
+        }
+        user.setPassword(BcryptUtil.hash(newPassword));
+        usermapper.updateUser(user);
+        return true;
+    }
+
+    @Override
+    public boolean changeSecurityIssues(String userId, List<R_SecurityIssue> newSecurityIssues) {
+        User user = usermapper.selectUserById(userId);
+        if(user == null) {
+            return false; // 用户不存在
+        }
+        securityissuemapper.deleteSecurityIssuesByUserId(userId);
+        for(R_SecurityIssue rIssue : newSecurityIssues) {
+            SecurityIssue securityIssue = transformService.transformRSecurityIssueToSecurityIssue(rIssue, userId);
+            securityissuemapper.insertSecurityIssue(securityIssue);
+        }
+        return true;
+    }
+
+    @Override
     public List<R_OverviewContribution> getContributionList(String userId) {
         User user = usermapper.selectUserById(userId);
         List<Contribution> contributions = contributionmapper.selectContributionsByAuthorId(userId);

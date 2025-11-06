@@ -43,6 +43,8 @@ public class UserController {
         }
     }
 
+
+
     @PostMapping("/contributionList")
     public Result<List<R_OverviewContribution>> getContributionList(
             @RequestParam ("userId") String userId){
@@ -180,6 +182,31 @@ public class UserController {
             return Result.error("密码修改失败");
         }
         return Result.success("密码修改成功");
+    }
+
+    @PostMapping("/changePassword")
+    public Result<String> changePassword(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestParam("oldPassword") String oldPassword,
+            @RequestParam("newPassword") String newPassword) throws Exception {
+        String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
+        boolean ok = userService.changePassword(userId, oldPassword, newPassword);
+        if (!ok) {
+            return Result.error("密码修改失败，旧密码错误");
+        }
+        return Result.success("密码修改成功");
+    }
+
+    @PostMapping("/changeSecurityIssues")
+    public Result<String> changeSecurityIssues(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestPart(name = "SecurityIssues", required = false) List<R_SecurityIssue> SecurityIssues) throws Exception {
+        String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
+        boolean ok = userService.changeSecurityIssues(userId, SecurityIssues);
+        if (!ok) {
+            return Result.error("密保问题修改失败");
+        }
+        return Result.success("密保问题修改成功");
     }
 
     /**

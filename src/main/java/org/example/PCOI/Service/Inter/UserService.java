@@ -11,7 +11,8 @@ public interface UserService {
     boolean register(String username, String password, Integer gender, List<R_SecurityIssue> SecurityIssues, MultipartFile avatar);
     Map<String,Object> login(String username, String password);
     boolean updatePassword(String tokenUsername,Integer type,String username, String newPassword);
-
+    boolean changePassword(String userId, String oldPassword, String newPassword);
+    boolean changeSecurityIssues(String userId, List<R_SecurityIssue> newSecurityIssues);
     // 作品和用户信息相关
     List<R_OverviewContribution> getContributionList(String userId);
     R_Audit_My_ContributionsDTO getMyContributions(String userId);

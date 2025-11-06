@@ -1,8 +1,6 @@
 package org.example.PCOI.Mapper;
 
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 import org.example.PCOI.Entity.SecurityIssue;
 
 import java.util.List;
@@ -14,4 +12,8 @@ public interface SecurityIssueMapper {
 
     @Select("SELECT * FROM security_issue WHERE userId = #{userId}")
     List<SecurityIssue> selectSecurityIssuesByUserId(String userId);
+
+    @Delete("DELETE FROM security_issue WHERE userId = #{userId}")
+    void deleteSecurityIssuesByUserId(String userId);
+
 }
