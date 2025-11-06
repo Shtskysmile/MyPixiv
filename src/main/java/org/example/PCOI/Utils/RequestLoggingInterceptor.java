@@ -11,6 +11,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import jakarta.servlet.DispatcherType;
 
+import java.util.Map;
+
 import static org.example.PCOI.Service.Support.Enum.DEFAULT_GUEST;
 
 @Slf4j
@@ -25,37 +27,25 @@ public class RequestLoggingInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) throws Exception {
-        // 跳过错误派发与错误控制器，避免误判为业务接口被拦截
-        String uri = request.getRequestURI();
-        if (request.getDispatcherType() != DispatcherType.REQUEST || "/error".equals(uri)) {
-            return true;
-        }
-        String userId = DEFAULT_GUEST;
-        String authHeader = request.getHeader("Authorization");
-        System.out.println(("authHeader: " + authHeader));
-        System.out.println("abc" + uri);
-        if (!isBlank(authHeader)) {
-            userId = (String)TokenProcess.getAttributeFromToken(authHeader, "userId");
-            System.out.println("Logging request for userId: " + userId);
-        }
-        String operation = uri;
-        if (handler instanceof HandlerMethod hm) {
-            String controller = hm.getBeanType().getSimpleName();
-            if (controller.endsWith("Controller")) {
-                controller = controller.substring(0, controller.length() - "Controller".length());
+        String token = request.getHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+            try {
+                Map<String, Object> claims = JwtUtil.parseToken(token);
+                String userId = (String)TokenProcess.getAttributeFromToken(token, "userId");
+                String operation = request.getRequestURI();
+                if (request.getDispatcherType() != DispatcherType.REQUEST || "/error".equals(operation)) {
+                    return true;
+                }
+                logService.logMethodExecution(userId, operation);
+                request.setAttribute("claims", claims);
+                return true;
+            } catch (Exception e) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return false;
             }
-            controller = lowerFirst(controller);
-            operation = controller + ":" + hm.getMethod().getName();
         }
-        logService.logMethodExecution(userId, operation);
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         return true;
     }
-    private static String lowerFirst(String s) {
-        if (isBlank(s)) return s;
-        return Character.toLowerCase(s.charAt(0)) + s.substring(1);
-    }
-    private static boolean isBlank(String s) {
-        return s == null || s.trim().isEmpty();
-    }
-
 }
