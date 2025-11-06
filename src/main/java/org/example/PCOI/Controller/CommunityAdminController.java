@@ -102,7 +102,6 @@ public class CommunityAdminController {
     @PostMapping("/communityAdmin/deleteComment")
     public Result<String> deleteComment(
             @RequestParam("commentId") String commentId) {
-        System.out.println("deleteComment called with commentId: " + commentId);
         boolean ok = communityAdminService.deleteComment(commentId);
         if (ok) {
             return Result.success("删除评论成功");
