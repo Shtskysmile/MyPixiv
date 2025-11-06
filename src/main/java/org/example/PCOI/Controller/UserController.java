@@ -14,7 +14,6 @@ import java.util.Map;
 public class UserController {
     @Autowired
     private UserService userService;
-    
 
     @PostMapping("/register")
     public Result<String> register(
@@ -80,7 +79,6 @@ public class UserController {
             @RequestParam ("userId") String userId){
         List<R_OverviewContribution> list = userService.getFavouriteList(userId);
         return Result.success(list);
-
     }
 
     @PostMapping("/userCommentList")
@@ -88,7 +86,6 @@ public class UserController {
             @RequestParam ("userId") String userId){
         List<R_UserComment> list = userService.getUserCommentList(userId);
         return Result.success(list);
-
     }
 
     @PostMapping("/user/deleteComment")
@@ -154,7 +151,6 @@ public class UserController {
             @RequestParam("username") String username){
         List<String> issues = userService.getMySecurityIssues(username);
         return Result.success(issues);
-
     }
 
     @PostMapping("/verifySecurityIssues")
@@ -209,40 +205,14 @@ public class UserController {
         return Result.success("密保问题修改成功");
     }
 
-    /**
-     * 更新用户基本信息
-     * 路径: POST /user/updateUserInfo
-     * 认证: 需要在请求头携带 Authorization: Bearer <JWT>
-     *
-     * 参数说明:
-     * - authHeader: 请求头中的 Authorization，格式为 Bearer <token>
-     * - newUsername: 新用户名，必填
-     * - newGender: 新性别，必填。约定: 0=未知, 1=男, 2=女
-     * - newAvatar: 新头像文件(可选)，multipart/form-data 中的文件字段名为 newAvatar
-     *
-     * 处理流程:
-     * 1) 从 JWT 中解析出当前登录用户的 userId
-     * 2) 调用 UserService 更新用户名/性别/头像(头像文件可为空)
-     * 3) 根据更新结果返回统一响应
-     *
-     * 返回:
-     * - 成功时返回 Result.success("更新成功")
-     * - 失败时返回 Result.error("更新失败")
-     *
-     * 可能抛出:
-     * - Exception: 当解析 Token 或处理文件过程中出现异常时
-     */
     @PostMapping("/user/updateUserInfo")
     public Result<String> updateUserInfo(
             @RequestHeader("Authorization") String authHeader,
             @RequestParam ("newUsername") String newUsername,
             @RequestParam("newGender") Integer newGender,
             @RequestPart(name = "newAvatar", required = false) MultipartFile newAvatar) throws Exception {
-        // 从 Authorization 的 Bearer Token 中解析 userId
         String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
-        // 调用服务层执行业务更新(用户名/性别/头像)。头像参数可为空
         boolean ok = userService.updateUserInfo(userId, newUsername, newGender, newAvatar);
-        // 根据业务结果返回统一响应
         if (ok) {
             return Result.success("更新成功");
         }

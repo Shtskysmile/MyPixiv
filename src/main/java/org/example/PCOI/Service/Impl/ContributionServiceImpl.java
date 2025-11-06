@@ -126,19 +126,19 @@ public class ContributionServiceImpl implements ContributionService {
 
     @Override
     public List<R_OverviewContribution> getContributionsRanking(Integer type, Integer key) {
-        int limit = maxSearchLimit;
         List<Contribution> contributions = switch (key) {
-            case viewCount -> contributionMapper.selectContributionsByTypeAndViewCount(type, limit);
-            case favoriteCount -> contributionMapper.selectContributionsByTypeAndFavoriteCount(type, limit);
-            case likeCount -> contributionMapper.selectContributionsByTypeAndLikeCount(type, limit);
-            case commentCount -> contributionMapper.selectContributionsByTypeAndCommentCount(type, limit);
+            case viewCount -> contributionMapper.selectContributionsByTypeAndViewCount(type, maxSearchLimit);
+            case favoriteCount -> contributionMapper.selectContributionsByTypeAndFavoriteCount(type, maxSearchLimit);
+            case likeCount -> contributionMapper.selectContributionsByTypeAndLikeCount(type, maxSearchLimit);
+            case commentCount -> contributionMapper.selectContributionsByTypeAndCommentCount(type, maxSearchLimit);
             default -> List.of();
         };
         List<R_OverviewContribution> result = new ArrayList<>();
         for (Contribution c : contributions) {
             User author = userMapper.selectUserById(c.getAuthorId());
             String avatar = author == null ? null : author.getAvatar();
-            result.add(transformService.transformContributionToROverviewContribution(c, avatar, author.getUsername()));
+            String username = author == null ? null : author.getUsername();
+            result.add(transformService.transformContributionToROverviewContribution(c, avatar, username));
         }
         return result;
     }

@@ -37,11 +37,6 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
     @Autowired
     private TagMapper tagMapper;
 
-    /**
-     * 封禁指定用户。
-     * @param userId 目标用户ID
-     * @return true 封禁成功；false 用户不存在
-     */
     @Override
     public boolean blockUser(String userId) {
         // 查询用户是否存在
@@ -54,11 +49,6 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
         return true;
     }
 
-    /**
-     * 解封指定用户。
-     * @param userId 目标用户ID
-     * @return true 解封成功；false 用户不存在
-     */
     @Override
     public boolean unblockUser(String userId) {
         // 查询用户是否存在
@@ -71,11 +61,6 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
         return true;
     }
 
-    /**
-     * 封禁指定作品。
-     * @param contributionId 目标作品ID
-     * @return true 封禁成功；false 作品不存在
-     */
     @Override
     public boolean blockContribution(String contributionId) {
         // 查询作品是否存在
@@ -88,11 +73,6 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
         return true;
     }
 
-    /**
-     * 解封指定作品。
-     * @param contributionId 目标作品ID
-     * @return true 解封成功；false 作品不存在
-     */
     @Override
     public boolean unblockContribution(String contributionId) {
         // 查询作品是否存在
@@ -104,13 +84,6 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
         return true;
     }
 
-    /**
-     * 获取全站作品的审核概览数据。
-     * 将作品按审核状态分为：待审核、已通过、已驳回三组，
-     * 并补充作者头像后转换为概览 DTO 列表返回。
-     *
-     * @return 汇总后的审核视图数据传输对象
-     */
     @Override
     public R_Audit_My_ContributionsDTO auditContributions() {
         // 为三种审核状态分别准备承载概览结果的列表
@@ -153,14 +126,6 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
         return rAuditContributionsDTO;
     }
 
-    /**
-     * 驳回指定作品。
-     * 若作品存在，则更新状态并记录驳回原因。
-     *
-     * @param contributionId 作品ID
-     * @param dismissalReason 驳回理由
-     * @return true 表示操作成功；false 表示作品不存在
-     */
     @Override
     public boolean dismissContribution(String contributionId, String dismissalReason) {
         // 查询目标作品是否存在
@@ -174,13 +139,6 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
         return true;
     }
 
-    /**
-     * 审核通过指定作品。
-     * 若作品存在，则更新状态为通过并清空驳回原因。
-     *
-     * @param contributionId 作品ID
-     * @return true 表示操作成功；false 表示作品不存在
-     */
     @Override
     public boolean approveContribution(String contributionId) {
         // 查询目标作品是否存在
@@ -229,8 +187,7 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
             Tag tag = tagMapper.selectTagById(tagId);
             tags.add(tag);
         }
-        R_Contribution rContribution = transformService.transformContributionToRContribution(contribution,user.getAvatar(),user.getUsername(),tags);
-        return rContribution;
+        return transformService.transformContributionToRContribution(contribution,user.getAvatar(),user.getUsername(),tags);
     }
 
     @Override

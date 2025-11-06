@@ -13,7 +13,6 @@ public class LogServiceImpl implements LogService {
     @Autowired
     private LogMapper logMapper;
 
-
     @Override
     public void logMethodExecution(String userId, String operation) {
         logMapper.insertLog(userId, operation);

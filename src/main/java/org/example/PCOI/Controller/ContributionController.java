@@ -17,9 +17,6 @@ public class ContributionController {
     @GetMapping("/illustrations")
     public Result<List<R_OverviewContribution>> getIllustrations() {
         List<R_OverviewContribution> list = contributionService.getIllustrations();
-        for(R_OverviewContribution c : list){
-            System.out.println(c.getImage());
-        }
         return Result.success(list);
     }
 
@@ -32,7 +29,6 @@ public class ContributionController {
     @GetMapping("/allContributions")
     public Result<List<R_OverviewContribution>> getAllContributions() {
         List<R_OverviewContribution> list = contributionService.getAllContributions();
-
         return Result.success(list);
     }
 
@@ -49,11 +45,9 @@ public class ContributionController {
     public Result<R_Contribution> getPendingContribution(
             @RequestHeader("Authorization") String authHeader,
             @RequestParam("contributionId") String contributionId) throws Exception {
-        System.out.println("contributionId: " + contributionId);
         String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
         Integer role = (Integer) TokenProcess.getAttributeFromToken(authHeader, "role");
         R_Contribution c = contributionService.getPendingContribution(userId,role,contributionId);
-        System.out.println(c.getImage());
         return Result.success(c);
     }
 
@@ -69,10 +63,8 @@ public class ContributionController {
     public Result<String> likeContribution(
             @RequestHeader ("Authorization") String authHeader,
             @RequestParam("contributionId") String contributionId) throws Exception {
-        System.out.println("contributionId: " + contributionId);
         String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
         boolean ok = contributionService.likeContribution(userId, contributionId);
-        System.out.println("likeContribution ok: " + ok);
         if (ok) {
             return Result.success("点赞成功");
         }

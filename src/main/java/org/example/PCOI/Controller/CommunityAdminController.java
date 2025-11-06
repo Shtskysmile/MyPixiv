@@ -2,7 +2,6 @@ package org.example.PCOI.Controller;
 
 import org.example.PCOI.ResponseDTO.*;
 import org.example.PCOI.Service.Inter.CommunityAdminService;
-import org.example.PCOI.Utils.TokenProcess;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,7 +12,6 @@ import java.util.List;
 public class CommunityAdminController {
     @Autowired
     private CommunityAdminService communityAdminService;
-
 
     @PostMapping("/communityAdmin/blockUser")
     public Result<String> blockUser(
@@ -48,7 +46,6 @@ public class CommunityAdminController {
     @PostMapping("/communityAdmin/bannedContribution")
     public Result<R_Contribution> bannedContribution(
             @RequestParam("contributionId") String contributionId) {
-        System.out.println("contributionId: " + contributionId);
         R_Contribution c = communityAdminService.getBannedContribution(contributionId);
         return Result.success(c);
     }
@@ -83,7 +80,6 @@ public class CommunityAdminController {
     @PostMapping("/communityAdmin/approveContribution")
     public Result<String> approveContribution(
             @RequestParam("contributionId") String contributionId) {
-        System.out.println("approveContribution called with contributionId: " + contributionId);
         boolean ok = communityAdminService.approveContribution(contributionId);
         if (ok) {
             return Result.success("已通过审核");

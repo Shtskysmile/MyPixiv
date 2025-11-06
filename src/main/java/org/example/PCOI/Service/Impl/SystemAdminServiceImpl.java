@@ -25,16 +25,6 @@ public class SystemAdminServiceImpl implements SystemAdminService {
     @Autowired
     private FileStorageService fileStorageService;
 
-    /**
-     * 系统管理员更新指定用户信息。
-     * 说明：可选择性更新用户名、性别与头像；若用户名与他人重复则失败。
-     *
-     * @param userId      目标用户ID
-     * @param newUsername 新用户名（可为空或空串表示不修改）
-     * @param newGender   新性别（可为空；约定 0=未知,1=男,2=女）
-     * @param newAvatar   新头像文件（可为空）
-     * @return true 更新成功；false 用户不存在或用户名被占用
-     */
     @Override
     public boolean updateUserInfo(String userId, String newUsername, Integer newGender, MultipartFile newAvatar) {
         // 1) 按 userId 查询目标用户

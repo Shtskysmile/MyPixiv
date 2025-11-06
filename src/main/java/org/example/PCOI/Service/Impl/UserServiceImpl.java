@@ -1,6 +1,5 @@
 package org.example.PCOI.Service.Impl;
 
-import com.github.pagehelper.PageHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.example.PCOI.Entity.*;
 import org.example.PCOI.Mapper.*;
@@ -283,16 +282,6 @@ public class UserServiceImpl implements UserService {
         return userInfoDTO;
     }
 
-    /**
-     * 更新用户基础信息（用户名、性别、头像）。
-     * 处理流程：
-     * 1) 根据 userId 查询用户，未找到则返回 false。
-     * 2) 若传入 newUsername 且非空：
-     *    - 校验是否被其他用户占用，若占用返回 false；否则更新用户名。
-     * 3) 若传入 newGender：更新性别。
-     * 4) 若传入 newAvatar 且文件非空：调用文件存储服务保存，并用返回的 URL 覆盖头像。
-     * 5) 持久化变更并返回 true。
-     */
     @Override
     public boolean updateUserInfo(String userId, String newUsername, Integer newGender, MultipartFile newAvatar) {
         // 1) 查询用户是否存在
