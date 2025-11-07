@@ -364,7 +364,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import request from '@/utils/request';
 import Navbar from './Navbar.vue';
 import Sidebar from './Sidebar.vue';
 
@@ -415,7 +415,7 @@ export default {
         params.append('type', type); // 0-插画, 1-漫画
         params.append('key', this.sortKey); // 0-浏览量, 1-收藏量, 2-点赞量, 3-评论量
         
-        const response = await axios.post('/api/contributionsRanking', params);
+        const response = await request.post('/contributionsRanking', params);
         
         // 后端成功状态：code === 0 或 code === 200
         if (response.data && (response.data.code === 0 || response.data.code === 200)) {

@@ -1,176 +1,161 @@
 <template>
   <div class="anime-admin-container">
-    <div class="admin-header">
-      <h2 class="title anime-gradient-text">
-        <span class="icon">👥</span> 用户管理
-      </h2>
-      <p class="subtitle">系统管理员控制面板</p>
+    <!-- 错误提示 -->
+    <div v-if="error" class="anime-notification is-danger">
+      <button class="delete" @click="error = ''"></button>
+      <span class="icon">⚠️</span>
+      <span>{{ error }}</span>
     </div>
 
-    <!-- 搜索栏 -->
-    <div class="search-section">
-      <div class="field has-addons">
-        <div class="control is-expanded">
-          <input 
-            class="input anime-input" 
-            type="text" 
-            v-model="searchUserId" 
-            placeholder="输入用户ID进行搜索..."
-            @keyup.enter="searchUser"
-          />
-        </div>
-        <div class="control">
-          <button class="button is-info anime-button" @click="searchUser">
-            <span class="icon">🔍</span>
-            <span>搜索</span>
-          </button>
-        </div>
-      </div>
+    <!-- 成功提示 -->
+    <div v-if="success" class="anime-notification is-success">
+      <button class="delete" @click="success = ''"></button>
+      <span class="icon">✅</span>
+      <span>{{ success }}</span>
     </div>
 
-    <!-- 用户信息卡片 -->
-    <div v-if="selectedUser" class="user-card anime-card">
-      <div class="card-header">
-        <p class="card-header-title">
-          <span class="icon">👤</span>
-          用户信息
-        </p>
+    <!-- 用户管理卡片 -->
+    <div class="management-card">
+      <!-- 头部 -->
+      <div class="card-header-section">
+        <div class="header-content">
+          <h2 class="card-title anime-gradient-text">
+            <span class="title-icon">�</span>
+            用户管理
+          </h2>
+          <p class="card-subtitle">系统管理员控制面板</p>
+        </div>
       </div>
-      <div class="card-content">
-        <div class="columns">
-          <!-- 头像预览 -->
-          <div class="column is-one-quarter has-text-centered">
-            <figure class="image is-128x128" style="margin: 0 auto;">
-              <img :src="avatarPreview" class="is-rounded avatar-preview" />
-            </figure>
-            <div class="file has-name is-fullwidth" style="margin-top: 1rem;">
-              <label class="file-label">
-                <input 
-                  class="file-input" 
-                  type="file" 
+
+      <!-- 表单内容 -->
+      <div class="card-body">
+        <div class="form-layout">
+          <!-- 左侧：头像区域 -->
+          <div class="avatar-section">
+            <div class="avatar-wrapper">
+              <img :src="avatarPreview" alt="avatar" class="avatar-img" @error="onAvatarError" />
+              <div class="avatar-ring"></div>
+            </div>
+
+            <div class="upload-section">
+              <label class="upload-button">
+                <input
+                  type="file"
                   accept="image/*"
                   @change="onAvatarChange"
+                  style="display: none;"
                 />
-                <span class="file-cta anime-file-button">
-                  <span class="file-icon">
-                    📷
-                  </span>
-                  <span class="file-label">
-                    选择头像
-                  </span>
-                </span>
-                <span class="file-name" v-if="newAvatarFileName">
-                  {{ newAvatarFileName }}
-                </span>
+                <span class="upload-icon">📷</span>
+                <span class="upload-text">选择头像</span>
               </label>
+              <p v-if="newAvatarFileName" class="file-name">{{ newAvatarFileName }}</p>
+              <p class="upload-hint">支持 JPG/PNG，最大 5MB</p>
             </div>
           </div>
 
-          <!-- 用户信息表单 -->
-          <div class="column">
-            <div class="field">
-              <label class="label">用户ID</label>
-              <div class="control">
-                <div 
-                  class="input anime-input clickable-user-id" 
-                  @click="copyIdToClipboard(selectedUser.userId, '用户ID')"
-                  title="点击复制ID"
-                >
-                  {{ selectedUser.userId }}
-                  <span class="copy-icon-inline">📋</span>
-                </div>
-              </div>
+          <!-- 右侧：表单区域 -->
+          <div class="form-section">
+            <!-- 用户ID -->
+            <div class="form-field">
+              <label class="field-label">
+                <span class="label-icon">🆔</span>
+                <span class="label-text">用户ID</span>
+                <span class="required-mark">*</span>
+              </label>
+              <input
+                v-model="form.userId"
+                type="text"
+                class="field-input"
+                placeholder="输入要管理的用户ID"
+              />
+              <p class="field-hint">必填，要修改的目标用户的唯一标识</p>
             </div>
 
-            <div class="field">
-              <label class="label">用户名</label>
-              <div class="control">
-                <input 
-                  class="input anime-input" 
-                  type="text" 
-                  v-model="editForm.username" 
-                  placeholder="输入新用户名"
-                />
-              </div>
+            <!-- 用户名 -->
+            <div class="form-field">
+              <label class="field-label">
+                <span class="label-icon">👤</span>
+                <span class="label-text">新用户名</span>
+                <span class="required-mark">*</span>
+              </label>
+              <input
+                v-model="form.username"
+                type="text"
+                class="field-input"
+                placeholder="输入新的用户名"
+              />
+              <p class="field-hint">必填，用户的新名称</p>
             </div>
 
-            <div class="field">
-              <label class="label">性别</label>
-              <div class="control">
-                <div class="select is-fullwidth anime-input">
-                  <select v-model="editForm.gender">
-                    <option :value="0">未知</option>
-                    <option :value="1">男</option>
-                    <option :value="2">女</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <div class="field">
-              <label class="label">角色</label>
-              <div class="control">
-                <span class="tag is-medium" :class="getRoleClass(selectedUser.role)">
-                  {{ getRoleText(selectedUser.role) }}
-                </span>
-              </div>
-            </div>
-
-            <div class="field">
-              <label class="label">账号状态</label>
-              <div class="control">
-                <span class="tag is-medium" :class="getStatusClass(selectedUser.status)">
-                  {{ getStatusText(selectedUser.status) }}
-                </span>
+            <!-- 性别 -->
+            <div class="form-field">
+              <label class="field-label">
+                <span class="label-icon">⚧️</span>
+                <span class="label-text">性别</span>
+                <span class="required-mark">*</span>
+              </label>
+              <div class="gender-options">
+                <label class="gender-option" :class="{ active: form.gender === 0 }">
+                  <input type="radio" v-model="form.gender" :value="0" />
+                  <span class="option-content">
+                    <span class="option-icon">❓</span>
+                    <span class="option-text">未知</span>
+                  </span>
+                </label>
+                <label class="gender-option" :class="{ active: form.gender === 1 }">
+                  <input type="radio" v-model="form.gender" :value="1" />
+                  <span class="option-content">
+                    <span class="option-icon">♂️</span>
+                    <span class="option-text">男</span>
+                  </span>
+                </label>
+                <label class="gender-option" :class="{ active: form.gender === 2 }">
+                  <input type="radio" v-model="form.gender" :value="2" />
+                  <span class="option-content">
+                    <span class="option-icon">♀️</span>
+                    <span class="option-text">女</span>
+                  </span>
+                </label>
               </div>
             </div>
           </div>
         </div>
 
         <!-- 操作按钮 -->
-        <div class="buttons is-centered" style="margin-top: 2rem;">
-          <button 
-            class="button is-primary anime-button"
+        <div class="action-buttons">
+          <button
+            class="action-btn primary-btn"
             @click="updateUserInfo"
             :disabled="loading"
-            :class="{ 'is-loading': loading }"
+            :class="{ loading: loading }"
           >
-            <span class="icon">💾</span>
-            <span>保存修改</span>
+            <span class="btn-icon">💾</span>
+            <span class="btn-text">更新用户信息</span>
           </button>
-          <button 
-            class="button is-warning anime-button"
+          <button
+            class="action-btn warning-btn"
             @click="resetPassword"
             :disabled="loading"
-            :class="{ 'is-loading': loading }"
+            :class="{ loading: loading }"
           >
-            <span class="icon">🔑</span>
-            <span>重置密码</span>
+            <span class="btn-icon">🔑</span>
+            <span class="btn-text">重置密码</span>
           </button>
-          <button 
-            class="button is-light anime-button"
-            @click="clearSelection"
+          <button
+            class="action-btn light-btn"
+            @click="clearForm"
           >
-            <span class="icon">❌</span>
-            <span>取消</span>
+            <span class="btn-icon">🔄</span>
+            <span class="btn-text">清空表单</span>
           </button>
         </div>
-      </div>
-    </div>
-
-    <!-- 空状态提示 -->
-    <div v-else class="empty-state">
-      <div class="has-text-centered">
-        <span class="icon is-large" style="font-size: 4rem;">🔍</span>
-        <p class="title is-4" style="margin-top: 1rem;">请输入用户ID进行搜索</p>
-        <p class="subtitle is-6">您可以在这里管理用户的基本信息</p>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import axios from 'axios';
+import request from '@/utils/request';
 import avatar from '@/assets/images/avatar.png';
 import copyIdMixin from '@/mixins/copyId';
 
@@ -179,9 +164,8 @@ export default {
   mixins: [copyIdMixin],
   data() {
     return {
-      searchUserId: '',
-      selectedUser: null,
-      editForm: {
+      form: {
+        userId: '',
         username: '',
         gender: 0
       },
@@ -189,7 +173,9 @@ export default {
       newAvatarFileName: '',
       newAvatarPreview: '',
       loading: false,
-      avatar
+      error: '',
+      success: '',
+      defaultAvatar: avatar
     };
   },
   computed: {
@@ -198,171 +184,166 @@ export default {
       if (this.newAvatarPreview) {
         return this.newAvatarPreview;
       }
-      // 否则显示用户当前头像
-      if (this.selectedUser && this.selectedUser.avatar) {
-        if (this.selectedUser.avatar.startsWith('http')) {
-          return this.selectedUser.avatar;
-        }
-        const baseURL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:8080';
-        const avatarPath = this.selectedUser.avatar.startsWith('/') 
-          ? this.selectedUser.avatar 
-          : `/${this.selectedUser.avatar}`;
-        return `${baseURL}${avatarPath}`;
-      }
-      return this.avatar;
+      // 否则显示默认头像
+      return this.defaultAvatar;
     }
   },
   methods: {
-    async searchUser() {
-      if (!this.searchUserId.trim()) {
-        this.$message.warning('请输入用户ID');
-        return;
-      }
-
-      try {
-        const response = await axios.get(`/api/user/${this.searchUserId}`);
-        if (response.data.code === 1) {
-          this.selectedUser = response.data.data;
-          // 初始化编辑表单
-          this.editForm.username = this.selectedUser.username;
-          this.editForm.gender = this.selectedUser.sex;
-          // 重置头像相关
-          this.newAvatar = null;
-          this.newAvatarFileName = '';
-          this.newAvatarPreview = '';
-        } else {
-          this.$message.error('用户不存在');
-        }
-      } catch (error) {
-        console.error('搜索用户失败:', error);
-        this.$message.error('搜索用户失败');
-      }
-    },
-
     onAvatarChange(event) {
       const file = event.target.files[0];
       if (file) {
+        // 验证文件类型
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        if (!validTypes.includes(file.type)) {
+          this.error = '只支持 JPG 和 PNG 格式的图片';
+          this.showToast('只支持 JPG 和 PNG 格式的图片', 'error');
+          return;
+        }
+
+        // 验证文件大小（限制为 5MB）
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+          this.error = '图片大小不能超过 5MB';
+          this.showToast('图片大小不能超过 5MB', 'error');
+          return;
+        }
+
         this.newAvatar = file;
         this.newAvatarFileName = file.name;
-        
+
         // 创建预览
         const reader = new FileReader();
         reader.onload = (e) => {
           this.newAvatarPreview = e.target.result;
         };
         reader.readAsDataURL(file);
+
+        console.log('📷 已选择头像:', file.name, '大小:', (file.size / 1024).toFixed(2) + 'KB');
       }
     },
 
+    onAvatarError(e) {
+      e.target.src = this.defaultAvatar;
+    },
+
     async updateUserInfo() {
-      if (!this.selectedUser) {
-        this.$message.warning('请先选择用户');
+      // 验证必填字段
+      if (!this.form.userId.trim()) {
+        this.error = '请输入用户ID';
+        this.showToast('请输入用户ID', 'warning');
         return;
       }
 
-      if (!this.editForm.username.trim()) {
-        this.$message.warning('用户名不能为空');
+      if (!this.form.username.trim()) {
+        this.error = '请输入新用户名';
+        this.showToast('请输入新用户名', 'warning');
         return;
       }
 
       this.loading = true;
+      this.error = '';
+      this.success = '';
+
       try {
         const formData = new FormData();
-        formData.append('userId', this.selectedUser.userId);
-        formData.append('newUsername', this.editForm.username);
-        formData.append('newGender', this.editForm.gender);
-        
+        formData.append('userId', this.form.userId.trim());
+        formData.append('newUsername', this.form.username.trim());
+        formData.append('newGender', this.form.gender);
+
+        // 如果选择了新头像，添加到表单
         if (this.newAvatar) {
           formData.append('newAvatar', this.newAvatar);
         }
 
-        const response = await axios.post('/api/systemAdmin/updateUserInfo', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
+        console.log('📤 更新用户信息:', {
+          userId: this.form.userId,
+          newUsername: this.form.username,
+          newGender: this.form.gender,
+          hasAvatar: !!this.newAvatar
         });
 
-        if (response.data.code === 1) {
-          this.$message.success('更新用户信息成功');
-          // 重新搜索用户以获取最新信息
-          await this.searchUser();
+        const response = await request.post('/systemAdmin/updateUserInfo', formData);
+
+        console.log('📥 更新用户信息响应:', response.data);
+
+        // 后端成功状态：只有 code === 0 才是成功
+        if (response.data.code === 0) {
+          this.success = '更新用户信息成功！';
+          this.showToast('更新用户信息成功', 'success');
+          console.log('✅ 更新用户信息成功');
         } else {
-          this.$message.error(response.data.msg || '更新用户信息失败');
+          this.error = response.data.message || '更新用户信息失败';
+          this.showToast('更新用户信息失败', 'error');
+          console.error('❌ 更新用户信息失败:', response.data.message);
         }
       } catch (error) {
-        console.error('更新用户信息失败:', error);
-        this.$message.error('更新用户信息失败');
+        console.error('❌ 更新用户信息失败:', error);
+        this.error = error.response?.data?.message || '更新用户信息失败，请稍后重试';
+        this.showToast('更新用户信息失败', 'error');
       } finally {
         this.loading = false;
       }
     },
 
     async resetPassword() {
-      if (!this.selectedUser) {
-        this.$message.warning('请先选择用户');
+      // 验证用户ID
+      if (!this.form.userId.trim()) {
+        this.error = '请输入用户ID';
+        this.showToast('请输入用户ID', 'warning');
         return;
       }
 
-      const confirmed = confirm(`确定要重置用户 ${this.selectedUser.username} 的密码吗？`);
+      const confirmed = confirm(
+        `确定要重置用户 ${this.form.userId} 的密码吗？\n\n` +
+        `密码将被重置为系统默认密码。\n` +
+        `用户需要使用默认密码重新登录。`
+      );
       if (!confirmed) return;
 
       this.loading = true;
-      try {
-        const response = await axios.post('/api/systemAdmin/resetPassword', null, {
-          params: {
-            userId: this.selectedUser.userId
-          }
-        });
+      this.error = '';
+      this.success = '';
 
-        if (response.data.code === 1) {
-          this.$message.success('重置密码成功');
+      try {
+        console.log('🔑 重置密码:', this.form.userId);
+
+        const params = new URLSearchParams();
+        params.append('userId', this.form.userId.trim());
+
+        const response = await request.post('/systemAdmin/resetPassword', params);
+        console.log('📥 重置密码响应:', response.data);
+
+        // 后端成功状态：只有 code === 0 才是成功
+        if (response.data.code === 0) {
+          this.success = '重置密码成功！密码已重置为系统默认密码。';
+          this.showToast('重置密码成功', 'success');
+          console.log('✅ 重置密码成功');
         } else {
-          this.$message.error(response.data.msg || '重置密码失败');
+          this.error = response.data.message || '重置密码失败';
+          this.showToast('重置密码失败', 'error');
+          console.error('❌ 重置密码失败:', response.data.message);
         }
       } catch (error) {
-        console.error('重置密码失败:', error);
-        this.$message.error('重置密码失败');
+        console.error('❌ 重置密码失败:', error);
+        this.error = error.response?.data?.message || '重置密码失败，请稍后重试';
+        this.showToast('重置密码失败', 'error');
       } finally {
         this.loading = false;
       }
     },
 
-    clearSelection() {
-      this.selectedUser = null;
-      this.searchUserId = '';
-      this.editForm = {
+    clearForm() {
+      this.form = {
+        userId: '',
         username: '',
         gender: 0
       };
       this.newAvatar = null;
       this.newAvatarFileName = '';
       this.newAvatarPreview = '';
-    },
-
-    getRoleClass(role) {
-      const roleClasses = {
-        0: 'is-info',      // 普通用户
-        1: 'is-warning',   // 社区管理员
-        2: 'is-danger'     // 系统管理员
-      };
-      return roleClasses[role] || 'is-light';
-    },
-
-    getRoleText(role) {
-      const roleTexts = {
-        0: '👤 普通用户',
-        1: '🛡️ 社区管理员',
-        2: '👑 系统管理员'
-      };
-      return roleTexts[role] || '未知';
-    },
-
-    getStatusClass(status) {
-      return status === 0 ? 'is-success' : 'is-danger';
-    },
-
-    getStatusText(status) {
-      return status === 0 ? '✅ 正常' : '🚫 已封禁';
+      this.error = '';
+      this.success = '';
+      console.log('🔄 表单已清空');
     }
   }
 };
@@ -370,113 +351,48 @@ export default {
 
 <style scoped>
 .anime-admin-container {
-  padding: 2rem;
-  max-width: 1200px;
+  max-width: 900px;
   margin: 0 auto;
+  padding: 24px;
 }
 
-.admin-header {
-  text-align: center;
-  margin-bottom: 3rem;
-  padding: 2rem;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(240, 248, 255, 0.9));
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-}
-
-.anime-gradient-text {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-weight: bold;
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-}
-
-.anime-gradient-text .icon {
-  -webkit-text-fill-color: initial;
-  background: none;
-}
-
-.subtitle {
-  color: #666;
-  font-size: 1rem;
-}
-
-.search-section {
-  margin-bottom: 2rem;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.anime-input {
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.clickable-user-id {
-  cursor: pointer;
-  user-select: none;
-  background: rgba(102, 126, 234, 0.05);
+/* 通知样式 */
+.anime-notification {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  font-family: 'Courier New', monospace;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
   font-weight: 600;
+  animation: slideDown 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.clickable-user-id:hover {
-  background: rgba(102, 126, 234, 0.15);
-  color: #667eea;
-  border-color: #667eea;
-  transform: translateX(2px);
+.anime-notification.is-danger {
+  background: #fef2f2;
+  color: #ef4444;
+  border: 2px solid #fca5a5;
 }
 
-.clickable-user-id:active {
-  transform: scale(0.99);
+.anime-notification.is-success {
+  background: #f0fdf4;
+  color: #10b981;
+  border: 2px solid #86efac;
 }
 
-.copy-icon-inline {
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  font-size: 14px;
+.anime-notification .icon {
+  font-size: 20px;
 }
 
-.clickable-user-id:hover .copy-icon-inline {
-  opacity: 1;
+.anime-notification .delete {
+  margin-left: auto;
 }
 
-.anime-input:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 0.125em rgba(102, 126, 234, 0.25);
-}
-
-.anime-button {
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  border: none;
-}
-
-.anime-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.user-card {
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  animation: slideIn 0.5s ease;
-}
-
-@keyframes slideIn {
+@keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(-20px);
   }
   to {
     opacity: 1;
@@ -484,68 +400,382 @@ export default {
   }
 }
 
-.card-header {
+/* 管理卡片 */
+.management-card {
+  background: rgba(255, 255, 255, 0.98);
+  border: 3px solid rgba(255, 105, 180, 0.2);
+  border-radius: 24px;
+  box-shadow: 0 12px 48px rgba(147, 51, 234, 0.15);
+  overflow: hidden;
+  animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 卡片头部 */
+.card-header-section {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.card-header-title {
-  color: white;
-  font-weight: bold;
-}
-
-.avatar-preview {
-  border: 3px solid #667eea;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-
-.anime-file-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  transition: all 0.3s ease;
-}
-
-.anime-file-button:hover {
-  transform: scale(1.05);
-}
-
-.empty-state {
-  padding: 4rem 2rem;
+  padding: 32px;
   text-align: center;
-  background: white;
-  border-radius: 15px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  min-height: 400px;
+}
+
+.header-content {
+  color: white;
+}
+
+.card-title {
+  font-size: 2rem;
+  font-weight: 900;
+  margin-bottom: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 12px;
 }
 
-.empty-state .icon {
-  color: #ddd;
+.anime-gradient-text {
+  background: white;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.empty-state .title {
-  color: #999;
+.title-icon {
+  font-size: 2rem;
+  -webkit-text-fill-color: white;
 }
 
-.empty-state .subtitle {
-  color: #bbb;
+.card-subtitle {
+  font-size: 14px;
+  opacity: 0.9;
 }
 
-.buttons {
-  margin-top: 2rem;
+/* 卡片主体 */
+.card-body {
+  padding: 40px;
 }
 
-.field {
-  margin-bottom: 1.5rem;
+/* 表单布局 */
+.form-layout {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 32px;
 }
 
-.label {
+/* 头像区域 */
+.avatar-section {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.avatar-wrapper {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 5px solid #fff;
+  box-shadow: 0 8px 24px rgba(147, 51, 234, 0.3);
+  position: relative;
+  z-index: 2;
+}
+
+.avatar-ring {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  z-index: 1;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+}
+
+.upload-section {
+  text-align: center;
+}
+
+.upload-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.upload-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(147, 51, 234, 0.3);
+}
+
+.upload-icon {
+  font-size: 18px;
+}
+
+.file-name {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #6366f1;
   font-weight: 600;
-  color: #333;
-  margin-bottom: 0.5rem;
+  word-break: break-all;
+}
+
+.upload-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* 表单区域 */
+.form-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: #374151;
+  font-size: 14px;
+}
+
+.label-icon {
+  font-size: 18px;
+}
+
+.required-mark {
+  color: #ef4444;
+  font-weight: 900;
+}
+
+.field-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.field-input::placeholder {
+  color: #9ca3af;
+}
+
+.field-hint {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* 性别选项 */
+.gender-options {
+  display: flex;
+  gap: 12px;
+}
+
+.gender-option {
+  flex: 1;
+  position: relative;
+  cursor: pointer;
+}
+
+.gender-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+}
+
+.option-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.gender-option:hover .option-content {
+  border-color: #a78bfa;
+  background: rgba(147, 51, 234, 0.05);
+}
+
+.gender-option.active .option-content {
+  border-color: #667eea;
+  background: linear-gradient(135deg, #667eea10 0%, #764ba210 100%);
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.2);
+}
+
+.option-icon {
+  font-size: 28px;
+}
+
+.option-text {
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+}
+
+/* 操作按钮 */
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding-top: 24px;
+  border-top: 2px solid rgba(147, 51, 234, 0.1);
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 15px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.action-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.action-btn.loading {
+  position: relative;
+  color: transparent;
+}
+
+.action-btn.loading::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  top: 50%;
+  left: 50%;
+  margin-left: -10px;
+  margin-top: -10px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.btn-icon {
+  font-size: 18px;
+}
+
+.primary-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.primary-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(147, 51, 234, 0.3);
+}
+
+.warning-btn {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.warning-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);
+}
+
+.light-btn {
+  background: white;
+  border-color: rgba(147, 51, 234, 0.3);
+  color: #6366f1;
+}
+
+.light-btn:hover:not(:disabled) {
+  background: rgba(147, 51, 234, 0.05);
+  border-color: #a78bfa;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .form-layout {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .gender-options {
+    flex-direction: column;
+  }
 }
 </style>
+
 

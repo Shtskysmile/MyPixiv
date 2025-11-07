@@ -133,12 +133,11 @@
 </template>
 
 <script>
-import axios from "axios";
+import request from "@/utils/request";
 import Navbar from "./Navbar.vue";
 import ImageBlock from "./ImageBlock.vue";
 import Pagination from "./Pagination.vue";
 import Sidebar from "./Sidebar.vue";
-import bgImg from "@/assets/images/Myth_Crystalcastle.jpg";
 
 export default {
   components: {
@@ -162,9 +161,7 @@ export default {
   computed: {
     bgStyle() {
       return {
-        backgroundImage: `url(${bgImg})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center center",
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         position: "fixed",
         top: 0,
         left: 0,
@@ -190,9 +187,9 @@ export default {
     async fetchIllustrations() {
       this.loading = true;
       try {
-        // 调用 /api/allContributions 获取所有作品
-        console.log('📡 正在请求 /api/allContributions...');
-        const response = await axios.get('/api/allContributions');
+        // 调用 /allContributions 获取所有作品
+        console.log('📡 正在请求 /allContributions...');
+        const response = await request.get('/allContributions');
         
         console.log('✅ 接口响应完整数据:', response);
         console.log('📦 响应状态码:', response.status);
@@ -201,13 +198,13 @@ export default {
         console.log('📦 响应 data 数组:', response.data?.data);
         console.log('📦 数据数量:', response.data?.data?.length);
         
-        // 后端成功状态：code === 0 或 code === 200
-        if (response.data?.code === 0 || response.data?.code === 200) {
+        // 后端成功状态：只有 code === 0 才是成功
+        if (response.data?.code === 0) {
           this.images = response.data.data || [];
           console.log('✨ 成功加载作品数量:', this.images.length);
           console.log('✨ 作品列表:', this.images);
         } else {
-          console.warn('⚠️ 响应 code 不是 0 或 200:', response.data?.code);
+          console.warn('⚠️ 响应 code 不是 0:', response.data?.code);
           this.images = [];
         }
         

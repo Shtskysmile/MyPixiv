@@ -3,7 +3,11 @@
     <div class="profile-header">
       <div class="avatar-section">
         <div class="avatar-wrapper">
-          <img :src="userAvatar" alt="avatar" class="avatar-img" @error="onAvatarError" />
+          <!-- 如果有头像URL则显示图片，否则显示占位符 -->
+          <img v-if="userAvatar" :src="userAvatar" alt="avatar" class="avatar-img" />
+          <div v-else class="avatar-placeholder">
+            {{ userData.username ? userData.username.charAt(0).toUpperCase() : 'U' }}
+          </div>
           <div class="avatar-ring"></div>
         </div>
       </div>
@@ -101,7 +105,6 @@
 </template>
 
 <script>
-import defaultAvatar from '@/assets/images/avatar.png';
 import copyIdMixin from '@/mixins/copyId';
 
 export default {
@@ -138,12 +141,9 @@ export default {
     return {};
   },
   computed: {
-    defaultAvatar() {
-      return defaultAvatar;
-    },
     // 对齐后端 R_User 结构
     userData() {
-      return {
+      const data = {
         userId: this.user.userId || this.user.id || '',
         username: this.user.username || this.user.name || '用户',
         role: this.user.role !== undefined ? this.user.role : 0,
@@ -151,17 +151,28 @@ export default {
         sex: this.user.sex !== undefined ? this.user.sex : 0,
         avatar: this.user.avatar || ''
       };
+      console.log('🔍 [Profile调试] userData计算属性:', data);
+      return data;
     },
     userAvatar() {
       // 参考 Navbar.vue 的实现：拼接完整的头像 URL
       const avatar = this.userData.avatar;
+      const baseURL = process.env.VUE_APP_API_BASE_URL;
+      
+      console.log('🔍 [Profile调试] 头像路径计算:');
+      console.log('  - 原始avatar:', avatar);
+      console.log('  - baseURL:', baseURL);
+      
       if (avatar) {
         // avatar 格式如: /files/userId/avatar/xxx.jpg
         // 直接拼接基础 URL 即可访问
-        const baseURL = process.env.VUE_APP_API_BASE_URL;
-        return `${baseURL}${avatar}`;
+        const fullUrl = `${baseURL}${avatar}`;
+        console.log('  - 完整URL:', fullUrl);
+        return fullUrl;
       }
-      return this.defaultAvatar;
+      
+      console.log('  - 没有头像，返回空字符串，将显示占位符');
+      return '';
     }
   },
   methods: {
@@ -188,9 +199,6 @@ export default {
         'is-success': status === 0,
         'is-danger': status === 1
       };
-    },
-    onAvatarError(e) {
-      e.target.src = this.defaultAvatar;
     },
     toggleConcern() {
       // 触发父组件事件，传递当前关注状态和用户ID
@@ -244,6 +252,23 @@ export default {
   object-fit: cover;
   border: 5px solid #fff;
   box-shadow: 0 8px 24px rgba(147, 51, 234, 0.3);
+  position: relative;
+  z-index: 2;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 5px solid #fff;
+  box-shadow: 0 8px 24px rgba(147, 51, 234, 0.3);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: bold;
+  color: white;
   position: relative;
   z-index: 2;
 }

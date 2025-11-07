@@ -8,7 +8,7 @@
               <div class="logo-section">
                 <h1 class="title has-text-centered anime-title">
                   <span class="icon is-large">✨</span>
-                  <span>MyPixiv</span>
+                  <span>PCOI</span>
                 </h1>
                 <p class="subtitle has-text-centered anime-subtitle">欢迎回来！</p>
               </div>
@@ -98,8 +98,7 @@
 </template>
 
 <script>
-import axios from 'axios';
-import bg from "@/assets/images/Lincy_swimsuit_Background.jpg";
+import request from '@/utils/request';
 
 export default {
   name: 'Login',
@@ -114,9 +113,7 @@ export default {
   computed: {
     bgStyle() {
       return {
-        backgroundImage: `url(${bg})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
+        background: "linear-gradient(135deg, #5B247A 0%, #1BCEDF 100%)",
       };
     },
   },
@@ -144,7 +141,7 @@ export default {
         params.append('username', this.username);
         params.append('password', this.password);
 
-        const res = await axios.post('/api/login', params);
+        const res = await request.post('/login', params);
         
         if (res.data && res.data.code === 0 && res.data.data) {
           // 登录成功
@@ -236,11 +233,13 @@ export default {
   background-clip: text;
   font-weight: 900;
   font-size: 2.5rem;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
   margin-bottom: 8px;
+  width: 100%;
+  text-align: center;
 }
 
 .anime-title .icon {

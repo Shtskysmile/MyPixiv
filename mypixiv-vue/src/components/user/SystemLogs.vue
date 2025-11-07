@@ -7,9 +7,14 @@
       <p class="subtitle">系统操作记录</p>
     </div>
 
+    <!-- 错误提示 -->
+    <div v-if="error" class="notification is-danger is-light anime-notification" style="margin-bottom: 1.5rem;">
+      <span class="icon">⚠️</span> {{ error }}
+    </div>
+
     <!-- 刷新按钮 -->
     <div class="control-bar">
-      <button 
+      <button
         class="button is-info anime-button"
         @click="fetchLogs"
         :disabled="loading"
@@ -74,7 +79,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import request from '@/utils/request';
 import copyIdMixin from '@/mixins/copyId';
 
 export default {
@@ -83,7 +88,8 @@ export default {
   data() {
     return {
       logs: [],
-      loading: false
+      loading: false,
+      error: ''
     };
   },
   created() {
@@ -92,18 +98,25 @@ export default {
   methods: {
     async fetchLogs() {
       this.loading = true;
+      this.error = '';
       try {
-        const response = await axios.get('/api/systemAdmin/logs');
-        if (response.data.code === 1) {
+        const response = await request.get('/systemAdmin/logs');
+        console.log('📥 系统日志响应:', response.data);
+
+        // 后端成功状态：只有 code === 0 才是成功
+        if (response.data.code === 0) {
           this.logs = response.data.data || [];
           // 按时间倒序排列（最新的在前面）
           this.logs.sort((a, b) => new Date(b.time) - new Date(a.time));
+          console.log('✅ 成功加载日志数量:', this.logs.length);
         } else {
-          this.$message.error('获取日志失败');
+          this.error = response.data.message || '获取日志失败';
+          console.error('❌ 获取日志失败:', response.data.message);
         }
       } catch (error) {
-        console.error('获取日志失败:', error);
-        this.$message.error('获取日志失败');
+        console.error('❌ 获取日志失败:', error);
+        this.error = error.response?.data?.message || '获取日志失败，请稍后重试';
+        this.showToast('获取日志失败', 'error');
       } finally {
         this.loading = false;
       }
@@ -348,6 +361,21 @@ export default {
   50% {
     opacity: 0.5;
   }
+}
+
+.anime-notification {
+  border-radius: 10px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 500;
+  animation: slideIn 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.anime-notification .icon {
+  font-size: 1.2rem;
 }
 </style>
 

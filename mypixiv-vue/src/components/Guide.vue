@@ -3,9 +3,9 @@
     <div class="overlay">
       <div class="content-wrapper">
         <div class="logo-container">
-          <img src="@/assets/images/Pixiv_Icon.svg" alt="MyPixiv Logo" class="guide-logo">
+          <img src="@/assets/images/Pixiv_Icon.svg" alt="PCOI Logo" class="guide-logo">
         </div>
-        <h1 class="title">欢迎来到 MyPixiv</h1>
+        <h1 class="title">欢迎来到 PCOI</h1>
         <p class="subtitle">探索精彩插画，发现创作者的世界</p>
         <p class="description">在这里，你可以欣赏来自世界各地创作者的精美作品</p>
         <div class="button-group">
@@ -41,15 +41,11 @@
 </template>
 
 <script>
-import bg from '@/assets/images/Lincy_Background.jpg'
-
 export default {
   computed: {
     bgStyle() {
       return {
-        backgroundImage: `url(${bg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
+        background: 'linear-gradient(135deg, #0052D4 0%, #4364F7 50%, #6FB1FC 100%)'
       }
     }
   },

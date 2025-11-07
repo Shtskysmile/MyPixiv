@@ -1,4 +1,4 @@
-# mypixiv-vue
+# PCOI - Vue Frontend
 
 ## Project setup
 ```

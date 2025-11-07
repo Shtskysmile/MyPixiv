@@ -142,7 +142,18 @@ export default {
     handleVisit(follower) {
       const userId = follower.userId || follower.id;
       if (userId) {
-        this.$router.push(`/user/${userId}`);
+        const targetPath = `/user/${userId}`;
+        // 检查是否已经在该用户页面
+        if (this.$route.path === targetPath) {
+          console.log('⚠️ 已经在当前用户页面');
+          return;
+        }
+        this.$router.push(targetPath).catch(err => {
+          // 捕获重复导航错误，避免控制台报错
+          if (err.name !== 'NavigationDuplicated') {
+            console.error('路由跳转失败:', err);
+          }
+        });
       }
     },
     handleUnfollow(follower) {

@@ -122,12 +122,11 @@
 </template>
 
 <script>
-import axios from "axios";
+import request from "@/utils/request";
 import Navbar from "./Navbar.vue";
 import ImageBlock from "./ImageBlock.vue";
 import Pagination from "./Pagination.vue";
 import Sidebar from "./Sidebar.vue";
-import bgImg from "@/assets/images/Moonshadow_CyberLeader.jpg";
 
 export default {
   components: {
@@ -151,9 +150,7 @@ export default {
   computed: {
     bgStyle() {
       return {
-        backgroundImage: `url(${bgImg})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center center",
+        background: "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
         position: "fixed",
         top: 0,
         left: 0,
@@ -173,20 +170,20 @@ export default {
     async fetchMangas() {
       this.loading = true;
       try {
-        console.log('📡 正在请求 /api/mangas...');
-        const response = await axios.get('/api/mangas');
+        console.log('📡 正在请求 /mangas...');
+        const response = await request.get('/mangas');
         
         console.log('✅ 漫画接口响应:', response);
         console.log('📦 响应 code:', response.data?.code);
         console.log('📦 响应 data:', response.data?.data);
         
-        // 后端成功状态：code === 0 或 code === 200
-        if (response.data?.code === 0 || response.data?.code === 200) {
+        // 后端成功状态：只有 code === 0 才是成功
+        if (response.data?.code === 0) {
           this.images = response.data.data || [];
           this.totalPage = Math.ceil(this.images.length / 35) || 1;
           console.log('✨ 成功加载漫画数量:', this.images.length);
         } else {
-          console.warn('⚠️ 响应 code 不是 0 或 200:', response.data?.code);
+          console.warn('⚠️ 响应 code 不是 0:', response.data?.code);
           this.images = [];
         }
       } catch (err) {
@@ -248,16 +245,7 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center center;
   z-index: -2;
-  animation: bgPulse 20s ease-in-out infinite;
-}
-
-@keyframes bgPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
 }
 
 .page-overlay {
@@ -266,12 +254,7 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(240, 147, 251, 0.4) 0%,
-    rgba(245, 87, 108, 0.5) 50%,
-    rgba(0, 0, 0, 0.5) 100%
-  );
+  background: rgba(0, 0, 0, 0.15);
   z-index: -1;
 }
 

@@ -8,7 +8,7 @@
               <div class="logo-section compact-header">
                 <h1 class="title is-4 has-text-centered anime-title">
                   <span class="icon">🎨</span>
-                  <span>加入 MyPixiv</span>
+                  <span>加入 PCOI</span>
                 </h1>
               </div>
               
@@ -211,7 +211,6 @@
 
 <script>
 import request from '@/utils/request';
-import bg from '@/assets/images/Lincy_swimsuit_Background.jpg';
 
 export default {
   name: 'Register',
@@ -237,9 +236,7 @@ export default {
   computed: {
     bgStyle() {
       return {
-        backgroundImage: `url(${bg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center'
+        background: 'linear-gradient(135deg, #FC466B 0%, #3F5EFB 100%)'
       };
     }
   },
@@ -330,7 +327,7 @@ export default {
         
         if (res.data && res.data.code === 0) {
           // 注册成功，跳转到登录页面让用户重新登录
-          this.success = `注册成功！欢迎加入 MyPixiv，${this.username}！2秒后跳转到登录页...`;
+          this.success = `注册成功！欢迎加入 PCOI，${this.username}！2秒后跳转到登录页...`;
           
           // 清空表单
           this.username = '';

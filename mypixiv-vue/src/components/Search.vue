@@ -380,7 +380,7 @@
 <script>
 import Navbar from './Navbar.vue'
 import Sidebar from './Sidebar.vue'
-import axios from 'axios'
+import request from '@/utils/request'
 import copyIdMixin from '@/mixins/copyId'
 
 export default {
@@ -553,16 +553,16 @@ export default {
         
         switch (this.searchType) {
           case 'id':
-            endpoint = '/api/searchById'
+            endpoint = '/searchById'
             break
           case 'name':
-            endpoint = '/api/searchByName'
+            endpoint = '/searchByName'
             break
           case 'tag':
-            endpoint = '/api/searchByTag'
+            endpoint = '/searchByTag'
             break
           default:
-            endpoint = '/api/searchByName'
+            endpoint = '/searchByName'
         }
 
         console.log(`🔍 正在执行${this.getSearchTypeName()}搜索:`, this.keyword)
@@ -570,13 +570,13 @@ export default {
         const params = new URLSearchParams()
         params.append('keyword', this.keyword.trim())
 
-        const response = await axios.post(endpoint, params)
+        const response = await request.post(endpoint, params)
 
         console.log('✅ 搜索响应:', response.data)
 
-        if (response.data?.code === 0 || response.data?.code === 200) {
+        if (response.data?.code === 0) {
           const data = response.data.data || {}
-          
+
           this.users = data.users || []
           this.illustrations = data.illustrations || []
           this.mangas = data.mangas || []

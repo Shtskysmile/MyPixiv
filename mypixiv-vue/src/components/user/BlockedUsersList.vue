@@ -81,9 +81,33 @@ export default {
       e.target.src = this.placeholderAvatar;
     },
     viewUserProfile(user) {
+      console.log('👤 [BlockedUsersList] 点击用户卡片:', {
+        userId: user.userId,
+        username: user.username,
+        currentPath: this.$route.path
+      });
+      
+      // 检查是否已经在该用户页面
+      const targetPath = `/user/${user.userId}`;
+      if (this.$route.path === targetPath) {
+        console.log('⚠️ [BlockedUsersList] 已经在当前用户页面，跳过跳转');
+        return;
+      }
+      
+      console.log('🔄 [BlockedUsersList] 准备跳转到:', targetPath);
+      
       // 跳转到用户主页
       this.$router.push({
-        path: `/user/${user.userId}`
+        path: targetPath
+      }).then(() => {
+        console.log('✅ [BlockedUsersList] 路由跳转成功');
+      }).catch(err => {
+        // 捕获重复导航错误，避免控制台报错
+        if (err.name !== 'NavigationDuplicated') {
+          console.error('❌ [BlockedUsersList] 路由跳转失败:', err);
+        } else {
+          console.log('⚠️ [BlockedUsersList] 重复导航（NavigationDuplicated）');
+        }
       });
     },
     getRoleText(role) {

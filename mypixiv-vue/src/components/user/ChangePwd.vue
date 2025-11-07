@@ -180,8 +180,7 @@
 </template>
 
 <script>
-import axios from 'axios';
-import bgImg from '@/assets/images/Moonshadow_CyberLeader.jpg';
+import request from '@/utils/request';
 
 export default {
   name: 'ChangePwd',
@@ -203,9 +202,7 @@ export default {
   computed: {
     bgStyle() {
       return {
-        backgroundImage: `url(${bgImg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       };
     }
   },
@@ -228,7 +225,7 @@ export default {
         params.append('username', this.username);
 
         console.log('🔍 正在获取密保问题，用户名:', this.username);
-        const res = await axios.post('/api/mySecurityIssues', params);
+        const res = await request.post('/mySecurityIssues', params);
         console.log('📥 密保问题响应:', res.data);
         
         if (res.data && res.data.code === 0) {
@@ -286,11 +283,7 @@ export default {
         }));
 
         console.log('🔐 正在验证密保问题...');
-        const res = await axios.post('/api/verifySecurityIssues', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
+        const res = await request.post('/verifySecurityIssues', formData);
         
         console.log('📥 密保验证响应:', res.data);
         
@@ -358,27 +351,42 @@ export default {
         console.log('🔑 Token长度:', this.tempToken?.length || 0);
         console.log('📋 请求参数:', { username: this.username, newPassword: '***' });
 
-        const res = await axios.post('/api/updatePassword', params, {
-          headers: {
-            'Authorization': 'Bearer ' + this.tempToken // 使用临时token，添加Bearer前缀
-          }
-        });
+        // 临时保存tempToken到localStorage，让request拦截器可以使用
+        const oldToken = localStorage.getItem('token');
+        if (this.tempToken) {
+          localStorage.setItem('token', this.tempToken);
+        }
+
+        try {
+          const res = await request.post('/updatePassword', params);
         
-        console.log('📥 修改密码响应:', res.data);
+          console.log('📥 修改密码响应:', res.data);
         
-        if (res.data && res.data.code === 0) {
-          // 修改成功
-          console.log('✅ 密码修改成功！');
-          this.success = '密码修改成功！3秒后跳转到登录页...';
-          this.error = '';
+          if (res.data && res.data.code === 0) {
+            // 修改成功
+            console.log('✅ 密码修改成功！');
+            this.success = '密码修改成功！3秒后跳转到登录页...';
+            this.error = '';
           
-          // 3秒后跳转到登录页
-          setTimeout(() => {
-            this.$router.push('/login');
-          }, 3000);
-        } else {
-          this.error = res.data?.message || '密码修改失败';
-          console.error('❌ 密码修改失败:', res.data?.message);
+            // 3秒后跳转到登录页
+            setTimeout(() => {
+              this.$router.push('/login');
+            }, 3000);
+          } else {
+            this.error = res.data?.message || '密码修改失败';
+            console.error('❌ 密码修改失败:', res.data?.message);
+          }
+        } catch (innerErr) {
+          console.error('❌ 修改密码错误:', innerErr);
+          console.error('❌ 错误响应:', innerErr.response?.data);
+          this.error = innerErr.response?.data?.message || '修改密码失败，请稍后重试';
+        } finally {
+          // 恢复原来的token
+          if (oldToken) {
+            localStorage.setItem('token', oldToken);
+          } else {
+            localStorage.removeItem('token');
+          }
         }
       } catch (err) {
         console.error('❌ 修改密码错误:', err);

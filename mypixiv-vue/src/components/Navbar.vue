@@ -14,7 +14,7 @@
               src="@/assets/images/Pixiv_Icon.svg"
               alt="logo"
             />
-            <span class="logo-text">MyPixiv</span>
+            <span class="logo-text">PCOI</span>
           </router-link>
 
           <a
@@ -102,7 +102,7 @@
               src="@/assets/images/Pixiv_Icon.svg"
               alt="logo"
             />
-            <span class="logo-text">MyPixiv</span>
+            <span class="logo-text">PCOI</span>
           </router-link>
 
           <a
@@ -216,7 +216,7 @@ export default {
       const username = localStorage.getItem('username');
       const userId = localStorage.getItem('userId');
       const userAvatar = localStorage.getItem('userAvatar');
-      console.log(userAvatar);
+      console.log('🔍 [Navbar] 读取本地存储的头像路径:', userAvatar);
       
       if (token && username && userId) {
         this.isLoggedIn = true;
@@ -227,13 +227,18 @@ export default {
         // 直接拼接头像 URL（后端已配置静态资源映射 /files/**）
         if (userAvatar) {
           // userAvatar 格式如: /files/userId/avatar/xxx.jpg
-          // 直接拼接基础 URL 即可访问
+          // 添加时间戳参数避免浏览器缓存
           const baseURL = process.env.VUE_APP_API_BASE_URL;
-          this.avatarUrl = `${baseURL}${userAvatar}`;
-          console.log('✅ 头像 URL 已设置:', this.avatarUrl);
+          const timestamp = new Date().getTime();
+          this.avatarUrl = `${baseURL}${userAvatar}?t=${timestamp}`;
+          console.log('✅ [Navbar] 头像 URL 已设置（带时间戳）:', this.avatarUrl);
+        } else {
+          this.avatarUrl = '';
+          console.log('⚠️ [Navbar] 没有头像路径');
         }
       } else {
         this.isLoggedIn = false;
+        this.avatarUrl = '';
       }
     },
     handleUserInfoUpdated() {

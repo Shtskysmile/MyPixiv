@@ -15,18 +15,17 @@
               <li><a :class="{ 'is-active': view === 'info' }" @click.prevent="view = 'info'">
                 <span class="icon">📋</span> 个人信息
               </a></li>
-              <!-- 管理员不能查看收藏和点赞 -->
+              <!-- 查看他人页面时：如果被查看的用户不是管理员，则显示这些选项 -->
+              <!-- 查看自己页面时：如果自己不是管理员，则显示这些选项 -->
               <li v-if="!isCommunityAdmin && !isSystemAdmin"><a :class="{ 'is-active': view === 'favorites' }" @click.prevent="openFavorites">
                 <span class="icon">⭐</span> 收藏的画作
               </a></li>
               <li v-if="!isCommunityAdmin && !isSystemAdmin"><a :class="{ 'is-active': view === 'likes' }" @click.prevent="openLikes">
                 <span class="icon">❤️</span> 点赞的画作
               </a></li>
-              <!-- 普通用户才能查看和提交作品，管理员不能提交作品 -->
               <li v-if="!isCommunityAdmin && !isSystemAdmin"><a :class="{ 'is-active': view === 'works' }" @click.prevent="openWorks">
                 <span class="icon">🎨</span> {{ isOwnProfile ? '我的' : 'TA的' }}画作
               </a></li>
-              <!-- 管理员不能查看关注列表 -->
               <li v-if="!isCommunityAdmin && !isSystemAdmin"><a :class="{ 'is-active': view === 'followers' }" @click.prevent="openFollowers">
                 <span class="icon">👥</span> {{ isOwnProfile ? '我的' : 'TA的' }}关注
               </a></li>
@@ -36,21 +35,28 @@
               <li v-if="isOwnProfile && !isCommunityAdmin && !isSystemAdmin"><a :class="{ 'is-active': view === 'submit' }" @click.prevent="view = 'submit'">
                 <span class="icon">📤</span> 提交作品
               </a></li>
-              <!-- 社区管理员菜单 -->
-              <li v-if="isOwnProfile && isCommunityAdmin"><a :class="{ 'is-active': view === 'audit' }" @click.prevent="openAuditWorks">
-                <span class="icon">🛡️</span> 审核作品
+              <!-- 账户安全设置（所有用户都可见，但只有查看自己时才显示） -->
+              <li v-if="isOwnProfile"><a :class="{ 'is-active': view === 'changePassword' }" @click.prevent="view = 'changePassword'">
+                <span class="icon">🔑</span> 修改密码
               </a></li>
-              <li v-if="isOwnProfile && isCommunityAdmin"><a :class="{ 'is-active': view === 'blockedWorks' }" @click.prevent="view = 'blockedWorks'">
+              <li v-if="isOwnProfile"><a :class="{ 'is-active': view === 'changeSecurityIssues' }" @click.prevent="view = 'changeSecurityIssues'">
+                <span class="icon">🛡️</span> 修改密保
+              </a></li>
+              <!-- 社区管理员菜单（当前登录用户是社区管理员时始终显示） -->
+              <li v-if="isLoggedInUserCommunityAdmin"><a :class="{ 'is-active': view === 'audit' }" @click.prevent="openAuditWorks">
+                <span class="icon">🔨</span> 审核作品
+              </a></li>
+              <li v-if="isLoggedInUserCommunityAdmin"><a :class="{ 'is-active': view === 'blockedWorks' }" @click.prevent="view = 'blockedWorks'">
                 <span class="icon">🚫</span> 已封禁作品
               </a></li>
-              <li v-if="isOwnProfile && isCommunityAdmin"><a :class="{ 'is-active': view === 'blockedUsers' }" @click.prevent="view = 'blockedUsers'">
+              <li v-if="isLoggedInUserCommunityAdmin"><a :class="{ 'is-active': view === 'blockedUsers' }" @click.prevent="view = 'blockedUsers'">
                 <span class="icon">🔒</span> 被封禁用户
               </a></li>
-              <!-- 系统管理员菜单 -->
-              <li v-if="isOwnProfile && isSystemAdmin"><a :class="{ 'is-active': view === 'userManagement' }" @click.prevent="view = 'userManagement'">
+              <!-- 系统管理员菜单（当前登录用户是系统管理员时始终显示） -->
+              <li v-if="isLoggedInUserSystemAdmin"><a :class="{ 'is-active': view === 'userManagement' }" @click.prevent="view = 'userManagement'">
                 <span class="icon">👥</span> 用户管理
               </a></li>
-              <li v-if="isOwnProfile && isSystemAdmin"><a :class="{ 'is-active': view === 'systemLogs' }" @click.prevent="view = 'systemLogs'">
+              <li v-if="isLoggedInUserSystemAdmin"><a :class="{ 'is-active': view === 'systemLogs' }" @click.prevent="view = 'systemLogs'">
                 <span class="icon">📋</span> 系统日志
               </a></li>
             </ul>
@@ -94,6 +100,14 @@
 
           <div v-if="view === 'submit'">
             <SubmitArtwork :user="user" :editWork="editingWork" @submitted="onArtworkSubmitted" @cancel-edit="cancelEditWork" />
+          </div>
+
+          <div v-if="view === 'changePassword'">
+            <ChangePassword />
+          </div>
+
+          <div v-if="view === 'changeSecurityIssues'">
+            <ChangeSecurityIssues />
           </div>
 
           <div v-if="view === 'audit'">
@@ -196,17 +210,33 @@ import WorksList from './WorksList.vue';
 import Profile from './Profile.vue';
 import FollowersList from './FollowersList.vue';
 import CommentsList from './CommentsList.vue';
+import ChangePassword from './ChangePassword.vue';
+import ChangeSecurityIssues from './ChangeSecurityIssues.vue';
 import AuditWorksList from './AuditWorksList.vue';
 import BlockedWorksList from './BlockedWorksList.vue';
 import BlockedUsersList from './BlockedUsersList.vue';
 import UserManagement from './UserManagement.vue';
 import SystemLogs from './SystemLogs.vue';
-import avatar from '@/assets/images/avatar.png';
-import bgImg from '@/assets/images/Alice_Damage.jpg';
 
 export default {
   name: 'UserPage',
-  components: { Navbar, SubmitArtwork, FavoritesList, LikesList, FollowersList, CommentsList, Profile, WorksList, AuditWorksList, BlockedWorksList, BlockedUsersList, UserManagement, SystemLogs },
+  components: {
+    Navbar,
+    SubmitArtwork,
+    FavoritesList,
+    LikesList,
+    FollowersList,
+    CommentsList,
+    Profile,
+    WorksList,
+    ChangePassword,
+    ChangeSecurityIssues,
+    AuditWorksList,
+    BlockedWorksList,
+    BlockedUsersList,
+    UserManagement,
+    SystemLogs
+  },
   props: {
     id: {
       type: String,
@@ -221,7 +251,7 @@ export default {
         role: 0,
         sex: 0,
         status: 0,
-        avatar: avatar,
+        avatar: '',
       },
       isConcerned: false, // 是否已关注该用户
       userStats: {
@@ -248,13 +278,12 @@ export default {
       editAvatar: null,
       editAvatarFileName: '',
       editAvatarPreview: '',
-      bgImg,
     };
   },
   computed: {
     avatarSrc() {
       if (!this.user.avatar) {
-        return avatar; // 默认头像
+        return ''; // 没有头像时返回空字符串
       }
       // 如果是完整URL，直接返回
       if (this.user.avatar.startsWith('http')) {
@@ -268,9 +297,7 @@ export default {
     },
     bgStyle() {
       return {
-        backgroundImage: `url(${this.bgImg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center center',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       };
     },
     // 当前查看的用户ID：优先使用路由参数，否则使用当前登录用户ID
@@ -280,15 +307,55 @@ export default {
     // 是否是当前登录用户自己的主页
     isOwnProfile() {
       const loggedInUserId = localStorage.getItem('userId');
-      return this.currentUserId === loggedInUserId;
+      const result = this.currentUserId === loggedInUserId;
+      console.log('🔍 [DEBUG] isOwnProfile:', {
+        currentUserId: this.currentUserId,
+        loggedInUserId,
+        result
+      });
+      return result;
     },
-    // 是否是社区管理员（role为1）
+    // 是否是社区管理员（role为1）- 被查看用户的角色
     isCommunityAdmin() {
-      return this.user.role === 1;
+      const result = this.user.role === 1;
+      console.log('🔍 [DEBUG] isCommunityAdmin:', {
+        userRole: this.user.role,
+        userId: this.user.userId,
+        result
+      });
+      return result;
     },
-    // 是否是系统管理员（role为2）
+    // 是否是系统管理员（role为2）- 被查看用户的角色
     isSystemAdmin() {
-      return this.user.role === 2;
+      const result = this.user.role === 2;
+      console.log('🔍 [DEBUG] isSystemAdmin:', {
+        userRole: this.user.role,
+        userId: this.user.userId,
+        result
+      });
+      return result;
+    },
+    // 当前登录用户是否是社区管理员
+    isLoggedInUserCommunityAdmin() {
+      const currentUserRole = parseInt(localStorage.getItem('userRole') || '0');
+      const result = currentUserRole === 1;
+      console.log('🔍 [DEBUG] isLoggedInUserCommunityAdmin:', {
+        currentUserRole,
+        result,
+        localStorage_userRole: localStorage.getItem('userRole')
+      });
+      return result;
+    },
+    // 当前登录用户是否是系统管理员
+    isLoggedInUserSystemAdmin() {
+      const currentUserRole = parseInt(localStorage.getItem('userRole') || '0');
+      const result = currentUserRole === 2;
+      console.log('🔍 [DEBUG] isLoggedInUserSystemAdmin:', {
+        currentUserRole,
+        result,
+        localStorage_userRole: localStorage.getItem('userRole')
+      });
+      return result;
     },
     // 当前登录用户是否是社区管理员（用于判断是否显示封禁按钮）
     isCurrentUserCommunityAdmin() {
@@ -299,33 +366,44 @@ export default {
     }
   },
   created() {
+    console.log('🎬 [DEBUG] User component created:', {
+      id: this.id,
+      routeName: this.$route.name,
+      routeParams: this.$route.params
+    });
     this.fetchUser();
   },
   watch: {
     // 监听路由参数变化，重新加载用户信息
     id(newId, oldId) {
-      // 重置所有状态
-      this.resetPageData();
-      // 重新加载用户信息
-      this.fetchUser();
+      console.log('🔄 [DEBUG] id prop changed:', { oldId, newId });
+      // 只有当 id 真正改变时才重新加载（避免初始化时重复加载）
+      if (newId !== oldId && oldId !== undefined) {
+        console.log('✅ [DEBUG] id 已改变，重新加载数据');
+        this.resetPageData();
+        this.fetchUser();
+      }
     },
-    // 监听整个路由变化（包括从 /user 到 /user/:id）
+    // 监听整个路由变化（主要用于从 /user 切换到 /user/:id 的情况）
     '$route'(to, from) {
-      // 如果是在用户页面之间切换
-      if (to.name === 'user-id' || to.name === 'user') {
-        const oldUserId = from.params.id || localStorage.getItem('userId');
-        const newUserId = to.params.id || localStorage.getItem('userId');
-        
-        // 只有当用户ID真正改变时才重置和刷新
-        if (oldUserId !== newUserId) {
-          this.resetPageData();
-          this.fetchUser();
-        }
+      console.log('🔄 [DEBUG] $route changed:', {
+        from: { name: from.name, params: from.params, path: from.path },
+        to: { name: to.name, params: to.params, path: to.path }
+      });
+      
+      // 特殊处理：从 /user（无参数）切换到 /user/:id 的情况
+      // 这种情况下 id prop 从 null 变为某个值，会被 id watcher 处理
+      // 这里主要处理从 /user/:id 切换到 /user 的情况
+      if (from.name === 'user-id' && to.name === 'user') {
+        console.log('✅ [DEBUG] 从他人主页返回自己主页，重新加载数据');
+        this.resetPageData();
+        this.fetchUser();
       }
     }
   },
   methods: {
     resetPageData() {
+      console.log('🔄 [DEBUG] resetPageData called');
       // 重置用户信息
       this.user = {
         userId: '',
@@ -333,7 +411,7 @@ export default {
         role: 0,
         sex: 0,
         status: 0,
-        avatar: avatar,
+        avatar: '',
       };
       // 重置关注状态
       this.isConcerned = false;
@@ -361,6 +439,13 @@ export default {
     fetchUser() {
       const userId = this.currentUserId;
       
+      console.log('🔍 [DEBUG] fetchUser called:', {
+        userId,
+        routeId: this.id,
+        localStorageUserId: localStorage.getItem('userId'),
+        localStorageUserRole: localStorage.getItem('userRole')
+      });
+      
       if (!userId) {
         alert('未登录，请先登录');
         this.$router.push('/login');
@@ -370,15 +455,28 @@ export default {
       const params = new URLSearchParams();
       params.append('userId', userId);
 
+      // 获取token
+      const token = localStorage.getItem('token');
+      console.log('📥 [User.fetchUser] token:', token);
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
       // 使用后端接口 POST /userInfo，返回 Result<R_UserInfoDTO>
       // 使用相对路径，由 Vue devServer 代理转发到后端
-      request.post('/userInfo', params)
+      request.post('/userInfo', params, { headers })
         .then((res) => {
+          console.log('📥 [User.fetchUser] 获取用户信息响应:', res.data);
+          
           if (res.data && res.data.code === 0) {
             // R_UserInfoDTO { user: R_User, isConcerned: boolean }
             const data = res.data.data;
             if (data && data.user) {
               // 后端 R_User 结构: userId, username, role, status, sex, avatar
+              console.log('🔍 [DEBUG] 更新 this.user 为:', {
+                userId: data.user.userId,
+                username: data.user.username,
+                role: data.user.role,
+                status: data.user.status
+              });
               this.user = {
                 userId: data.user.userId,
                 username: data.user.username,
@@ -387,27 +485,66 @@ export default {
                 sex: data.user.sex,
                 avatar: data.user.avatar
               };
+              
+              console.log('✅ [User.fetchUser] 用户信息已更新:', this.user);
+              console.log('🖼️ [User.fetchUser] 头像路径详情:');
+              console.log('  - 从后端获取的avatar字段:', data.user.avatar);
+              console.log('  - 赋值到this.user.avatar:', this.user.avatar);
+              
+              // 如果是当前登录用户自己的主页，更新 localStorage
+              if (this.isOwnProfile) {
+                console.log('📝 [User.fetchUser] 这是当前用户自己的主页，更新本地存储...');
+                
+                // 更新用户名
+                if (data.user.username) {
+                  localStorage.setItem('username', data.user.username);
+                  console.log('✅ [User.fetchUser] 已更新用户名到本地存储:', data.user.username);
+                }
+                
+                // 更新头像路径
+                if (data.user.avatar) {
+                  localStorage.setItem('userAvatar', data.user.avatar);
+                  console.log('✅ [User.fetchUser] 已更新头像路径到本地存储:', data.user.avatar);
+                }
+                
+                // 再次触发 userInfoUpdated 事件，确保 Navbar 能获取到最新数据
+                console.log('📢 [User.fetchUser] 触发 userInfoUpdated 事件');
+                window.dispatchEvent(new Event('userInfoUpdated'));
+              }
+              
               // 设置是否已关注
               this.isConcerned = data.isConcerned || false;
+              
+              // 获取统计数据（必须在用户信息更新后调用）
+              this.fetchUserStats(userId);
             }
           }
         })
-        .catch(() => {});
-      
-      // 获取统计数据
-      this.fetchUserStats(userId);
+        .catch((err) => {
+          console.error('❌ [User.fetchUser] 获取用户信息失败:', err);
+        });
     },
     
     fetchUserStats(userId) {
-      // 仅在个人信息页面显示时才加载统计数据
-      // 其他数据在切换到对应页面时按需加载
-      // 这里只保留重置逻辑，不主动加载任何数据
+      // 重置统计数据
       this.userStats = {
         following: 0,
         followers: 0,
         works: 0,
         favorites: 0
       };
+      
+      // 如果被查看用户不是管理员，则加载统计数据
+      // 管理员账户不显示作品、收藏等数据
+      if (this.user.role === 0) {
+        console.log('📊 [DEBUG] 开始加载统计数据，用户ID:', userId);
+        this.fetchFollowingCount(userId);
+        this.fetchFollowersCount(userId);
+        this.fetchWorksCount(userId);
+        this.fetchFavoritesCount(userId);
+      } else {
+        console.log('⚠️ [DEBUG] 管理员账户，跳过统计数据加载');
+      }
     },
     
     // 获取关注数统计
@@ -419,9 +556,29 @@ export default {
         .then((res) => {
           if (res.data && res.data.code === 0) {
             this.userStats.following = (res.data.data || []).length;
+            console.log('✅ [DEBUG] 关注数:', this.userStats.following);
           }
         })
-        .catch(() => {});
+        .catch((error) => {
+          console.error('❌ [DEBUG] 获取关注数失败:', error);
+        });
+    },
+    
+    // 获取粉丝数统计（使用同样的接口，因为暂时没有专门的粉丝接口）
+    fetchFollowersCount(userId) {
+      const params = new URLSearchParams();
+      params.append('userId', userId);
+      
+      request.post('/concernedList', params)
+        .then((res) => {
+          if (res.data && res.data.code === 0) {
+            this.userStats.followers = (res.data.data || []).length;
+            console.log('✅ [DEBUG] 粉丝数:', this.userStats.followers);
+          }
+        })
+        .catch((error) => {
+          console.error('❌ [DEBUG] 获取粉丝数失败:', error);
+        });
     },
     
     // 获取作品数统计
@@ -439,18 +596,24 @@ export default {
                            (data.approvedContributions || []).length + 
                            (data.dismissalContributions || []).length;
               this.userStats.works = total;
+              console.log('✅ [DEBUG] 作品数（自己）:', this.userStats.works);
             }
           })
-          .catch(() => {});
+          .catch((error) => {
+            console.error('❌ [DEBUG] 获取作品数失败:', error);
+          });
       } else {
         // 查看他人的作品数：使用 /contributionList 接口
         request.post('/contributionList', params)
           .then((res) => {
             if (res.data && res.data.code === 0) {
               this.userStats.works = (res.data.data || []).length;
+              console.log('✅ [DEBUG] 作品数（他人）:', this.userStats.works);
             }
           })
-          .catch(() => {});
+          .catch((error) => {
+            console.error('❌ [DEBUG] 获取作品数失败:', error);
+          });
       }
     },
     
@@ -463,9 +626,12 @@ export default {
         .then((res) => {
           if (res.data && res.data.code === 0) {
             this.userStats.favorites = (res.data.data || []).length;
+            console.log('✅ [DEBUG] 收藏数:', this.userStats.favorites);
           }
         })
-        .catch(() => {});
+        .catch((error) => {
+          console.error('❌ [DEBUG] 获取收藏数失败:', error);
+        });
     },
     
     openEdit() {
@@ -523,28 +689,58 @@ export default {
         }
       })
         .then((res) => {
+          console.log('📥 [User] 后端返回数据:', res.data);
+          
           if (res.data && res.data.code === 0) {
             // 更新本地数据
             this.user.username = this.editName;
             this.user.sex = this.editGender;
             
-            // 更新 localStorage 中的用户信息
+            // 更新 localStorage 中的用户名
             localStorage.setItem('username', this.editName);
+            console.log('✅ [User] 已更新用户名到本地存储:', this.editName);
             
-            // 如果后端返回了新的头像路径，更新它
-            if (res.data.data && res.data.data.avatar) {
-              this.user.avatar = res.data.data.avatar;
-              localStorage.setItem('userAvatar', res.data.data.avatar);
+            // 如果上传了新头像，后端会返回新的头像路径
+            if (this.editAvatar) {
+              console.log('🖼️ [User] 已上传新头像，检查后端返回的头像路径...');
+              
+              // 后端返回数据结构可能是：
+              // { code: 0, message: "success", data: { avatar: "/files/xxx/avatar/xxx.jpg" } }
+              // 或者直接在 data 字段中返回头像路径
+              if (res.data.data) {
+                let newAvatarPath = null;
+                
+                // 尝试从不同的可能位置获取头像路径
+                if (res.data.data.avatar) {
+                  newAvatarPath = res.data.data.avatar;
+                } else if (res.data.data.avatarPath) {
+                  newAvatarPath = res.data.data.avatarPath;
+                } else if (typeof res.data.data === 'string') {
+                  // 有些后端可能直接返回字符串
+                  newAvatarPath = res.data.data;
+                }
+                
+                if (newAvatarPath) {
+                  console.log('✅ [User] 后端返回新头像路径:', newAvatarPath);
+                  this.user.avatar = newAvatarPath;
+                  localStorage.setItem('userAvatar', newAvatarPath);
+                  console.log('✅ [User] 已保存新头像路径到本地存储');
+                } else {
+                  console.warn('⚠️ [User] 后端未返回新头像路径，将重新获取用户信息');
+                }
+              }
             }
             
             // 触发自定义事件通知其他组件更新（例如 Navbar）
+            console.log('📢 [User] 触发 userInfoUpdated 事件');
             window.dispatchEvent(new Event('userInfoUpdated'));
             
             // 如果上传了新头像，需要重新获取用户信息以确保头像路径正确
             if (this.editAvatar) {
-              alert('更新成功！');
+              alert('更新成功！头像已更新');
               this.closeEdit();
-              // 重新获取用户信息以更新头像
+              // 重新获取用户信息以确保所有数据同步
+              console.log('🔄 [User] 重新获取用户信息...');
               this.fetchUser();
             } else {
               alert('更新成功！');
@@ -555,15 +751,15 @@ export default {
           }
         })
         .catch((error) => {
-          console.error('更新失败:', error);
+          console.error('❌ [User] 更新失败:', error);
           alert('更新失败，请稍后重试');
         });
     },
     
     openFavorites() {
-      // 管理员不能查看收藏
+      // 被查看的用户是管理员时不能查看收藏
       if (this.isCommunityAdmin || this.isSystemAdmin) {
-        console.warn('⚠️ 管理员无法查看收藏');
+        console.warn('⚠️ 管理员账户无法查看收藏');
         return;
       }
       
@@ -590,9 +786,9 @@ export default {
     },
     
     openLikes() {
-      // 管理员不能查看点赞
+      // 被查看的用户是管理员时不能查看点赞
       if (this.isCommunityAdmin || this.isSystemAdmin) {
-        console.warn('⚠️ 管理员无法查看点赞');
+        console.warn('⚠️ 管理员账户无法查看点赞');
         return;
       }
       
@@ -617,9 +813,9 @@ export default {
     },
     
     openWorks(page = 1) {
-      // 管理员不能查看作品
+      // 被查看的用户是管理员时不能查看作品
       if (this.isCommunityAdmin || this.isSystemAdmin) {
-        console.warn('⚠️ 管理员无法查看作品');
+        console.warn('⚠️ 管理员账户无法查看作品');
         return;
       }
       
@@ -772,10 +968,10 @@ export default {
     },
     
     unlike(item) {
-      // 管理员不能取消点赞
+      // 被查看的用户是管理员时不能取消点赞
       if (this.isCommunityAdmin || this.isSystemAdmin) {
-        console.warn('⚠️ 管理员无法取消点赞');
-        alert('管理员无法取消点赞');
+        console.warn('⚠️ 管理员账户无法取消点赞');
+        alert('管理员账户无法取消点赞');
         return;
       }
       
@@ -799,10 +995,10 @@ export default {
     },
     
     unfavorite(fav) {
-      // 管理员不能取消收藏
+      // 被查看的用户是管理员时不能取消收藏
       if (this.isCommunityAdmin || this.isSystemAdmin) {
-        console.warn('⚠️ 管理员无法取消收藏');
-        alert('管理员无法取消收藏');
+        console.warn('⚠️ 管理员账户无法取消收藏');
+        alert('管理员账户无法取消收藏');
         return;
       }
       
@@ -826,9 +1022,9 @@ export default {
     },
     
     openFollowers(page = 1) {
-      // 管理员不能查看关注列表
+      // 被查看的用户是管理员时不能查看关注列表
       if (this.isCommunityAdmin || this.isSystemAdmin) {
-        console.warn('⚠️ 管理员无法查看关注列表');
+        console.warn('⚠️ 管理员账户无法查看关注列表');
         return;
       }
       
@@ -869,9 +1065,9 @@ export default {
     },
     
     openComments() {
-      // 管理员不能查看评论列表
+      // 被查看的用户是管理员时不能查看评论列表
       if (this.isCommunityAdmin || this.isSystemAdmin) {
-        console.warn('⚠️ 管理员无法查看评论列表');
+        console.warn('⚠️ 管理员账户无法查看评论列表');
         return;
       }
       
@@ -905,10 +1101,10 @@ export default {
     },
     
     handleDeleteComment(comment) {
-      // 管理员不能删除评论
+      // 被查看的用户是管理员时不能删除评论
       if (this.isCommunityAdmin || this.isSystemAdmin) {
-        console.warn('⚠️ 管理员无法删除评论');
-        alert('管理员无法删除评论');
+        console.warn('⚠️ 管理员账户无法删除评论');
+        alert('管理员账户无法删除评论');
         return;
       }
       
@@ -953,10 +1149,10 @@ export default {
     },
     
     unfollow(f) {
-      // 管理员不能取消关注
+      // 被查看的用户是管理员时不能取消关注
       if (this.isCommunityAdmin || this.isSystemAdmin) {
-        console.warn('⚠️ 管理员无法取消关注');
-        alert('管理员无法取消关注');
+        console.warn('⚠️ 管理员账户无法取消关注');
+        alert('管理员账户无法取消关注');
         return;
       }
       
@@ -980,10 +1176,10 @@ export default {
     },
     
     onArtworkSubmitted(artwork) {
-      // 管理员不能提交作品
+      // 被查看的用户是管理员时不能提交作品
       if (this.isCommunityAdmin || this.isSystemAdmin) {
-        console.warn('⚠️ 管理员无法提交作品');
-        alert('管理员无法提交作品');
+        console.warn('⚠️ 管理员账户无法提交作品');
+        alert('管理员账户无法提交作品');
         return;
       }
       
@@ -997,10 +1193,10 @@ export default {
     },
     
     handleEditWork(work) {
-      // 管理员不能编辑作品
+      // 被查看的用户是管理员时不能编辑作品
       if (this.isCommunityAdmin || this.isSystemAdmin) {
-        console.warn('⚠️ 管理员无法编辑作品');
-        alert('管理员无法编辑作品');
+        console.warn('⚠️ 管理员账户无法编辑作品');
+        alert('管理员账户无法编辑作品');
         return;
       }
       
@@ -1020,10 +1216,10 @@ export default {
     },
     
     handleDeleteWork(work) {
-      // 管理员不能删除作品
+      // 被查看的用户是管理员时不能删除作品
       if (this.isCommunityAdmin || this.isSystemAdmin) {
-        console.warn('⚠️ 管理员无法删除作品');
-        alert('管理员无法删除作品');
+        console.warn('⚠️ 管理员账户无法删除作品');
+        alert('管理员账户无法删除作品');
         return;
       }
       
@@ -1077,10 +1273,10 @@ export default {
     },
     
     handleToggleConcern({ userId, currentState }) {
-      // 管理员不能关注或取消关注
-      if (this.isCommunityAdmin || this.isSystemAdmin) {
-        console.warn('⚠️ 管理员无法进行关注操作');
-        alert('管理员无法进行关注操作');
+      // 当前登录用户是管理员时不能关注或取消关注
+      if (this.isLoggedInUserCommunityAdmin || this.isLoggedInUserSystemAdmin) {
+        console.warn('⚠️ 管理员账户无法进行关注操作');
+        alert('管理员账户无法进行关注操作');
         return;
       }
       

@@ -15,6 +15,16 @@ console.log('')
 module.exports = defineConfig({
   transpileDependencies: true,
   
+  // 设置页面标题
+  chainWebpack: config => {
+    config
+      .plugin('html')
+      .tap(args => {
+        args[0].title = 'PCOI - 探索精彩插画'
+        return args
+      })
+  },
+  
   devServer: {
     port: 8081, // 前端端口（避免和后端 8080 冲突）
     host: 'localhost', // 强制使用 localhost，避免 WebSocket 连接到局域网 IP

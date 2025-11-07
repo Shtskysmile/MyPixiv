@@ -1,6 +1,7 @@
 // Axios请求配置
 import axios from 'axios'
 import mockConfig from '@/config/mock.config'
+import router from '@/router'
 
 // 创建axios实例
 const service = axios.create({
@@ -23,9 +24,25 @@ service.interceptors.request.use(
     // 从localStorage获取token
     const token = localStorage.getItem('token')
     
-    // 注册和登录接口不需要token，其他接口才添加token
-    const noAuthUrls = ['/register', '/login']
-    const needsAuth = !noAuthUrls.some(url => config.url.includes(url))
+    // 不需要token的接口列表（根据WebConfig.java的excludePathPatterns配置）
+    const noAuthUrls = [
+      '/login',
+      '/register',
+      '/mySecurityIssues',
+      '/verifySecurityIssue',
+      '/updatePassword',
+      '/illustrations',
+      '/mangas',
+      '/search',
+      '/allContributions'
+    ]
+    
+    // 检查当前请求是否需要认证
+    const needsAuth = !noAuthUrls.some(url => {
+      // 移除 /api 前缀进行匹配
+      const urlWithoutApi = config.url.replace(/^\/api/, '')
+      return urlWithoutApi === url || urlWithoutApi.startsWith(url)
+    })
     
     if (token && needsAuth) {
       config.headers['Authorization'] = `Bearer ${token}`
@@ -58,9 +75,9 @@ service.interceptors.response.use(
     }
     
     const res = response.data
-    
-    // 根据后端返回的code判断
-    if (res.code === 200 || res.code === 0) {
+
+    // 根据后端返回的code判断：只有 code === 0 才是成功
+    if (res.code === 0) {
       return response
     } else {
       console.error('❌ 业务错误:', res.message || '未知错误')
@@ -72,26 +89,47 @@ service.interceptors.response.use(
     
     // 处理不同的HTTP状态码
     if (error.response) {
-      switch (error.response.status) {
+      const status = error.response.status
+      const currentPath = router.currentRoute.path
+      
+      switch (status) {
         case 401:
           console.error('❌ 未授权，请重新登录')
-          // 可以在这里跳转到登录页
-          // router.push('/login')
+          alert('您的登录已过期，请重新登录')
+          // 清除本地token
+          localStorage.removeItem('token')
+          localStorage.removeItem('userId')
+          localStorage.removeItem('userRole')
+          // 跳转到登录页，并记录当前路径用于登录后返回
+          if (currentPath !== '/login') {
+            router.push({
+              path: '/login',
+              query: { redirect: currentPath }
+            })
+          }
           break
         case 403:
-          console.error('❌ 拒绝访问')
+          console.error('❌ 拒绝访问：权限不足')
+          alert('您没有权限访问该资源')
+          // 403通常是权限问题，也跳转到登录页
+          if (currentPath !== '/login') {
+            router.push('/login')
+          }
           break
         case 404:
           console.error('❌ 请求的资源不存在')
+          // 404不需要跳转登录页
           break
         case 500:
           console.error('❌ 服务器内部错误')
+          alert('服务器内部错误，请稍后重试')
           break
         default:
-          console.error(`❌ 错误代码: ${error.response.status}`)
+          console.error(`❌ 错误代码: ${status}`)
       }
     } else if (error.request) {
       console.error('❌ 网络错误，请检查网络连接')
+      alert('网络连接失败，请检查网络设置')
     }
     
     return Promise.reject(error)
