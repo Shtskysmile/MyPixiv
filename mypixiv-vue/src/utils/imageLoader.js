@@ -30,8 +30,11 @@ export async function loadImage(imagePath) {
     return null;
   }
 
+  // 🔧 修复：将Windows路径分隔符 \ 替换为URL标准的 /
+  imagePath = imagePath.replace(/\\/g, '/');
+
   // 如果已经是完整的 URL 或 data URI，直接返回
-  if (imagePath.startsWith('data:') || imagePath.startsWith('blob:') || 
+  if (imagePath.startsWith('data:') || imagePath.startsWith('blob:') ||
       imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
     return imagePath;
   }
@@ -42,13 +45,13 @@ export async function loadImage(imagePath) {
     // 直接拼接基础 URL 即可访问
     const baseURL = process.env.VUE_APP_API_BASE_URL;
     const imageUrl = imagePath.startsWith('/') ? `${baseURL}${imagePath}` : `${baseURL}/${imagePath}`;
-    
+
     console.log('✅ 图片 URL 已生成:', imageUrl);
     return imageUrl;
 
   } catch (error) {
     console.error('❌ 生成图片 URL 失败:', imagePath, error);
-    
+
     // 发生错误时，尝试直接返回路径
     return imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
   }

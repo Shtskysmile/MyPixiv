@@ -6,10 +6,7 @@
           <div class="column is-4">
             <div class="box anime-login-box">
               <div class="logo-section">
-                <h1 class="title has-text-centered anime-title">
-                  <span class="icon is-large">✨</span>
-                  <span>PCOI</span>
-                </h1>
+                <h1 class="title has-text-centered anime-title">PCOI</h1>
                 <p class="subtitle has-text-centered anime-subtitle">欢迎回来！</p>
               </div>
               
@@ -172,7 +169,10 @@ export default {
         }
       } catch (err) {
         console.error('登录错误:', err);
-        this.error = err.response?.data?.message || '登录失败，请稍后重试';
+        // 优先使用 err.message（来自 request.js 的业务错误）
+        // 然后尝试 err.response?.data?.message（HTTP 错误）
+        // 最后使用默认消息
+        this.error = err.message || err.response?.data?.message || '登录失败，请稍后重试';
       } finally {
         this.loading = false;
       }
@@ -233,23 +233,8 @@ export default {
   background-clip: text;
   font-weight: 900;
   font-size: 2.5rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
   margin-bottom: 8px;
-  width: 100%;
   text-align: center;
-}
-
-.anime-title .icon {
-  font-size: 2rem;
-  animation: sparkle 2s ease-in-out infinite;
-}
-
-@keyframes sparkle {
-  0%, 100% { transform: scale(1) rotate(0deg); }
-  50% { transform: scale(1.2) rotate(180deg); }
 }
 
 .anime-subtitle {
