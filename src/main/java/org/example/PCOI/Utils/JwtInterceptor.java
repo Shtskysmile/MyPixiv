@@ -20,7 +20,6 @@ public class JwtInterceptor implements HandlerInterceptor {
     public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) throws Exception {
         String token = request.getHeader("Authorization");
         if (token != null && token.startsWith("Bearer ")) {
-            System.out.println("token: " + token);
             String userId = (String)TokenProcess.getAttributeFromToken(token, "userId");
             String operation = request.getRequestURI();
             String original = (String) request.getAttribute("jakarta.servlet.error.request_uri");
@@ -28,8 +27,6 @@ public class JwtInterceptor implements HandlerInterceptor {
             {
                 operation = original;
             }
-            System.out.println("userId: " + userId);
-            System.out.println("operation: " + operation);
             logService.logMethodExecution(userId, operation);
             token = token.substring(7);
             Map<String, Object> claims = JwtUtil.parseToken(token);
