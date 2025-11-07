@@ -16,20 +16,18 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${pcoi.upload.url-prefix:/files/}")
     private String uploadUrlPrefix;
 
-    private final RequestLoggingInterceptor requestLoggingInterceptor;
-    private final JwtInterceptor jwtInterceptor = new JwtInterceptor();
+    private final JwtInterceptor jwtInterceptor ;
     private final JwtUserInterceptor jwtUserInterceptor = new JwtUserInterceptor();
     private final JwtSysAdminInterceptor jwtSysAdminInterceptor = new JwtSysAdminInterceptor();
     private final JwtCommunityAdminInterceptor jwtCommunityAdminInterceptor = new JwtCommunityAdminInterceptor();
-    public WebConfig(RequestLoggingInterceptor requestLoggingInterceptor) {
-        this.requestLoggingInterceptor = requestLoggingInterceptor;
+    public WebConfig(JwtInterceptor jwtInterceptor) {
+        this.jwtInterceptor = jwtInterceptor;
     }
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-
-        // 统一日志拦截
-        registry.addInterceptor(requestLoggingInterceptor)
+        // 所有接口通用拦截器
+        registry.addInterceptor(jwtInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(
                     "/login",
@@ -39,29 +37,11 @@ public class WebConfig implements WebMvcConfigurer {
                     "/updatePassword",
                     "/illustrations",
                     "/mangas",
-                    "/search",
-                    // 静态资源
+                    "/searchById",
+                    "/searchByName",
+                    "/searchByTag",
                     "/files/**",
-                    "/img/**",
                     "/allContributions"
-                );
-
-        // 所有接口通用拦截器
-        registry.addInterceptor(jwtInterceptor)
-                .addPathPatterns("/**")
-                .excludePathPatterns(
-                        "/login",
-                        "/register",
-                        "/mySecurityIssues",
-                        "/verifySecurityIssue",
-                        "/updatePassword",
-                        "/illustrations",
-                        "/mangas",
-                        "/search",
-                        // 静态资源
-                        "/files/**",
-                        "/img/**",
-                        "/allContributions"
                 );
 
         // 普通用户接口
