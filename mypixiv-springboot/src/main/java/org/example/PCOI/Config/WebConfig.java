@@ -58,7 +58,9 @@ public class WebConfig implements WebMvcConfigurer {
                         "/updatePassword",
                         "/illustrations",
                         "/mangas",
-                        "/search",
+                        "/searchById",
+                        "/searchByName",
+                        "/searchByTag",
                         // 静态资源
                         "/files/**",
                         "/img/**",

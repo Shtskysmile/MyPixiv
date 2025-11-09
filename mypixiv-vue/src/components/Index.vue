@@ -47,37 +47,6 @@
               </div>
             </div>
             
-            <!-- 快速统计 -->
-            <div class="quick-stats">
-              <div class="stat-item">
-                <span class="stat-icon">🖼️</span>
-                <div class="stat-info">
-                  <span class="stat-value">{{ illustrationCount }}</span>
-                  <span class="stat-label">插画</span>
-                </div>
-              </div>
-              <div class="stat-item">
-                <span class="stat-icon">📚</span>
-                <div class="stat-info">
-                  <span class="stat-value">{{ mangaCount }}</span>
-                  <span class="stat-label">漫画</span>
-                </div>
-              </div>
-              <div class="stat-item">
-                <span class="stat-icon">👁️</span>
-                <div class="stat-info">
-                  <span class="stat-value">{{ totalViews }}</span>
-                  <span class="stat-label">浏览</span>
-                </div>
-              </div>
-              <div class="stat-item">
-                <span class="stat-icon">❤️</span>
-                <div class="stat-info">
-                  <span class="stat-value">{{ totalLikes }}</span>
-                  <span class="stat-label">点赞</span>
-                </div>
-              </div>
-            </div>
           </div>
 
           <!-- 加载状态 -->
@@ -169,18 +138,6 @@ export default {
         bottom: 0,
         zIndex: -2,
       };
-    },
-    illustrationCount() {
-      return this.images.filter(img => img.type === 0).length; // 0-插画
-    },
-    mangaCount() {
-      return this.images.filter(img => img.type === 1).length; // 1-漫画
-    },
-    totalViews() {
-      return this.images.reduce((sum, img) => sum + (img.viewCount || 0), 0);
-    },
-    totalLikes() {
-      return this.images.reduce((sum, img) => sum + (img.likeCount || 0), 0);
     }
   },
   methods: {
@@ -557,58 +514,6 @@ export default {
   animation: sparkle 2s ease-in-out infinite;
 }
 
-/* 快速统计 */
-.quick-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 16px;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  border-radius: 16px;
-  border: 2px solid rgba(102, 126, 234, 0.2);
-  transition: all 0.3s ease;
-}
-
-.stat-item:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
-  border-color: rgba(102, 126, 234, 0.4);
-}
-
-.stat-icon {
-  font-size: 36px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-}
-
-.stat-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.stat-value {
-  font-size: 24px;
-  font-weight: 800;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.stat-label {
-  font-size: 12px;
-  color: #9333ea;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
 /* 加载状态 */
 .loading-container {
   padding: 80px 20px !important;
@@ -775,10 +680,6 @@ export default {
     flex-direction: column;
     align-items: flex-start;
   }
-  
-  .quick-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
 
 @media (max-width: 768px) {
@@ -805,10 +706,6 @@ export default {
   
   .page-subtitle {
     font-size: 16px;
-  }
-  
-  .quick-stats {
-    grid-template-columns: repeat(2, 1fr);
   }
   
   .grid {

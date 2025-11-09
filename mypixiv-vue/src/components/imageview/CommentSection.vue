@@ -53,14 +53,14 @@
       <textarea 
         class="textarea anime-textarea" 
         v-model="localComment"
-        :placeholder="(isCommunityAdmin || isSystemAdmin) ? '管理员无法发表评论' : '说点什么吧...'"
+        :placeholder="isPending ? '待审核作品无法评论' : (isCommunityAdmin || isSystemAdmin) ? '管理员无法发表评论' : '说点什么吧...'"
         rows="4"
-        :disabled="isCommunityAdmin || isSystemAdmin"
+        :disabled="isCommunityAdmin || isSystemAdmin || isPending"
       ></textarea>
       <button 
         class="button anime-button is-primary submit-btn" 
         @click="handleSubmit"
-        :disabled="!localComment.trim() || isCommunityAdmin || isSystemAdmin"
+        :disabled="!localComment.trim() || isCommunityAdmin || isSystemAdmin || isPending"
       >
         <span class="icon">📤</span>
         <span>发送评论</span>
@@ -82,6 +82,10 @@ export default {
       default: false
     },
     isSystemAdmin: {
+      type: Boolean,
+      default: false
+    },
+    isPending: {
       type: Boolean,
       default: false
     }

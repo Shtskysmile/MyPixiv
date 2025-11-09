@@ -45,29 +45,6 @@
               </div>
             </div>
             
-            <div class="quick-stats">
-              <div class="stat-item illustration-stat">
-                <span class="stat-icon">🖼️</span>
-                <div class="stat-info">
-                  <span class="stat-value">{{ images.length }}</span>
-                  <span class="stat-label">插画</span>
-                </div>
-              </div>
-              <div class="stat-item illustration-stat">
-                <span class="stat-icon">👁️</span>
-                <div class="stat-info">
-                  <span class="stat-value">{{ totalViews }}</span>
-                  <span class="stat-label">浏览</span>
-                </div>
-              </div>
-              <div class="stat-item illustration-stat">
-                <span class="stat-icon">❤️</span>
-                <div class="stat-info">
-                  <span class="stat-value">{{ totalLikes }}</span>
-                  <span class="stat-label">点赞</span>
-                </div>
-              </div>
-            </div>
           </div>
 
           <!-- 加载状态 -->
@@ -158,12 +135,6 @@ export default {
         bottom: 0,
         zIndex: -2,
       };
-    },
-    totalViews() {
-      return this.images.reduce((sum, img) => sum + (img.viewCount || 0), 0);
-    },
-    totalLikes() {
-      return this.images.reduce((sum, img) => sum + (img.likeCount || 0), 0);
     }
   },
   methods: {
@@ -180,9 +151,9 @@ export default {
         // 后端成功状态：只有 code === 0 才是成功
         if (response.data?.code === 0) {
           this.images = response.data.data || [];
-          this.totalPage = Math.ceil(this.images.length / 35) || 1;
+            this.totalPage = Math.ceil(this.images.length / 35) || 1;
           console.log('✨ 成功加载插画数量:', this.images.length);
-        } else {
+          } else {
           console.warn('⚠️ 响应 code 不是 0:', response.data?.code);
           this.images = [];
         }
@@ -191,7 +162,7 @@ export default {
         console.error('❌ 错误详情:', err.response);
         this.images = [];
       } finally {
-        this.loading = false;
+          this.loading = false;
       }
     },
     getPageFromUrl() {

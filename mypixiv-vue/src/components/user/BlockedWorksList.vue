@@ -24,6 +24,17 @@
         <div class="work-info">
           <h4 class="work-title">{{ work.title }}</h4>
           <div class="work-meta">
+            <div class="avatar-container">
+              <img 
+                v-if="work.avatar" 
+                :src="getAvatarUrl(work.avatar)" 
+                class="author-avatar" 
+                @error="onAvatarError($event, work)" 
+              />
+              <div v-else class="author-avatar-placeholder">
+                {{ work.authorName ? work.authorName.charAt(0).toUpperCase() : 'U' }}
+              </div>
+            </div>
             <span class="author">
               <span class="icon">👤</span> {{ work.authorName }}
             </span>
@@ -76,8 +87,19 @@ export default {
       const baseURL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:8080';
       return `${baseURL}${imagePath}`;
     },
+    getAvatarUrl(avatarPath) {
+      if (!avatarPath) return '';
+      const baseURL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:8080';
+      return `${baseURL}${avatarPath}`;
+    },
     onImageError(e) {
       e.target.src = this.placeholderImg;
+    },
+    onAvatarError(e, work) {
+      // 将头像设置为空，触发显示首字母占位符
+      if (work) {
+        work.avatar = null;
+      }
     },
     viewDetail(work) {
       // 跳转到作品详情页，添加 blocked=true 查询参数
@@ -242,7 +264,36 @@ export default {
 }
 
 .work-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 8px;
+}
+
+.avatar-container {
+  flex-shrink: 0;
+}
+
+.author-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e5e7eb;
+}
+
+.author-avatar-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  border: 2px solid #e5e7eb;
 }
 
 .author {

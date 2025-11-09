@@ -50,7 +50,7 @@
             <span class="icon">👁️</span>
             <span>查看主页</span>
           </button>
-          <button class="anime-button is-small is-danger-outline" @click="handleUnfollow(follower)">
+          <button v-if="isOwnProfile" class="anime-button is-small is-danger-outline" @click="handleUnfollow(follower)">
             <span class="icon">💔</span>
             <span>取消关注</span>
           </button>

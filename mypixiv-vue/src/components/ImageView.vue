@@ -23,8 +23,8 @@
               @prev-page="prevPage"
               @next-page="nextPage"
               @go-to-page="goToPage"
-            />
-
+              />
+              
             <!-- 作品详情组件 -->
             <ArtworkDetails 
               :contribution="contribution"
@@ -38,13 +38,13 @@
                   :is-favorite="isFavorite"
                   :like-loading="likeLoading"
                   :favorite-loading="favoriteLoading"
-                  :disabled="isCommunityAdmin || isSystemAdmin"
+                  :disabled="isCommunityAdmin || isSystemAdmin || isPendingWork"
                   @toggle-like="toggleLike"
                   @toggle-favorite="toggleFavorite"
                 />
               </template>
             </ArtworkDetails>
-
+                
             <!-- 管理员面板组件 -->
             <AdminPanel 
               v-if="isCommunityAdmin"
@@ -57,20 +57,21 @@
               @block-work="blockWork"
               @unblock-work="unblockWork"
             />
-          </div>
-
+                </div>
+                
           <!-- 右侧：评论区 -->
           <div class="column">
             <CommentSection 
               :comments="comments"
               :is-community-admin="isCommunityAdmin"
               :is-system-admin="isSystemAdmin"
+              :is-pending="isPendingWork"
               @submit-comment="submitComment"
               @delete-comment="deleteComment"
-            />
-          </div>
-        </div>
-      </div>
+                    />
+                </div>
+                </div>
+                  </div>
     </section>
 
     <!-- 图片放大模态框 -->
@@ -86,15 +87,15 @@
         @mouseleave="endDrag"
         :style="{ cursor: isDragging ? 'grabbing' : (zoomLevel > 1 ? 'grab' : 'default') }"
       >
-        <img 
+                    <img 
           :src="modalImageSrc" 
           alt="modal-image" 
           :style="imageTransformStyle"
           @dragstart.prevent
         />
-      </div>
-    </div>
-
+                </div>
+              </div>
+              
     <!-- 驳回理由模态框 -->
     <div class="modal" :class="{ 'is-active': showDismissReasonModal }">
       <div class="modal-background" @click="closeDismissModal"></div>
@@ -102,7 +103,7 @@
         <header class="modal-card-head">
           <p class="modal-card-title">
             <span class="icon">❌</span> 驳回作品
-          </p>
+                </p>
           <button class="delete" aria-label="close" @click="closeDismissModal"></button>
         </header>
         <section class="modal-card-body">
@@ -111,26 +112,26 @@
               <span class="icon">📝</span> 驳回理由 <span class="has-text-danger">*</span>
             </label>
             <div class="control">
-              <textarea 
+                <textarea 
                 class="textarea anime-input" 
                 v-model="dismissalReason" 
                 placeholder="请详细说明驳回的原因，帮助作者改进..."
                 rows="5"
                 maxlength="500"
-              ></textarea>
+                ></textarea>
             </div>
             <p class="help">{{ dismissalReason.length }} / 500 字符</p>
           </div>
         </section>
         <footer class="modal-card-foot">
-          <button 
+                <button 
             class="button is-danger anime-button" 
             @click="dismissWork"
             :disabled="!dismissalReason.trim() || auditLoading"
-          >
+                >
             <span class="icon">❌</span>
             <span>{{ auditLoading ? '提交中...' : '确认驳回' }}</span>
-          </button>
+                </button>
           <button class="button anime-button" @click="closeDismissModal">取消</button>
         </footer>
       </div>
@@ -240,7 +241,7 @@ export default {
           originalPath = image[0] || '';
         } else {
           originalPath = image;
-        }
+      }
       }
 
       if (originalPath && this.loadedImages[originalPath]) {
@@ -258,6 +259,11 @@ export default {
     isSystemAdmin() {
       const role = localStorage.getItem('userRole');
       return role === '2';
+    },
+    
+    isPendingWork() {
+      // 判断是否为待审核作品（auditStatus === 0 或 URL中有 pending=true）
+      return this.contribution.auditStatus === 0 || this.$route.query.pending === 'true';
     },
     
     imageTransformStyle() {
@@ -446,7 +452,7 @@ export default {
         
         if (response.data?.code === 0 || response.data?.code === 200) {
           await this.refreshContributionData();
-        } else {
+      } else {
           alert(response.data?.message || '操作失败');
         }
       } catch (err) {
@@ -483,7 +489,7 @@ export default {
         
         if (response.data?.code === 0 || response.data?.code === 200) {
           await this.refreshContributionData();
-        } else {
+      } else {
           alert(response.data?.message || '操作失败');
         }
       } catch (err) {
@@ -518,7 +524,7 @@ export default {
         
         if (response.data?.code === 0 || response.data?.code === 200) {
           await this.refreshContributionData();
-          alert('评论成功！');
+      alert('评论成功！');
         } else {
           alert(response.data?.message || '评论失败');
         }
@@ -732,7 +738,7 @@ export default {
       if (!this.dismissalReason.trim()) {
         alert('请填写驳回理由');
         return;
-      }
+    }
       
       this.auditLoading = true;
       
@@ -751,7 +757,7 @@ export default {
           this.$router.push('/user');
         } else {
           alert('驳回失败: ' + (res.data?.message || '未知错误'));
-        }
+}
       } catch (error) {
         console.error('驳回失败:', error);
         alert('驳回失败，请稍后重试');
@@ -803,7 +809,7 @@ export default {
           this.contribution.status = 0;
         } else {
           alert('解封失败: ' + (res.data?.message || '未知错误'));
-        }
+}
       } catch (error) {
         console.error('解封失败:', error);
         alert('解封失败，请稍后重试');
@@ -815,8 +821,8 @@ export default {
     getImageUrl(imagePath) {
       if (!imagePath) {
         return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23ddd" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999"%3E暂无图片%3C/text%3E%3C/svg%3E';
-      }
-      
+}
+
       if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
         return imagePath;
       }
@@ -834,7 +840,7 @@ export default {
         });
       } else {
         console.warn('作者ID不存在，无法跳转');
-      }
+}
     }
   },
 };

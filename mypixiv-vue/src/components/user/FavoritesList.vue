@@ -8,43 +8,46 @@
     </div>
 
     <div class="favorites-grid" v-if="favorites.length > 0">
-      <div class="fav-card" v-for="fav in favorites" :key="fav.contributionId || fav.id">
-        <router-link :to="`/image/${fav.contributionId || fav.id}`" class="card-link">
-          <div class="card-image">
+      <div class="art-card anime-card" v-for="fav in favorites" :key="fav.contributionId || fav.id">
+        <div class="art-thumb-link" @click="viewDetail(fav)">
+          <div class="art-thumb">
             <img :src="getFavoriteImageUrl(fav)" :alt="fav.title" @error="onImageError" />
-            <div class="image-overlay">
-              <div class="overlay-stats">
-                <span class="stat-item">
-                  <i>👁️</i> {{ formatCount(fav.viewCount) }}
+            <div class="hover-overlay">
+              <div class="stats-overlay">
+                <span class="stat-item" v-if="fav.viewCount !== undefined">
+                  <i class="icon">👁️</i> {{ formatCount(fav.viewCount) }}
                 </span>
-                <span class="stat-item">
-                  <i>❤️</i> {{ formatCount(fav.likeCount) }}
+                <span class="stat-item" v-if="fav.likeCount !== undefined">
+                  <i class="icon">❤️</i> {{ formatCount(fav.likeCount) }}
+                </span>
+                <span class="stat-item" v-if="fav.favoriteCount !== undefined">
+                  <i class="icon">⭐</i> {{ formatCount(fav.favoriteCount) }}
                 </span>
               </div>
             </div>
           </div>
-        </router-link>
-
-        <div class="card-content">
-          <router-link :to="`/image/${fav.contributionId || fav.id}`" class="card-title">
+        </div>
+        <div class="art-meta">
+          <div class="art-title" @click="viewDetail(fav)">
             {{ fav.title || '无标题' }}
-          </router-link>
-          
-          <div class="card-author">
-            <img 
-              :src="getAvatarUrl(fav)" 
+          </div>
+          <div class="art-author">
+            <img
+              v-if="getAvatarUrl(fav)"
               class="author-avatar"
+              :src="getAvatarUrl(fav)"
+              :alt="fav.authorName || fav.authorId || 'author'"
               @error="onAvatarError"
             />
-            <span class="author-name">ID: {{ formatAuthorId(fav.authorId) }}</span>
+            <div v-else class="author-avatar-placeholder">
+              {{ fav.authorName ? fav.authorName.charAt(0).toUpperCase() : 'U' }}
+            </div>
+            <div class="author-info">
+              <span class="author-name" v-if="fav.authorName">{{ fav.authorName }}</span>
+              <span class="author-id">ID: {{ formatAuthorId(fav.authorId) }}</span>
+            </div>
           </div>
-
-          <div class="card-stats">
-            <span class="stat"><i>⭐</i> {{ formatCount(fav.favoriteCount) }}</span>
-            <span class="stat"><i>💬</i> {{ formatCount(fav.commentCount) }}</span>
-          </div>
-
-          <button class="anime-button is-small is-warning" @click="handleUnfavorite(fav)">
+          <button v-if="isOwnProfile" class="anime-button is-small is-warning" @click.stop="handleUnfavorite(fav)">
             <span class="icon">💔</span>
             <span>取消收藏</span>
           </button>
@@ -159,6 +162,9 @@ export default {
       const fullPath = avatarPath.startsWith('/') ? avatarPath : `/${avatarPath}`;
       return `${baseURL}${fullPath}`;
     },
+    viewDetail(fav) {
+      this.$router.push(`/image/${fav.contributionId || fav.id}`);
+    },
     handleUnfavorite(fav) {
       const title = fav.title || '此作品';
       const confirmed = confirm(`确定取消收藏《${title}》吗？`);
@@ -221,60 +227,72 @@ export default {
   gap: 20px;
 }
 
-.fav-card {
+/* 复用 ImageBlock.vue 的样式 */
+.anime-card {
   background: white;
   border-radius: 16px;
   overflow: hidden;
-  border: 2px solid rgba(147, 51, 234, 0.1);
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.08);
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 2px solid transparent;
 }
 
-.fav-card:hover {
+.anime-card:hover {
+  box-shadow: 0 12px 24px rgba(147, 51, 234, 0.2);
+  border-color: rgba(255, 105, 180, 0.3);
   transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(147, 51, 234, 0.2);
-  border-color: #a78bfa;
 }
 
-.card-link {
+.art-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.art-thumb-link {
   display: block;
   text-decoration: none;
+  cursor: pointer;
 }
 
-.card-image {
+.art-thumb {
   position: relative;
-  height: 200px;
   overflow: hidden;
+  height: 200px;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
-.card-image img {
+.art-thumb img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
   transition: transform 0.4s ease;
 }
 
-.fav-card:hover .card-image img {
+.anime-card:hover .art-thumb img {
   transform: scale(1.1);
 }
 
-.image-overlay {
+.hover-overlay {
   position: absolute;
-  bottom: 0;
+  top: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 100%);
-  padding: 12px;
+  bottom: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 50%);
   opacity: 0;
   transition: opacity 0.3s ease;
+  display: flex;
+  align-items: flex-end;
+  padding: 12px;
 }
 
-.fav-card:hover .image-overlay {
+.art-thumb:hover .hover-overlay {
   opacity: 1;
 }
 
-.overlay-stats {
+.stats-overlay {
   display: flex;
   gap: 16px;
   color: white;
@@ -286,67 +304,101 @@ export default {
   display: flex;
   align-items: center;
   gap: 4px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
-.card-content {
-  padding: 16px;
+.stat-item .icon {
+  font-size: 14px;
 }
 
-.card-title {
+.art-meta {
+  padding: 12px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.art-title {
   display: block;
   color: #6366f1;
   font-weight: 700;
-  font-size: 15px;
-  margin-bottom: 12px;
+  font-size: 14px;
   text-decoration: none;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   transition: color 0.2s ease;
+  cursor: pointer;
 }
 
-.card-title:hover {
+.art-title:hover {
   color: #a855f7;
   text-decoration: underline;
 }
 
-.card-author {
+.art-author {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
+  color: #6b7280;
+  font-size: 12px;
 }
 
 .author-avatar {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #e0e7ff;
+  transition: border-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.author-avatar-placeholder {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+  border: 2px solid #e0e7ff;
+  flex-shrink: 0;
+}
+
+.anime-card:hover .author-avatar,
+.anime-card:hover .author-avatar-placeholder {
+  border-color: #a78bfa;
+}
+
+.author-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .author-name {
-  font-size: 13px;
-  color: #6b7280;
   font-weight: 600;
+  color: #6366f1;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.card-stats {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 12px;
-  padding: 8px 0;
-  border-top: 1px solid rgba(147, 51, 234, 0.1);
-  border-bottom: 1px solid rgba(147, 51, 234, 0.1);
-}
-
-.stat {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 13px;
-  color: #6b7280;
-  font-weight: 600;
+.author-id {
+  font-weight: 500;
+  font-size: 11px;
+  color: #9ca3af;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .anime-button {
@@ -398,13 +450,29 @@ export default {
 }
 
 @media (max-width: 768px) {
-  .favorites-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
+  .anime-list-container {
+    padding: 20px;
   }
   
-  .card-image {
-    height: 150px;
+  .favorites-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .list-title {
+    font-size: 1.5rem;
+  }
+  
+  .art-thumb {
+    height: 160px;
+  }
+  
+  .stats-overlay {
+    font-size: 11px;
+    gap: 12px;
+  }
+  
+  .art-title {
+    font-size: 13px;
   }
 }
 </style>

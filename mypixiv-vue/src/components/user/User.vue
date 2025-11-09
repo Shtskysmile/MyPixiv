@@ -70,6 +70,7 @@
               :isOwnProfile="isOwnProfile" 
               :isConcerned="isConcerned"
               :isCommunityAdmin="isCurrentUserCommunityAdmin"
+              :isSystemAdmin="isCurrentUserSystemAdmin"
               :stats="userStats"
               @edit="openEdit" 
               @back="$router.push('/index')" 
@@ -357,12 +358,17 @@ export default {
       });
       return result;
     },
-    // 当前登录用户是否是社区管理员（用于判断是否显示封禁按钮）
+    // 当前登录用户是否是社区管理员
     isCurrentUserCommunityAdmin() {
-      const loggedInUserId = localStorage.getItem('userId');
       const currentUserRole = parseInt(localStorage.getItem('userRole') || '0');
-      // 只有当前登录用户是社区管理员（role=1或2），且不是查看自己的主页时，才显示封禁按钮
-      return (currentUserRole === 1 || currentUserRole === 2) && !this.isOwnProfile;
+      // 返回当前登录用户是否是社区管理员（role=1）
+      // 系统管理员（role=2）不算社区管理员
+      return currentUserRole === 1;
+    },
+    // 当前登录用户是否是系统管理员
+    isCurrentUserSystemAdmin() {
+      const currentUserRole = parseInt(localStorage.getItem('userRole') || '0');
+      return currentUserRole === 2;
     }
   },
   created() {

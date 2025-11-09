@@ -1,10 +1,21 @@
 <template>
   <div class="artwork-details anime-box">
-    <!-- 作品标题 -->
-    <h2 class="title is-4 anime-title-small">
-      <span class="icon">✨</span>
-      {{ contribution.title || '无标题' }}
-    </h2>
+    <!-- 作品标题和ID -->
+    <div class="title-id-section">
+      <h2 class="title is-4 anime-title-small">
+        <span class="icon">✨</span>
+        {{ contribution.title || '无标题' }}
+      </h2>
+      <div 
+        class="work-id clickable-work-id" 
+        @click="$emit('copy-id', contribution.contributionId, '作品ID')"
+        title="点击复制作品ID"
+      >
+        <span class="icon">🆔</span>
+        <span class="id-text"><strong>作品ID:</strong> {{ contribution.contributionId }}</span>
+        <span class="copy-icon-work">📋</span>
+      </div>
+    </div>
     
     <!-- 作者信息卡片 -->
     <div class="author-card">
@@ -202,6 +213,10 @@ export default {
   box-shadow: 0 8px 32px rgba(147, 51, 234, 0.12);
 }
 
+.title-id-section {
+  margin-bottom: 24px;
+}
+
 .anime-title-small {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   -webkit-background-clip: text;
@@ -211,8 +226,55 @@ export default {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
   font-size: 1.8rem;
+}
+
+.work-id {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6b7280;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.clickable-work-id {
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(102, 126, 234, 0.08);
+  transition: all 0.3s ease;
+  user-select: none;
+  display: inline-flex;
+  width: fit-content;
+}
+
+.clickable-work-id:hover {
+  background: rgba(102, 126, 234, 0.18);
+  color: #667eea;
+  transform: translateX(3px);
+}
+
+.clickable-work-id:active {
+  transform: scale(0.98);
+}
+
+.id-text {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.copy-icon-work {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  font-size: 12px;
+  margin-left: auto;
+}
+
+.clickable-work-id:hover .copy-icon-work {
+  opacity: 1;
 }
 
 /* 作者信息卡片 */

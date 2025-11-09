@@ -47,6 +47,17 @@
         <div class="work-info">
           <h4 class="work-title">{{ work.title }}</h4>
           <div class="work-meta">
+            <div class="avatar-container">
+              <img 
+                v-if="work.avatar" 
+                :src="getAvatarUrl(work.avatar)" 
+                class="author-avatar" 
+                @error="onAvatarError($event, work)" 
+              />
+              <div v-else class="author-avatar-placeholder">
+                {{ work.authorName ? work.authorName.charAt(0).toUpperCase() : 'U' }}
+              </div>
+            </div>
             <span class="author">
               <span class="icon">👤</span> {{ work.authorName }}
             </span>
@@ -74,6 +85,17 @@
         <div class="work-info">
           <h4 class="work-title">{{ work.title }}</h4>
           <div class="work-meta">
+            <div class="avatar-container">
+              <img 
+                v-if="work.avatar" 
+                :src="getAvatarUrl(work.avatar)" 
+                class="author-avatar" 
+                @error="onAvatarError($event, work)" 
+              />
+              <div v-else class="author-avatar-placeholder">
+                {{ work.authorName ? work.authorName.charAt(0).toUpperCase() : 'U' }}
+              </div>
+            </div>
             <span class="author">
               <span class="icon">👤</span> {{ work.authorName }}
             </span>
@@ -101,6 +123,17 @@
         <div class="work-info">
           <h4 class="work-title">{{ work.title }}</h4>
           <div class="work-meta">
+            <div class="avatar-container">
+              <img 
+                v-if="work.avatar" 
+                :src="getAvatarUrl(work.avatar)" 
+                class="author-avatar" 
+                @error="onAvatarError($event, work)" 
+              />
+              <div v-else class="author-avatar-placeholder">
+                {{ work.authorName ? work.authorName.charAt(0).toUpperCase() : 'U' }}
+              </div>
+            </div>
             <span class="author">
               <span class="icon">👤</span> {{ work.authorName }}
             </span>
@@ -163,8 +196,25 @@ export default {
       const baseURL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:8080';
       return `${baseURL}${imagePath}`;
     },
+    getAvatarUrl(avatarPath) {
+      if (!avatarPath) {
+        return 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="32" height="32"%3E%3Crect fill="%23ddd" width="32" height="32"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999" font-size="16"%3EU%3C/text%3E%3C/svg%3E';
+      }
+      if (avatarPath.startsWith('http://') || avatarPath.startsWith('https://')) {
+        return avatarPath;
+      }
+      const baseURL = process.env.VUE_APP_API_BASE_URL || 'http://localhost:8080';
+      const fullPath = avatarPath.startsWith('/') ? avatarPath : `/${avatarPath}`;
+      return `${baseURL}${fullPath}`;
+    },
     onImageError(e) {
       e.target.src = this.placeholderImg;
+    },
+    onAvatarError(e, work) {
+      // 将头像设置为空，触发显示首字母占位符
+      if (work) {
+        work.avatar = null;
+      }
     },
     viewDetail(work) {
       // 根据当前标签页判断作品状态
@@ -396,7 +446,36 @@ export default {
 }
 
 .work-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 8px;
+}
+
+.avatar-container {
+  flex-shrink: 0;
+}
+
+.author-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e5e7eb;
+}
+
+.author-avatar-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  border: 2px solid #e5e7eb;
 }
 
 .author {

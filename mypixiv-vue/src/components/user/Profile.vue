@@ -41,6 +41,18 @@
           <span>编辑资料</span>
         </button>
         
+        
+        <!-- 普通用户查看他人主页时显示关注/取消关注按钮（社区管理员和系统管理员不显示） -->
+        <button 
+          v-if="!isOwnProfile && !isCommunityAdmin && !isSystemAdmin && isConcerned !== undefined" 
+          class="anime-button" 
+          :class="isConcerned ? 'is-danger' : 'is-success'"
+          @click="toggleConcern"
+        >
+          <span class="icon">{{ isConcerned ? '💔' : '💖' }}</span>
+          <span>{{ isConcerned ? '取消关注' : '关注TA' }}</span>
+        </button>
+        
         <!-- 社区管理员查看他人主页时显示封禁/解封按钮 -->
         <button 
           v-if="!isOwnProfile && isCommunityAdmin" 
@@ -48,19 +60,8 @@
           :class="userData.status === 1 ? 'is-success' : 'is-danger'"
           @click="toggleBlockUser"
         >
-          <span class="icon">{{ userData.status === 1 ? '🔓' : '🚫' }}</span>
+          <span class="icon">{{ userData.status === 1 ? '🔓' : '🔒' }}</span>
           <span>{{ userData.status === 1 ? '解封用户' : '封禁用户' }}</span>
-        </button>
-        
-        <!-- 普通用户查看他人主页时显示关注/取消关注按钮 -->
-        <button 
-          v-if="!isOwnProfile && !isCommunityAdmin && isConcerned !== undefined" 
-          class="anime-button" 
-          :class="isConcerned ? 'is-danger' : 'is-success'"
-          @click="toggleConcern"
-        >
-          <span class="icon">{{ isConcerned ? '💔' : '💖' }}</span>
-          <span>{{ isConcerned ? '取消关注' : '关注TA' }}</span>
         </button>
         
         <button class="anime-button is-light" @click="$emit('back')">
@@ -70,8 +71,8 @@
       </div>
     </div>
 
-    <!-- 统计卡片 -->
-    <div class="stats-cards">
+    <!-- 统计卡片（普通用户才显示，社区管理员和系统管理员在自己主页不显示） -->
+    <div v-if="!isOwnProfile || (!isCommunityAdmin && !isSystemAdmin)" class="stats-cards">
       <div class="stat-card">
         <div class="stat-icon">👥</div>
         <div class="stat-content">
@@ -83,7 +84,7 @@
         <div class="stat-icon">💖</div>
         <div class="stat-content">
           <div class="stat-value">{{ stats.followers }}</div>
-          <div class="stat-label">粉丝</div>
+          <div class="stat-label">点赞</div>
         </div>
       </div>
       <div class="stat-card">
@@ -124,6 +125,10 @@ export default {
       default: true
     },
     isCommunityAdmin: {
+      type: Boolean,
+      default: false
+    },
+    isSystemAdmin: {
       type: Boolean,
       default: false
     },

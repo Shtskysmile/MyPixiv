@@ -47,13 +47,6 @@
             <span>搜索</span>
           </router-link>
         </li>
-        <li>
-          <a class="menu-item" @click="handleTagsClick">
-            <span class="icon">🏷️</span>
-            <span>标签</span>
-            <span class="badge coming-soon">即将开放</span>
-          </a>
-        </li>
       </ul>
     </div>
 
@@ -72,9 +65,6 @@ export default {
   methods: {
     handleRankingClick() {
       alert('排行榜功能即将开放，敬请期待！🏆');
-    },
-    handleTagsClick() {
-      alert('标签功能即将开放，敬请期待！🏷️');
     }
   }
 };

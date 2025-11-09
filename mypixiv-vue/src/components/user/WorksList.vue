@@ -4,11 +4,35 @@
       <h3 class="list-title anime-gradient-text">
         <span class="icon">🎨</span> {{ isOwnProfile ? '我的作品' : 'TA的作品' }}
       </h3>
-      <p class="list-subtitle">共 {{ total }} 个作品</p>
+      <p class="list-subtitle">共 {{ displayTotal }} 个作品</p>
     </div>
 
-    <!-- 待审核作品 -->
-    <div v-if="pendingWorks.length > 0" class="section-container">
+    <!-- 标签页切换 - 仅在查看自己主页时显示 -->
+    <div v-if="isOwnProfile" class="tabs is-centered is-boxed anime-tabs">
+      <ul>
+        <li :class="{ 'is-active': activeTab === 'pending' }" @click="activeTab = 'pending'">
+          <a>
+            <span class="icon">⏳</span>
+            <span>待审核 ({{ pendingWorks.length }})</span>
+          </a>
+        </li>
+        <li :class="{ 'is-active': activeTab === 'approved' }" @click="activeTab = 'approved'">
+          <a>
+            <span class="icon">✅</span>
+            <span>已通过 ({{ approvedWorks.length }})</span>
+          </a>
+        </li>
+        <li :class="{ 'is-active': activeTab === 'rejected' }" @click="activeTab = 'rejected'">
+          <a>
+            <span class="icon">❌</span>
+            <span>已驳回 ({{ rejectedWorks.length }})</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 待审核作品 - 仅在查看自己主页时显示 -->
+    <div v-if="isOwnProfile && activeTab === 'pending' && pendingWorks.length > 0" class="section-container">
       <div class="section-header pending-header">
         <span class="icon">⏳</span>
         <h4 class="section-title">待审核 ({{ pendingWorks.length }})</h4>
@@ -60,9 +84,16 @@
       </div>
     </div>
 
+    <!-- 待审核空状态 - 仅在查看自己主页时显示 -->
+    <div v-if="isOwnProfile && activeTab === 'pending' && pendingWorks.length === 0" class="empty-state">
+      <div class="empty-icon">📭</div>
+      <p class="empty-text">暂无待审核作品</p>
+    </div>
+
     <!-- 已通过作品 -->
-    <div v-if="approvedWorks.length > 0" class="section-container">
-      <div class="section-header approved-header">
+    <div v-if="(isOwnProfile && activeTab === 'approved' || !isOwnProfile) && approvedWorks.length > 0" class="section-container">
+      <!-- 分类标题仅在查看自己主页时显示 -->
+      <div v-if="isOwnProfile" class="section-header approved-header">
         <span class="icon">✅</span>
         <h4 class="section-title">已通过 ({{ approvedWorks.length }})</h4>
       </div>
@@ -84,7 +115,8 @@
                   </span>
                 </div>
               </div>
-              <div class="audit-badge">
+              <!-- 已通过徽章仅在查看自己主页时显示 -->
+              <div v-if="isOwnProfile" class="audit-badge">
                 <span class="badge badge-passed">✅ 已通过</span>
               </div>
             </div>
@@ -113,8 +145,14 @@
       </div>
     </div>
 
-    <!-- 已驳回作品 -->
-    <div v-if="rejectedWorks.length > 0" class="section-container">
+    <!-- 已通过空状态 -->
+    <div v-if="(isOwnProfile && activeTab === 'approved' || !isOwnProfile) && approvedWorks.length === 0" class="empty-state">
+      <div class="empty-icon">📭</div>
+      <p class="empty-text">暂无已通过作品</p>
+    </div>
+
+    <!-- 已驳回作品 - 仅在查看自己主页时显示 -->
+    <div v-if="isOwnProfile && activeTab === 'rejected' && rejectedWorks.length > 0" class="section-container">
       <div class="section-header rejected-header">
         <span class="icon">❌</span>
         <h4 class="section-title">已驳回 ({{ rejectedWorks.length }})</h4>
@@ -162,6 +200,13 @@
       </div>
     </div>
 
+    <!-- 已驳回空状态 - 仅在查看自己主页时显示 -->
+    <div v-if="isOwnProfile && activeTab === 'rejected' && rejectedWorks.length === 0" class="empty-state">
+      <div class="empty-icon">📭</div>
+      <p class="empty-text">暂无已驳回作品</p>
+    </div>
+
+    <!-- 总的空状态（没有任何作品） -->
     <div class="empty-state" v-if="works.length === 0">
       <div class="empty-icon">🎨</div>
       <p class="empty-text">还没有上传作品</p>
@@ -195,9 +240,22 @@ export default {
       default: true
     }
   },
+  data() {
+    return {
+      activeTab: 'pending'
+    };
+  },
   computed: {
     totalPages() {
       return Math.max(1, Math.ceil(this.total / this.pageSize));
+    },
+    // 显示的总数：查看他人主页时只显示已通过作品数量
+    displayTotal() {
+      if (this.isOwnProfile) {
+        return this.total;
+      } else {
+        return this.approvedWorks.length;
+      }
     },
     // 待审核作品 (auditStatus === 0)
     pendingWorks() {
@@ -422,6 +480,42 @@ export default {
 .list-subtitle {
   color: #6b7280;
   font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.anime-tabs {
+  margin-bottom: 32px;
+}
+
+.anime-tabs ul {
+  border-bottom: 3px solid rgba(147, 51, 234, 0.1);
+}
+
+.anime-tabs li {
+  transition: all 0.3s ease;
+}
+
+.anime-tabs li a {
+  border: 2px solid transparent;
+  border-radius: 12px 12px 0 0;
+  font-weight: 600;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #6b7280;
+}
+
+.anime-tabs li:hover a {
+  color: #6366f1;
+  background: rgba(147, 51, 234, 0.05);
+}
+
+.anime-tabs li.is-active a {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
 }
 
 .works-grid {
