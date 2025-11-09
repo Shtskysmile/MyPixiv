@@ -216,31 +216,35 @@ public class ContributionServiceImpl implements ContributionService {
 
     @Override
     public boolean uploadContribution(String userId, String title, Integer type, String description,List<String>tags, List<MultipartFile> images) {
-        if(userMapper.selectUserById(userId)==null)
-            return false;
-        Contribution newContribution = new Contribution();
-        newContribution.setAuthorId(userId);
-        newContribution.setTitle(title);
-        newContribution.setType(type);
-        newContribution.setDescription(description);
-        newContribution.setStatus(normal);
-        newContribution.setAuditStatus(pending);
-        newContribution.setViewCount(0);
-        newContribution.setFavoriteCount(0);
-        newContribution.setLikeCount(0);
-        newContribution.setCommentCount(0);
-        List<String> imagePath = fileStorageService.saveWorkImages(images,type,userId);
-        newContribution.setImage(imagePath);
-        contributionMapper.insertContribution(newContribution);
-        if(tags!=null){
-            for(String tagName:tags){
-                if(!tagMapper.isTagExist(tagName)){
-                    tagMapper.insertTag(tagName);
+        try {
+            if (userMapper.selectUserById(userId) == null)
+                return false;
+            Contribution newContribution = new Contribution();
+            newContribution.setAuthorId(userId);
+            newContribution.setTitle(title);
+            newContribution.setType(type);
+            newContribution.setDescription(description);
+            newContribution.setStatus(normal);
+            newContribution.setAuditStatus(pending);
+            newContribution.setViewCount(0);
+            newContribution.setFavoriteCount(0);
+            newContribution.setLikeCount(0);
+            newContribution.setCommentCount(0);
+            List<String> imagePath = fileStorageService.saveWorkImages(images, type, userId);
+            newContribution.setImage(imagePath);
+            contributionMapper.insertContribution(newContribution);
+            if (tags != null) {
+                for (String tagName : tags) {
+                    if (!tagMapper.isTagExist(tagName)) {
+                        tagMapper.insertTag(tagName);
+                    }
+                    Integer tagId = tagMapper.selectTagByName(tagName).getId();
+                    tagRelationMapper.insertTagRelation(newContribution.getContributionId(), tagId);
                 }
-                Integer tagId = tagMapper.selectTagByName(tagName).getId();
-                tagRelationMapper.insertTagRelation(newContribution.getContributionId(),tagId);
             }
+            return true;
+        }catch(IllegalArgumentException e){
+            throw new RuntimeException("上传作品失败，文件类型错误", e);
         }
-        return true;
     }
 }

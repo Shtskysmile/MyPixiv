@@ -128,11 +128,15 @@ public class ContributionController {
             @RequestParam("description") String description,
             @RequestPart(name = "tags", required = false) List<String> tags,
             @RequestPart(name = "images") List<MultipartFile> images) throws Exception {
-        String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
-        boolean ok = contributionService.uploadContribution(userId, title, type, description, tags,images);
-        if (ok) {
-            return Result.success("上传成功");
+        try {
+            String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
+            boolean ok = contributionService.uploadContribution(userId, title, type, description, tags, images);
+            if (ok) {
+                return Result.success("上传成功");
+            }
+            return Result.error("上传失败");
+        }catch (RuntimeException e){
+            return Result.error("上传失败:"+e.getMessage());
         }
-        return Result.error("上传失败");
     }
 }

@@ -20,11 +20,15 @@ public class SystemAdminController {
             @RequestParam ("newUsername") String newUsername,
             @RequestParam("newGender") Integer newGender,
             @RequestPart(name = "newAvatar", required = false) MultipartFile newAvatar) {
-        boolean ok = systemAdminService.updateUserInfo(userId, newUsername, newGender, newAvatar);
-        if (ok) {
-            return Result.success("更新用户信息成功");
+        try {
+            boolean ok = systemAdminService.updateUserInfo(userId, newUsername, newGender, newAvatar);
+            if (ok) {
+                return Result.success("更新用户信息成功");
+            }
+            return Result.error("更新用户信息失败");
+        }catch(RuntimeException e){
+            return Result.error(e.getMessage());
         }
-        return Result.error("更新用户信息失败");
     }
 
     @PostMapping("/systemAdmin/resetPassword")

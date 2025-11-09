@@ -27,31 +27,35 @@ public class SystemAdminServiceImpl implements SystemAdminService {
 
     @Override
     public boolean updateUserInfo(String userId, String newUsername, Integer newGender, MultipartFile newAvatar) {
-        // 1) 按 userId 查询目标用户
-        User user = usermapper.selectUserById(userId);
-        if(user == null) {
-            return false; // 用户不存在
-        }
-        // 2) 若提供了新用户名，校验是否被其他用户占用
-        if(newUsername!=null && !newUsername.isEmpty()) {
-            User existingUser = usermapper.selectUserByName(newUsername);
-            if (existingUser != null && !existingUser.getUserId().equals(userId)) {
-                return false; // 新用户名已被其他用户使用
+        try {
+            // 1) 按 userId 查询目标用户
+            User user = usermapper.selectUserById(userId);
+            if (user == null) {
+                return false; // 用户不存在
             }
-            user.setUsername(newUsername); // 覆盖用户名
+            // 2) 若提供了新用户名，校验是否被其他用户占用
+            if (newUsername != null && !newUsername.isEmpty()) {
+                User existingUser = usermapper.selectUserByName(newUsername);
+                if (existingUser != null && !existingUser.getUserId().equals(userId)) {
+                    return false; // 新用户名已被其他用户使用
+                }
+                user.setUsername(newUsername); // 覆盖用户名
+            }
+            // 3) 若提供了新性别，直接覆盖
+            if (newGender != null) {
+                user.setSex(newGender);
+            }
+            // 4) 若上传了新头像，保存文件并更新头像URL
+            if (newAvatar != null && !newAvatar.isEmpty()) {
+                String avatarUrl = fileStorageService.saveAvatar(newAvatar, userId);
+                user.setAvatar(avatarUrl);
+            }
+            // 5) 持久化更新
+            usermapper.updateUser(user);
+            return true;
+        }catch(RuntimeException e){
+            throw new RuntimeException("更新用户信息失败:"+e.getMessage());
         }
-        // 3) 若提供了新性别，直接覆盖
-        if(newGender != null) {
-            user.setSex(newGender);
-        }
-        // 4) 若上传了新头像，保存文件并更新头像URL
-        if(newAvatar != null && !newAvatar.isEmpty()) {
-            String avatarUrl = fileStorageService.saveAvatar(newAvatar,userId);
-            user.setAvatar(avatarUrl);
-        }
-        // 5) 持久化更新
-        usermapper.updateUser(user);
-        return true;
     }
 
     @Override

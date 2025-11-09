@@ -40,7 +40,7 @@ public class FileStorageService {
             String filename = saveOneFile(avatar, dir);
             return buildFileUrl(relFolder, filename);
         } catch (IOException e) {
-            throw new RuntimeException("保存头像失败", e);
+            throw new RuntimeException("仅支持图片类型文件", e);
         }
     }
 

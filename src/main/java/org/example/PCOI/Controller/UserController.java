@@ -22,11 +22,15 @@ public class UserController {
             @RequestParam("gender") Integer gender,
             @RequestPart(name = "SecurityIssues", required = false) List<R_SecurityIssue> SecurityIssues,
             @RequestPart(name = "avatar", required = false) MultipartFile avatar){
-        boolean success = userService.register(username, password, gender, SecurityIssues, avatar);
-        if (success) {
-            return Result.success("注册成功");
-        } else {
-            return Result.error("注册失败，用户名已存在");
+        try {
+            boolean success = userService.register(username, password, gender, SecurityIssues, avatar);
+            if (success) {
+                return Result.success("注册成功");
+            } else {
+                return Result.error("注册失败，用户名已存在");
+            }
+        }catch (RuntimeException e){
+            return Result.error(e.getMessage());
         }
     }
 
@@ -211,12 +215,16 @@ public class UserController {
             @RequestParam ("newUsername") String newUsername,
             @RequestParam("newGender") Integer newGender,
             @RequestPart(name = "newAvatar", required = false) MultipartFile newAvatar) throws Exception {
-        String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
-        boolean ok = userService.updateUserInfo(userId, newUsername, newGender, newAvatar);
-        if (ok) {
-            return Result.success("更新成功");
+        try {
+            String userId = (String) TokenProcess.getAttributeFromToken(authHeader, "userId");
+            boolean ok = userService.updateUserInfo(userId, newUsername, newGender, newAvatar);
+            if (ok) {
+                return Result.success("更新成功");
+            }
+            return Result.error("更新失败");
+        }catch(RuntimeException e){
+            return Result.error(e.getMessage());
         }
-        return Result.error("更新失败");
     }
 
     @PostMapping("/user/concernUser")

@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,28 +42,32 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean register(String username, String password, Integer gender, List<R_SecurityIssue> securityIssues, MultipartFile avatar) {
-        if (usermapper.selectUserByName(username) != null) {
-            return false; // 用户名已存在
+        try {
+            if (usermapper.selectUserByName(username) != null) {
+                return false; // 用户名已存在
+            }
+            User user = new User();
+            user.setUsername(username);
+            user.setPassword(BcryptUtil.hash(password));
+            user.setSex(gender);
+            user.setRole(normalUser);
+            user.setStatus(normal);
+            usermapper.insertUser(user);
+            user = usermapper.selectUserByName(username); // 获取插入后的用户以获取其 ID
+            // 仅当上传了头像时才覆盖数据库默认头像 URL
+            String avatarUrl = fileStorageService.saveAvatar(avatar, user.getUserId());
+            if (avatarUrl != null && !avatarUrl.isBlank()) {
+                user.setAvatar(avatarUrl);
+                usermapper.updateUser(user);
+            }
+            for (R_SecurityIssue issue : securityIssues) {
+                SecurityIssue securityIssue = transformService.transformRSecurityIssueToSecurityIssue(issue, user.getUserId());
+                securityissuemapper.insertSecurityIssue(securityIssue);
+            }
+            return true;
+        }catch(RuntimeException e){
+            throw new RuntimeException("仅支持图片类型文件", e);
         }
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword(BcryptUtil.hash(password));
-        user.setSex(gender);
-        user.setRole(normalUser);
-        user.setStatus(normal);
-        usermapper.insertUser(user);
-        user = usermapper.selectUserByName(username); // 获取插入后的用户以获取其 ID
-        // 仅当上传了头像时才覆盖数据库默认头像 URL
-        String avatarUrl = fileStorageService.saveAvatar(avatar, user.getUserId());
-        if (avatarUrl != null && !avatarUrl.isBlank()) {
-            user.setAvatar(avatarUrl);
-            usermapper.updateUser(user);
-        }
-        for(R_SecurityIssue issue : securityIssues) {
-            SecurityIssue securityIssue = transformService.transformRSecurityIssueToSecurityIssue(issue, user.getUserId());
-            securityissuemapper.insertSecurityIssue(securityIssue);
-        }
-        return true;
     }
 
     @Override
@@ -281,31 +286,34 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean updateUserInfo(String userId, String newUsername, Integer newGender, MultipartFile newAvatar) {
-        // 1) 查询用户是否存在
-        User user = usermapper.selectUserById(userId);
-        if(user == null) {
-            return false; // 用户不存在
-        }
-        // 2) 处理用户名变更：非空则校验唯一性
-        if(newUsername!=null && !newUsername.isEmpty()) {
-            User existingUser = usermapper.selectUserByName(newUsername);
-            if (existingUser != null && !existingUser.getUserId().equals(userId)) {
-                return false; // 新用户名已被其他用户使用
+        try {// 1) 查询用户是否存在
+            User user = usermapper.selectUserById(userId);
+            if (user == null) {
+                return false; // 用户不存在
             }
-            user.setUsername(newUsername);
+            // 2) 处理用户名变更：非空则校验唯一性
+            if (newUsername != null && !newUsername.isEmpty()) {
+                User existingUser = usermapper.selectUserByName(newUsername);
+                if (existingUser != null && !existingUser.getUserId().equals(userId)) {
+                    return false; // 新用户名已被其他用户使用
+                }
+                user.setUsername(newUsername);
+            }
+            // 3) 处理性别变更：入参不为空则覆盖
+            if (newGender != null) {
+                user.setSex(newGender);
+            }
+            // 4) 处理头像变更：仅当上传了新头像时才保存并覆盖为新 URL
+            if (newAvatar != null && !newAvatar.isEmpty()) {
+                String avatarUrl = fileStorageService.saveAvatar(newAvatar, userId);
+                user.setAvatar(avatarUrl);
+            }
+            // 5) 落库更新
+            usermapper.updateUser(user);
+            return true;
+        }catch(Exception e){
+            throw new RuntimeException("仅支持图片类型文件", e);
         }
-        // 3) 处理性别变更：入参不为空则覆盖
-        if(newGender != null) {
-            user.setSex(newGender);
-        }
-        // 4) 处理头像变更：仅当上传了新头像时才保存并覆盖为新 URL
-        if(newAvatar != null && !newAvatar.isEmpty()) {
-            String avatarUrl = fileStorageService.saveAvatar(newAvatar,userId);
-            user.setAvatar(avatarUrl);
-        }
-        // 5) 落库更新
-        usermapper.updateUser(user);
-        return true;
     }
 
     @Override
