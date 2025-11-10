@@ -345,6 +345,8 @@ export default {
         params.append('username', this.username);
         params.append('newPassword', this.newPassword);
 
+
+
         console.log('🔄 正在修改密码...');
         console.log('👤 用户名:', this.username);
         console.log('🔑 使用的Token:', this.tempToken);
@@ -358,7 +360,9 @@ export default {
         }
 
         try {
-          const res = await request.post('/updatePassword', params);
+          const token = localStorage.getItem('token');
+          const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+          const res = await request.post('/updatePassword', params, {headers});
         
           console.log('📥 修改密码响应:', res.data);
         
