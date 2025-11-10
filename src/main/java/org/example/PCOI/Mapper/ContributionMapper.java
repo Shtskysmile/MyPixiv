@@ -105,9 +105,9 @@ public interface ContributionMapper {
     @Select("""
         SELECT *
         FROM contribution
-        WHERE 
+        WHERE
             title LIKE CONCAT('%', #{titleKeyword}, '%')  -- 核心：子串匹配
-            AND status = 0 
+            AND status = 0
             AND auditStatus = 1
         ORDER BY publishTime DESC  -- 按时间倒序（最新优先）
         LIMIT #{limit}
