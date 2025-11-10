@@ -14,6 +14,7 @@ public class JwtSysAdminInterceptor implements HandlerInterceptor {
         String token = request.getHeader("Authorization");
         if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);
+            System.out.println("Received systoken: " + token);
             try {
                 Map<String, Object> claims = JwtUtil.parseToken(token);
                 Integer role = (Integer) claims.get("role");

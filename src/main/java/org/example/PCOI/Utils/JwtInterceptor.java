@@ -29,6 +29,7 @@ public class JwtInterceptor implements HandlerInterceptor {
             }
             logService.logMethodExecution(userId, operation);
             token = token.substring(7);
+            System.out.println("Received usertoken: " + token);
             Map<String, Object> claims = JwtUtil.parseToken(token);
             request.setAttribute("claims", claims);
             return true;

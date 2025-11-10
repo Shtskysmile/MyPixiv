@@ -42,6 +42,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean register(String username, String password, Integer gender, List<R_SecurityIssue> securityIssues, MultipartFile avatar) {
+        String contentType = avatar.getContentType();
+        if (contentType != null && !contentType.startsWith("image/")) {
+            throw new RuntimeException("仅支持图片类型文件");
+        }
         try {
             if (usermapper.selectUserByName(username) != null) {
                 return false; // 用户名已存在
@@ -220,6 +224,9 @@ public class UserServiceImpl implements UserService {
         List<Comment> comments = commentmapper.selectCommentsByAuthorId(userId);
         for(Comment comment : comments) {
             Contribution contribution = contributionmapper.selectContributionById(comment.getContribution());
+            if(contribution == null) {
+                continue; // 作品不存在，跳过该评论
+            }
             User contributionUser = usermapper.selectUserById(contribution.getAuthorId());
             User commentUser = usermapper.selectUserById(comment.getAuthor());
             R_OverviewContribution rOverviewContribution = transformService.transformContributionToROverviewContribution(contribution, contributionUser.getAvatar(), contributionUser.getUsername());

@@ -33,7 +33,7 @@ public class WebConfig implements WebMvcConfigurer {
                     "/login",
                     "/register",
                     "/mySecurityIssues",
-                    "/verifySecurityIssue",
+                    "/verifySecurityIssues",
                     "/updatePassword",
                     "/illustrations",
                     "/mangas",
