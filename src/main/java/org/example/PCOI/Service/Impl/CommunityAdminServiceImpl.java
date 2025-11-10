@@ -196,6 +196,11 @@ public class CommunityAdminServiceImpl implements CommunityAdminService {
         if(comment==null)
             return false;
         commentMapper.deleteCommentById(commentId);
+        Contribution contribution = contributionMapper.selectContributionById(comment.getContribution());
+        if(contribution!=null){
+            contribution.setCommentCount(Math.max(0,contribution.getCommentCount() - 1));
+            contributionMapper.updateContribution(contribution);
+        }
         return true;
     }
 }

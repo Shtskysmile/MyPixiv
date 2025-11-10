@@ -243,6 +243,11 @@ public class UserServiceImpl implements UserService {
             return false; // 评论不存在或用户无权限删除
         }
         commentmapper.deleteCommentById(commentId);
+        Contribution contribution = contributionmapper.selectContributionById(comment.getContribution());
+        if(contribution != null) {
+            contribution.setCommentCount(Math.max(0,contribution.getCommentCount() - 1));
+            contributionmapper.updateContribution(contribution);
+        }
         return true;
     }
 
