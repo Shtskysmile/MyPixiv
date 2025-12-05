@@ -46,6 +46,10 @@ service.interceptors.request.use(
     
     if (token && needsAuth) {
       config.headers['Authorization'] = `Bearer ${token}`
+      config.__withAuth = true
+    } else {
+      // 标记本次请求未携带认证，便于区分401是“未登录”还是“登录过期”
+      config.__withAuth = false
     }
     
     // 如果是FormData，删除默认的Content-Type，让浏览器自动设置（包括boundary）
@@ -94,20 +98,29 @@ service.interceptors.response.use(
       
       switch (status) {
         case 401:
-          console.error('❌ 未授权，请重新登录')
-          alert('您的登录已过期，请重新登录')
-          // 清除本地token
-          localStorage.removeItem('token')
-          localStorage.removeItem('userId')
-          localStorage.removeItem('userRole')
-          // 跳转到登录页，并记录当前路径用于登录后返回
-          if (currentPath !== '/login') {
-            router.push({
-              path: '/login',
-              query: { redirect: currentPath }
-            })
+          {
+            const sentWithAuth = error.config && error.config.__withAuth === true
+            const hasToken = !!localStorage.getItem('token')
+            if (sentWithAuth && hasToken) {
+              // 携带了过期/无效的令牌 —— 登录过期
+              console.error('❌ 未授权：登录已过期')
+              alert('您的登录已过期，请重新登录')
+              localStorage.removeItem('token')
+              localStorage.removeItem('userId')
+              localStorage.removeItem('userRole')
+            } else {
+              // 未携带认证信息 —— 未登录
+              console.error('❌ 未授权：未登录')
+              alert('您还未登录，请先登录')
+            }
+            if (currentPath !== '/login') {
+              router.push({
+                path: '/login',
+                query: { redirect: currentPath }
+              })
+            }
+            break
           }
-          break
         case 403:
           console.error('❌ 拒绝访问：权限不足')
           alert('您没有权限访问该资源')
