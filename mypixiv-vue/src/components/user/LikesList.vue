@@ -169,11 +169,7 @@ export default {
       this.$router.push(`/image/${like.contributionId || like.id}`);
     },
     handleUnlike(like) {
-      const title = like.title || '此作品';
-      const confirmed = confirm(`确定取消点赞《${title}》吗？`);
-      if (confirmed) {
-        this.$emit('unlike', like);
-      }
+      this.$emit('unlike', like);
     },
     onImageError(e) {
       const failedUrl = e.target.src;

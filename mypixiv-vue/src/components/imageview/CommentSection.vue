@@ -3,7 +3,6 @@
     <h3 class="title is-5 anime-title-small">
       <span class="icon">💬</span>
       评论区
-      <span class="comment-count-badge">{{ comments.length }}</span>
     </h3>
     
     <!-- 评论列表 -->

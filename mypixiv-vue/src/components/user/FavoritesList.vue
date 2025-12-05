@@ -166,11 +166,7 @@ export default {
       this.$router.push(`/image/${fav.contributionId || fav.id}`);
     },
     handleUnfavorite(fav) {
-      const title = fav.title || '此作品';
-      const confirmed = confirm(`确定取消收藏《${title}》吗？`);
-      if (confirmed) {
-        this.$emit('unfavorite', fav);
-      }
+      this.$emit('unfavorite', fav);
     },
     onImageError(e) {
       const failedUrl = e.target.src;
