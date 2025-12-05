@@ -108,6 +108,7 @@
                             class="file-input" 
                             type="file" 
                             accept="image/*" 
+                            ref="avatarInput"
                             @change="onFileChange"
                           >
                           <span class="file-cta">
@@ -242,18 +243,54 @@ export default {
   },
   methods: {
     onFileChange(e) {
-      const file = e.target.files[0];
-      if (file) {
-        this.avatarFile = file;
-        this.avatarFileName = file.name;
-        
-        // 创建预览
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          this.avatarPreview = evt.target.result;
-        };
-        reader.readAsDataURL(file);
+      const file = e.target.files && e.target.files[0];
+      if (!file) {
+        return;
       }
+
+      const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+
+      // 验证文件是否为图片类型
+      if (!file.type || !file.type.startsWith('image/')) {
+        this.error = '请选择图片格式的头像文件（jpg/png/gif/webp 等）';
+        this.avatarFile = null;
+        this.avatarFileName = '';
+        this.avatarPreview = '';
+        if (this.$refs.avatarInput) this.$refs.avatarInput.value = '';
+        return;
+      }
+
+      // 进一步限制常见图片类型
+      if (!allowedTypes.includes(file.type)) {
+        this.error = '不支持的图片格式，请上传 jpg/png/gif/webp 等常见图片';
+        this.avatarFile = null;
+        this.avatarFileName = '';
+        this.avatarPreview = '';
+        if (this.$refs.avatarInput) this.$refs.avatarInput.value = '';
+        return;
+      }
+
+      // 文件大小限制
+      if (file.size > MAX_SIZE) {
+        this.error = '图片文件过大，最大支持 5MB';
+        this.avatarFile = null;
+        this.avatarFileName = '';
+        this.avatarPreview = '';
+        if (this.$refs.avatarInput) this.$refs.avatarInput.value = '';
+        return;
+      }
+
+      this.error = '';
+      this.avatarFile = file;
+      this.avatarFileName = file.name;
+      
+      // 创建预览
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        this.avatarPreview = evt.target.result;
+      };
+      reader.readAsDataURL(file);
     },
     
     async handleRegister() {
@@ -353,7 +390,7 @@ export default {
         }
       } catch (err) {
         console.error('注册错误:', err);
-        this.error = err.response?.data?.message || '注册失败，请稍后重试';
+        this.error = (err && err.message) || (err && err.response && err.response.data && err.response.data.message) || '注册失败，请稍后重试';
       } finally {
         this.loading = false;
       }
