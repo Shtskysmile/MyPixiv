@@ -27,11 +27,11 @@ public interface UserMapper {
     List<User> selectFollowerUsersByUserId(String userId);
 
     @Select("""
-            SELECT * FROM user
-            WHERE MATCH(username) AGAINST(#{keyword} IN NATURAL LANGUAGE MODE)
-            ORDER BY MATCH(username) AGAINST(#{keyword} IN NATURAL LANGUAGE MODE) DESC
+            SELECT *
+            FROM user
+            WHERE username LIKE CONCAT('%', #{keyword}, '%')  -- 核心：子串匹配
             LIMIT #{limit}
-            """)
+        """)
     List<User> selectUsersByName(
             @Param("limit") int limit,
             @Param("keyword") String keyword
